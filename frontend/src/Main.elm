@@ -1,9 +1,12 @@
 module Main exposing (main)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onWithOptions, defaultOptions)
-import Json.Decode as Decode
+import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href)
+import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
+import Http
+import Json.Decode as Decode exposing (string, bool, int, float)
+import Json.Decode.Pipeline as Decode exposing (..)
+import Json.Encode as Encode
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
@@ -19,7 +22,7 @@ type alias Model =
 
 
 type alias AuthorRecognitionState =
-    { knownAuthorMode : InputMode }
+    { knownAuthorMode : InputMode, knownAuthorText : String }
 
 
 initialState : ( Model, Cmd Msg )
@@ -29,7 +32,7 @@ initialState =
             Navbar.initialState NavbarMsg
 
         defaultAuthorRecognition =
-            { knownAuthorMode = PasteText }
+            { knownAuthorMode = PasteText, knownAuthorText = fillerText1 }
     in
         ( { navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
@@ -59,6 +62,7 @@ type Msg
     = NoOp
     | NavbarMsg Navbar.State
     | ToggleKnownAuthorInputMode
+    | SetKnownAuthorText String
 
 
 {-| How our model should change when a message comes in
@@ -82,6 +86,16 @@ update msg model =
             in
                 ( { model | authorRecognition = new }, Cmd.none )
 
+        SetKnownAuthorText newText ->
+            let
+                old =
+                    model.authorRecognition
+
+                new =
+                    { old | knownAuthorText = newText }
+            in
+                ( { model | authorRecognition = new }, Cmd.none )
+
 
 {-| How the model is displayed
 -}
@@ -101,7 +115,12 @@ authorRecognitionView authorRecognition =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "Known Author" ]
                 , knownButtons
-                , textarea [ style [ ( "width", "100%" ) ] ] []
+                , textarea
+                    [ onInput SetKnownAuthorText
+                    , defaultValue authorRecognition.knownAuthorText
+                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                    ]
+                    []
                 ]
 
         separator =
@@ -182,3 +201,86 @@ main =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Navbar.subscriptions model.navbarState NavbarMsg
+
+
+fillerText1 =
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
+"""
+
+
+
+-- this is experimental stuff
+
+
+performAuthorRecognition : AuthorRecognitionState -> Cmd Msg
+performAuthorRecognition authorRecognition =
+    let
+        toServer =
+            { knownAuthorText = "", unknownAuthorText = "" }
+
+        body =
+            Http.jsonBody (encodeToServer toServer)
+    in
+        Http.post "https://example.com/" body decodeFromServer
+            |> Http.send (\_ -> NoOp)
+
+
+(=>) =
+    (,)
+
+
+{-| Request to the server
+
+Example JSON:
+{ "knownAuthorText": "lorem", "unknownAuthorText": "ipsum" }
+
+-}
+type alias ToServer =
+    { knownAuthorText : String, unknownAuthorText : String }
+
+
+{-| Response from the server
+
+Example JSON:
+{ "sameAuthor": true, "confidence": 0.67 }
+
+-}
+type alias FromServer =
+    { sameAuthor : Bool, confidence : Float }
+
+
+encodeToServer : ToServer -> Encode.Value
+encodeToServer toServer =
+    Encode.object
+        [ "knownAuthorText" => Encode.string toServer.knownAuthorText
+        , "unknownAuthorText" => Encode.string toServer.unknownAuthorText
+        ]
+
+
+decodeFromServer : Decode.Decoder FromServer
+decodeFromServer =
+    Decode.succeed FromServer
+        |> required "sameAuthor" bool
+        |> required "confidence" float
+
+
+
+{-
+
+   type Route
+       = Home
+       | AuthorRecognition
+       | Profiling
+
+
+   routeParser : Parser (Route -> a) a
+   routeParser =
+       oneOf
+           [ map Home top
+           , map AuthorRecognition (s "author-recognition")
+           , map AuthorProfiling (s "author-profiling")
+           ]
+
+
+   route = parsePath routeParser location
+-}
