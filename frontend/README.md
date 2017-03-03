@@ -6,8 +6,8 @@
 Assuming a recent version of `npm` (the same tool you use for the backend dependencies). 
 
 ```sh
-npm install -g elm # the elm compiler
-npm install -g elm-test # program that runs tests on our code base
+npm install -g elm # the elm compiler. You can also download an installer from https://guide.elm-lang.org/install.html
+npm install -g elm-test # optional: program that runs tests on our code base
 
 elm-package install # downloads all needed elm packages
 ``` 
@@ -16,7 +16,23 @@ The elm guide contains a section on [configuring your editor](https://guide.elm-
 
 If you want to modify the elm code, pleas install and use [elm-format](https://github.com/avh4/elm-format#installation-). 
 
+## Running the app 
 
+In a new terminal window run (in the `/frontend` directory)
+
+```
+elm-reactor
+```
+
+this should display 
+
+```
+Listening on http://localhost:8000
+```
+
+
+You can now browse to `http://localhost:8000/src/Main.elm` in your webbrowser to see the app.
+When you change the elm code, a refresh (f5) of the browser page will recompile and show the new version. 
 
 ## Architecture overview 
 
