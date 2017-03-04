@@ -2,8 +2,12 @@ const express = require( 'express' );
 const http = require( 'http' );
 const path = require( 'path' );
 
+import { appApi } from './src/api';
+
 const app = express( );
 const indexFile = 'index.html';
+
+app.use( "/api", appApi );
 
 app.use( express.static( 'public_html' ) );
 

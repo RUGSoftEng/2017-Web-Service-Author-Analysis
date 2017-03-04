@@ -6,7 +6,7 @@
 
 ### Author Recognition 
 
-**endpoint**: TBD 
+**endpoint**: /api/attribution 
 
 ```elm
 {-| Request to the server
