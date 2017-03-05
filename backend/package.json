@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run build:live",
-    "build:live": "nodemon --exec \"node_modules\\.bin\\ts-node\" -- \"index.ts\""
+    "build:windows": "nodemon --exec \"node_modules\\.bin\\ts-node\" -- \"index.ts\"",
+    "build:linux": "nodemon --exec \"node_modules/.bin/ts-node\" -- \"index.ts\""
   },
   "keywords": [],
   "author": "",

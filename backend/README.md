@@ -17,8 +17,12 @@ Instructions on how to set up a development environment.
   This installs all node dependencies (in `node_modules`)
 
 ### Running the webserver
-In terminal, from the directory of the repository, run `npm start`.
-This starts the webserver (on port 80), and will restart the webserver whenever a change is made.
+In terminal, from the directory of the repository, run one of the following:
+
+* `npm run build:windows` - If you are using Microsoft Windows
+* `npm run build:linux` - If you are using a *nix based system
+
+This starts the webserver (on port 8080), and will restart the webserver whenever a change is made.
 The web application can be accessed by going to [http://localhost/](http://localhost/).
 
 ## Directory structure
