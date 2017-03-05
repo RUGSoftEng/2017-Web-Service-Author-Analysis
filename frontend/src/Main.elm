@@ -22,7 +22,8 @@ type alias Model =
 
 
 type alias AuthorRecognitionState =
-    { knownAuthorMode : InputMode, knownAuthorText : String }
+    { knownAuthorMode : InputMode, knownAuthorText : String,
+      unknownAuthorMode : InputMode, unknownAuthorText : String }
 
 
 initialState : ( Model, Cmd Msg )
@@ -32,7 +33,8 @@ initialState =
             Navbar.initialState NavbarMsg
 
         defaultAuthorRecognition =
-            { knownAuthorMode = PasteText, knownAuthorText = fillerText1 }
+            { knownAuthorMode = PasteText, knownAuthorText = fillerText1,
+              unknownAuthorMode = PasteText, unknownAuthorText = fillerText2 }
     in
         ( { navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
@@ -62,7 +64,9 @@ type Msg
     = NoOp
     | NavbarMsg Navbar.State
     | ToggleKnownAuthorInputMode
+    | ToggleUnknownAuthorInputMode
     | SetKnownAuthorText String
+    | SetUnknownAuthorText String
 
 
 {-| How our model should change when a message comes in
@@ -86,6 +90,16 @@ update msg model =
             in
                 ( { model | authorRecognition = new }, Cmd.none )
 
+        ToggleUnknownAuthorInputMode ->
+            let
+                old =
+                    model.authorRecognition
+
+                new =
+                    { old | unknownAuthorMode = toggleInputMode old.unknownAuthorMode }
+            in
+                ( { model | authorRecognition = new }, Cmd.none )
+
         SetKnownAuthorText newText ->
             let
                 old =
@@ -95,6 +109,16 @@ update msg model =
                     { old | knownAuthorText = newText }
             in
                 ( { model | authorRecognition = new }, Cmd.none )
+        SetUnknownAuthorText newText ->
+            let
+                old =
+                    model.authorRecognition
+
+                new =
+                    { old | unknownAuthorText = newText }
+            in
+                ( { model | authorRecognition = new }, Cmd.none )
+
 
 
 {-| How the model is displayed
@@ -123,6 +147,18 @@ authorRecognitionView authorRecognition =
                     []
                 ]
 
+        unknownAuthorInput =
+            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                [ h2 [] [ text "Unknown Author" ]
+                , unknownButtons
+                , textarea
+                    [ onInput SetUnknownAuthorText
+                    , defaultValue authorRecognition.unknownAuthorText
+                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                    ]
+                    []
+                ]
+
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ] [ text "compare with" ]
 
@@ -134,6 +170,16 @@ authorRecognitionView authorRecognition =
                 radioButtons "known-author-inputmode"
                     [ ( pasteText, ToggleKnownAuthorInputMode, [ text "Paste Text" ] )
                     , ( not pasteText, ToggleKnownAuthorInputMode, [ text "Upload File" ] )
+                    ]
+
+        unknownButtons =
+            let
+                pasteText =
+                    authorRecognition.unknownAuthorMode == PasteText
+            in
+                radioButtons "unknown-author-inputmode"
+                    [ ( pasteText, ToggleUnknownAuthorInputMode, [ text "Paste Text" ] )
+                    , ( not pasteText, ToggleUnknownAuthorInputMode, [ text "Upload File" ] )
                     ]
     in
         div []
@@ -147,7 +193,7 @@ authorRecognitionView authorRecognition =
                 [ Grid.row [ Row.topXs ]
                     [ knownAuthorInput
                     , separator
-                      -- unknownAuthorInput goes here
+                    , unknownAuthorInput
                     ]
                 ]
             ]
@@ -207,7 +253,9 @@ fillerText1 =
     """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
 """
 
-
+fillerText2 =
+    """This is the update of Unknown Author.
+"""
 
 -- this is experimental stuff
 
