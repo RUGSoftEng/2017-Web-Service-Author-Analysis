@@ -17,7 +17,7 @@ Instructions on how to set up a development environment.
   This installs all node dependencies (in `node_modules`)
 
 ### Running the webserver
-In terminal, from the directory of the repository, run one of the following:
+In terminal, in the `backend` folder, run one of the following:
 
 * `npm run build:windows` - If you are using Microsoft Windows
 * `npm run build:linux` - If you are using a *nix based system
