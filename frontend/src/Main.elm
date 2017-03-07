@@ -22,8 +22,11 @@ type alias Model =
 
 
 type alias AuthorRecognitionState =
-    { knownAuthorMode : InputMode, knownAuthorText : String,
-      unknownAuthorMode : InputMode, unknownAuthorText : String }
+    { knownAuthorMode : InputMode
+    , knownAuthorText : String
+    , unknownAuthorMode : InputMode
+    , unknownAuthorText : String
+    }
 
 
 initialState : ( Model, Cmd Msg )
@@ -33,8 +36,11 @@ initialState =
             Navbar.initialState NavbarMsg
 
         defaultAuthorRecognition =
-            { knownAuthorMode = PasteText, knownAuthorText = fillerText1,
-              unknownAuthorMode = PasteText, unknownAuthorText = fillerText2 }
+            { knownAuthorMode = PasteText
+            , knownAuthorText = fillerText1
+            , unknownAuthorMode = PasteText
+            , unknownAuthorText = fillerText2
+            }
     in
         ( { navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
@@ -67,6 +73,7 @@ type Msg
     | ToggleUnknownAuthorInputMode
     | SetKnownAuthorText String
     | SetUnknownAuthorText String
+    | ServerResponse (Result Http.Error FromServer)
 
 
 {-| How our model should change when a message comes in
@@ -75,7 +82,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( model, Cmd.none )
+            ( model
+            , performAuthorRecognition model.authorRecognition
+            )
+
+        ServerResponse resp ->
+            let
+                _ =
+                    Debug.log "response" resp
+            in
+                ( model, Cmd.none )
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
@@ -109,6 +125,7 @@ update msg model =
                     { old | knownAuthorText = newText }
             in
                 ( { model | authorRecognition = new }, Cmd.none )
+
         SetUnknownAuthorText newText ->
             let
                 old =
@@ -118,7 +135,6 @@ update msg model =
                     { old | unknownAuthorText = newText }
             in
                 ( { model | authorRecognition = new }, Cmd.none )
-
 
 
 {-| How the model is displayed
@@ -253,9 +269,12 @@ fillerText1 =
     """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
 """
 
+
 fillerText2 =
     """This is the update of Unknown Author.
 """
+
+
 
 -- this is experimental stuff
 
@@ -264,17 +283,25 @@ performAuthorRecognition : AuthorRecognitionState -> Cmd Msg
 performAuthorRecognition authorRecognition =
     let
         toServer =
-            { knownAuthorText = "", unknownAuthorText = "" }
+            { knownAuthorText = authorRecognition.knownAuthorText, unknownAuthorText = authorRecognition.unknownAuthorText }
 
         body =
             Http.jsonBody (encodeToServer toServer)
     in
-        Http.post "https://example.com/" body decodeFromServer
-            |> Http.send (\_ -> NoOp)
+        Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeFromServer
+            |> Http.send ServerResponse
 
 
 (=>) =
     (,)
+
+
+webserverUrl =
+    "http://0.0.0.0:8080"
+
+
+authorRecognitionEndpoint =
+    "/api/attribution"
 
 
 {-| Request to the server
@@ -332,3 +359,4 @@ decodeFromServer =
 
    route = parsePath routeParser location
 -}
+-- access-control-allow-origin
