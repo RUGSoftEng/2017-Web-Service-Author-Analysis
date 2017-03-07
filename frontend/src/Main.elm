@@ -83,6 +83,7 @@ type Msg
     = NoOp
     | NavbarMsg Navbar.State
     | ChangeRoute Route
+    | UploadAuthorRecognition
     | ToggleKnownAuthorInputMode
     | ToggleUnknownAuthorInputMode
     | SetKnownAuthorText String
@@ -97,7 +98,7 @@ update msg model =
     case msg of
         NoOp ->
             ( model
-            , performAuthorRecognition model.authorRecognition
+            , Cmd.none
             )
 
         ServerResponse resp ->
@@ -120,6 +121,9 @@ update msg model =
 
         ChangeRoute newRoute ->
             ( { model | route = newRoute }, Cmd.none )
+
+        UploadAuthorRecognition ->
+          ( model, performAuthorRecognition model.authorRecognition )
 
         ToggleKnownAuthorInputMode ->
             let
@@ -201,8 +205,8 @@ authorRecognitionView authorRecognition =
                     ]
                     []
                 ]
-        
-        result = 
+
+        result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
                     , case authorRecognition.result of
@@ -213,7 +217,8 @@ authorRecognitionView authorRecognition =
                             text (toString a)
                 ]
         separator =
-            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ] [ text "compare with" ]
+            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
+                     [ button [ onClick UploadAuthorRecognition ] [ text "compare with" ]  ]
 
         knownButtons =
             let
