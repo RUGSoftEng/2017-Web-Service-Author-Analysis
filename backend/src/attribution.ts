@@ -1,25 +1,18 @@
 const router = require( 'express' ).Router( );
 const concat = require( 'concat-stream' );
+const cors   = require( 'cors' );
 import { FromClient, ToClient } from './attribution/network_interface';
 import { Attributor } from './attribution/attributor';
 
 const attributor = new Attributor( );
 
-router.post( "/attribution", (req,res,next) => {
+router.use( '/attribution', cors( { allowedHeaders: [ 'Origin', 'X-Requested-With', 'Content-Type', 'Accept' ] } ) );
 
-  // enable cross-origin resource sharing (CORS) 
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, content-type, Accept");
-
+router.post( '/attribution', (req,res,next) => {
   req.pipe( concat( (data) => {
-
-    
     let request: FromClient = JSON.parse( data.toString( 'utf8' ) );
-
-    console.log(request);
     
     res.contentType( 'text/plain' );
-
     
     attributor.handleRequest( request, ( out: any ): void => {
       res.send( JSON.stringify( out ) );
@@ -27,15 +20,6 @@ router.post( "/attribution", (req,res,next) => {
     
   } ) );
 } );
-
-router.options( '/attribution', (req,res,next) => {
-   // for CORS
-   res.header("Access-Control-Allow-Origin", "*");
-   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-   res.send();
-} );
-
-
 
 router.get( '/attribution', (req,res,next) => {
   res.contentType( 'text/plain' );
