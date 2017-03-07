@@ -18,7 +18,7 @@ import Bootstrap.Grid.Col as Col
 {-| Our model of the world
 -}
 type alias Model =
-    { navbarState : Navbar.State, authorRecognition : AuthorRecognitionState }
+    { navbarState : Navbar.State, authorRecognition : AuthorRecognitionState, result : Maybe FromServer }
 
 
 type alias AuthorRecognitionState =
@@ -44,7 +44,8 @@ initialState =
     in
         ( { navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
-          }
+          , result = Nothing
+        }
         , navbarCmd
         )
 
@@ -87,11 +88,11 @@ update msg model =
             )
 
         ServerResponse resp ->
-            let
-                _ =
-                    Debug.log "response" resp
-            in
+            case resp of
+              Err error ->
                 ( model, Cmd.none )
+              Ok fromServer ->
+                  ( { model | result = Just fromServer }, Cmd.none )
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
