@@ -12,8 +12,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/concat-stream": "^1.6.0",
+    "@types/cors": "^2.8.0",
     "@types/express": "^4.0.35",
     "@types/node": "^7.0.5",
+    "concat-stream": "^1.6.0",
     "cors": "^2.8.1",
     "express": "^4.15.0",
     "nodemon": "^1.11.0",
