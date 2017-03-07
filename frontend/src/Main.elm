@@ -18,7 +18,7 @@ import Bootstrap.Grid.Col as Col
 {-| Our model of the world
 -}
 type alias Model =
-    { route : Route, navbarState : Navbar.State, authorRecognition : AuthorRecognitionState, result : Maybe FromServer }
+    { route : Route, navbarState : Navbar.State, authorRecognition : AuthorRecognitionState }
 
 
 type alias AuthorRecognitionState =
@@ -26,6 +26,7 @@ type alias AuthorRecognitionState =
     , knownAuthorText : String
     , unknownAuthorMode : InputMode
     , unknownAuthorText : String
+    , result : Maybe FromServer
     }
 
 type Route
@@ -50,13 +51,13 @@ initialState =
             , knownAuthorText = fillerText1
             , unknownAuthorMode = PasteText
             , unknownAuthorText = fillerText2
+            , result = Just { sameAuthor = True, confidence = 0.5 }
             }
     in
         ( { route = Home
           , navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
-          , result = Nothing
-        }
+          }
         , navbarCmd
         )
 
@@ -101,10 +102,18 @@ update msg model =
 
         ServerResponse resp ->
             case resp of
-              Err error ->
-                ( model, Cmd.none )
-              Ok fromServer ->
-                  ( { model | result = Just fromServer }, Cmd.none )
+                Err error ->
+                    ( model, Cmd.none )
+
+                Ok fromServer ->
+                    let
+                        old =
+                            model.authorRecognition
+
+                        new =
+                            { old | result = Just fromServer }
+                    in
+                        ( { model | authorRecognition = new }, Cmd.none )
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
@@ -192,7 +201,17 @@ authorRecognitionView authorRecognition =
                     ]
                     []
                 ]
+        
+        result = 
+            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                [ h2 [] [ text "result: " ]
+                    , case authorRecognition.result of
+                        Nothing ->
+                            text ""
 
+                        Just a ->
+                            text (toString a)
+                ]
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ] [ text "compare with" ]
 
@@ -225,6 +244,8 @@ authorRecognitionView authorRecognition =
                 ]
             , Grid.container []
                 [ Grid.row [ Row.topXs ]
+                    [ result ]
+                , Grid.row [ Row.topXs ]
                     [ knownAuthorInput
                     , separator
                     , unknownAuthorInput
@@ -284,12 +305,12 @@ subscriptions model =
 
 
 fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D
 """
 
 
 fillerText2 =
-    """This is the update of Unknown Author.
+    """This is the update of Unknown Author.\x0D
 """
 
 
