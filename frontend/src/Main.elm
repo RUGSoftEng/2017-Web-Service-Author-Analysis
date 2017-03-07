@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href)
+import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src)
 import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
 import Http
 import Json.Decode as Decode exposing (string, bool, int, float)
@@ -29,16 +29,22 @@ type alias AuthorRecognitionState =
     , result : Maybe FromServer
     }
 
+
 type Route
-     = Home
-       | AuthorRecognition
-       | Profiling
+    = Home
+    | AuthorRecognition
+    | Profiling
+
 
 homeView : Html msg
-homeView = text "home"
+homeView =
+    text "home"
+
 
 profilingView : Html msg
-profilingView = text "profiling"
+profilingView =
+    text "profiling"
+
 
 initialState : ( Model, Cmd Msg )
 initialState =
@@ -54,7 +60,7 @@ initialState =
             , result = Just { sameAuthor = True, confidence = 0.5 }
             }
     in
-        ( { route = Home
+        ( { route = AuthorRecognition
           , navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
           }
@@ -123,7 +129,7 @@ update msg model =
             ( { model | route = newRoute }, Cmd.none )
 
         UploadAuthorRecognition ->
-          ( model, performAuthorRecognition model.authorRecognition )
+            ( model, performAuthorRecognition model.authorRecognition )
 
         ToggleKnownAuthorInputMode ->
             let
@@ -172,12 +178,41 @@ view : Model -> Html Msg
 view model =
     div []
         [ CDN.stylesheet
+        , node "style"
+            []
+            [ text """
+.btn-primary.active {
+    background-color: #DC002D;
+    border-color: #DC002D;
+    }
+
+.btn-primary {
+    background-color: #A90023;
+    border-color: #A90023;
+    }
+
+.btn-primary:hover {
+    background-color: #DC002D;
+    border-color: #DC002D;
+    }
+
+
+
+        """
+            ]
         , navbar model
         , case model.route of
-              Home -> homeView
-              AuthorRecognition -> authorRecognitionView model.authorRecognition
-              Profiling -> profilingView
+            Home ->
+                homeView
+
+            AuthorRecognition ->
+                authorRecognitionView model.authorRecognition
+
+            Profiling ->
+                profilingView
+        , footer [ class "footer" ] [ footerbar model ]
         ]
+
 
 authorRecognitionView : AuthorRecognitionState -> Html Msg
 authorRecognitionView authorRecognition =
@@ -209,16 +244,17 @@ authorRecognitionView authorRecognition =
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
-                    , case authorRecognition.result of
-                        Nothing ->
-                            text ""
+                , case authorRecognition.result of
+                    Nothing ->
+                        text ""
 
-                        Just a ->
-                            text (toString a)
+                    Just a ->
+                        text (toString a)
                 ]
+
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
-                     [ button [ onClick UploadAuthorRecognition ] [ text "compare with" ]  ]
+                [ Button.button [ Button.primary, Button.attrs [ onClick UploadAuthorRecognition ] ] [ text "compare with" ] ]
 
         knownButtons =
             let
@@ -286,10 +322,30 @@ navbar ({ navbarState } as model) =
     Navbar.config NavbarMsg
         |> Navbar.inverse
         |> Navbar.withAnimation
-        |> Navbar.brand [ href "#", onClick (ChangeRoute Home) ] [ text "Home" ]
+        |> Navbar.brand [ href "#", onClick (ChangeRoute Home) ] [ text "Author Analysis | " ]
         |> Navbar.items
-            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "Author Recognition" ]
+            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "Attribution" ]
             , Navbar.itemLink [ href "#", onClick (ChangeRoute Profiling) ] [ text "Profiling" ]
+            ]
+        |> Navbar.view navbarState
+
+
+footerbar : Model -> Html Msg
+footerbar ({ navbarState } as model) =
+    Navbar.config NavbarMsg
+        |> Navbar.inverse
+        |> Navbar.fixBottom
+        |> Navbar.withAnimation
+        |> Navbar.items
+            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "" ]
+            ]
+        |> Navbar.customItems
+            [ Navbar.customItem <|
+                div
+                    [ href "#"
+                    , class "pull-right"
+                    ]
+                    [ img [ src "https://nestor.rug.nl/branding/themes/student-portal-2016/rugimg/rug_logo_en.png", class "d-inline-block align-top", style [ "height" => "30px" ] ] [] ]
             ]
         |> Navbar.view navbarState
 
@@ -382,7 +438,9 @@ decodeFromServer =
         |> required "sameAuthor" bool
         |> required "confidence" float
 
-{-}
+
+
+{- }
    routeParser : Parser (Route -> a) a
    routeParser =
        oneOf
