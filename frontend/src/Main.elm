@@ -18,7 +18,7 @@ import Bootstrap.Grid.Col as Col
 {-| Our model of the world
 -}
 type alias Model =
-    { navbarState : Navbar.State, authorRecognition : AuthorRecognitionState, result : Maybe FromServer }
+    { route : Route, navbarState : Navbar.State, authorRecognition : AuthorRecognitionState, result : Maybe FromServer }
 
 
 type alias AuthorRecognitionState =
@@ -28,6 +28,16 @@ type alias AuthorRecognitionState =
     , unknownAuthorText : String
     }
 
+type Route
+     = Home
+       | AuthorRecognition
+       | Profiling
+
+homeView : Html msg
+homeView = text "home"
+
+profilingView : Html msg
+profilingView = text "profiling"
 
 initialState : ( Model, Cmd Msg )
 initialState =
@@ -42,7 +52,8 @@ initialState =
             , unknownAuthorText = fillerText2
             }
     in
-        ( { navbarState = navbarState
+        ( { route = Home
+          , navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
           , result = Nothing
         }
@@ -70,6 +81,7 @@ toggleInputMode mode =
 type Msg
     = NoOp
     | NavbarMsg Navbar.State
+    | ChangeRoute Route
     | ToggleKnownAuthorInputMode
     | ToggleUnknownAuthorInputMode
     | SetKnownAuthorText String
@@ -96,6 +108,9 @@ update msg model =
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
+
+        ChangeRoute newRoute ->
+            ( { model | route = newRoute }, Cmd.none )
 
         ToggleKnownAuthorInputMode ->
             let
@@ -145,9 +160,11 @@ view model =
     div []
         [ CDN.stylesheet
         , navbar model
-        , authorRecognitionView model.authorRecognition
+        , case model.route of
+              Home -> homeView
+              AuthorRecognition -> authorRecognitionView model.authorRecognition
+              Profiling -> profilingView
         ]
-
 
 authorRecognitionView : AuthorRecognitionState -> Html Msg
 authorRecognitionView authorRecognition =
@@ -243,10 +260,10 @@ navbar ({ navbarState } as model) =
     Navbar.config NavbarMsg
         |> Navbar.inverse
         |> Navbar.withAnimation
-        |> Navbar.brand [ href "#", onClick NoOp ] [ text "Home" ]
+        |> Navbar.brand [ href "#", onClick (ChangeRoute Home) ] [ text "Home" ]
         |> Navbar.items
-            [ Navbar.itemLink [ href "#", onClick NoOp ] [ text "Author Recognition" ]
-            , Navbar.itemLink [ href "#", onClick NoOp ] [ text "Profiling" ]
+            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "Author Recognition" ]
+            , Navbar.itemLink [ href "#", onClick (ChangeRoute Profiling) ] [ text "Profiling" ]
             ]
         |> Navbar.view navbarState
 
@@ -339,16 +356,7 @@ decodeFromServer =
         |> required "sameAuthor" bool
         |> required "confidence" float
 
-
-
-{-
-
-   type Route
-       = Home
-       | AuthorRecognition
-       | Profiling
-
-
+{-}
    routeParser : Parser (Route -> a) a
    routeParser =
        oneOf
