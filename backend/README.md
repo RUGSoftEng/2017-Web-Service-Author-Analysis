@@ -8,7 +8,7 @@ This server will also handle requests for non-static content. (E.g. AJAX request
 ### Prerequisites
 
 * [Node.js](https://nodejs.org/) (v6.10.0) - Node.js runs all webserver code
-* [GLAD]
+* GLAD
 
 ### Setup Node & Npm
 Instructions on how to set up a development environment.
@@ -20,7 +20,7 @@ Instructions on how to set up a development environment.
 ### Setup GLAD
 
 * Place the `glad` directory in the `backend/resources` directory (So it becomes `backend/resources/glad`)
-* Follow [https://gist.github.com/zahrafitrianti/c507cd27a8355b022ce00730c53f0358](Zahra's instructions)
+* Follow [Zahra's instructions](https://gist.github.com/zahrafitrianti/c507cd27a8355b022ce00730c53f0358)
 * Now you should have a `glad-copy.py` file in the `backend/resources/glad` directory.
   
 ### Running the webserver
