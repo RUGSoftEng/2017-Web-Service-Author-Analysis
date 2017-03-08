@@ -17,7 +17,7 @@ Instructions on how to set up a development environment.
 * In terminal, from the directory of the repository, run: `npm install`
   This installs all node dependencies (in `node_modules`)
 
-## Setup GLAD
+### Setup GLAD
 
 * Place the `glad` directory in the `backend/resources` directory (So it becomes `backend/resources/glad`)
 * Follow [https://gist.github.com/zahrafitrianti/c507cd27a8355b022ce00730c53f0358](Zahra's instructions)
