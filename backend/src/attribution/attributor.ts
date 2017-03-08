@@ -2,9 +2,6 @@
  * The Attributor is a wrapper around the GLAD system.
  *
  * The Attributor responds to Authorship verification requests.
- *
- * IMPORTANT: Attributor is not currently linked with the GLAD system. Only
- * dummy output values are returned.
  */
 
 import * as child_process from 'child_process'; //require('child_process').execFile;
