@@ -1,54 +1,13 @@
-module Main exposing (main)
+module Update exposing (update, initialState)
 
 import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src)
 import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
 import Http
-import Json.Decode as Decode exposing (string, bool, int, float)
-import Json.Decode.Pipeline as Decode exposing (..)
-import Json.Encode as Encode
 import Bootstrap.Navbar as Navbar
-import Bootstrap.Button as Button
-import Bootstrap.CDN as CDN
-import Bootstrap.Grid as Grid
-import Bootstrap.Grid.Row as Row
-import Bootstrap.Grid.Col as Col
+import View
+import Types exposing (..)
 
-
-{-| Our model of the world
--}
-type alias Model =
-    { route : Route, navbarState : Navbar.State, authorRecognition : AuthorRecognitionState, authorProfiling: AuthorProfilingState }
-
-
-type alias AuthorRecognitionState =
-    { knownAuthorMode : InputMode
-    , knownAuthorText : String
-    , unknownAuthorMode : InputMode
-    , unknownAuthorText : String
-    , result : Maybe FromServer
-    , language : Language
-    }
-
-type alias AuthorProfilingState =
-    { profilingMode : InputMode
-    , profilingText : String
-    , result : Maybe FromServer2
-    }
-
-type Language
-     = EN
-     | NL
-
-type Route
-    = Home
-    | AuthorRecognition
-    | AuthorProfiling
-
-
-homeView : Html msg
-homeView =
-    text "home"
 
 initialState : ( Model, Cmd Msg )
 initialState =
@@ -58,9 +17,9 @@ initialState =
 
         defaultAuthorRecognition =
             { knownAuthorMode = PasteText
-            , knownAuthorText = fillerText1
+            , knownAuthorText = ""
             , unknownAuthorMode = PasteText
-            , unknownAuthorText = fillerText2
+            , unknownAuthorText = ""
             , result = Just { sameAuthor = True, confidence = 0.5 }
             , language = EN
             }
@@ -80,11 +39,6 @@ initialState =
         )
 
 
-type InputMode
-    = FileUpload
-    | PasteText
-
-
 toggleInputMode : InputMode -> InputMode
 toggleInputMode mode =
     case mode of
@@ -93,24 +47,6 @@ toggleInputMode mode =
 
         PasteText ->
             FileUpload
-
-
-{-| All the actions our application can perform
--}
-type Msg
-    = NoOp
-    | NavbarMsg Navbar.State
-    | ChangeRoute Route
-    | UploadAuthorRecognition
-    | UploadAuthorProfiling
-    | ToggleKnownAuthorInputMode
-    | ToggleUnknownAuthorInputMode
-    | ToggleProfilingInputMode
-    | SetKnownAuthorText String
-    | SetUnknownAuthorText String
-    | SetProfilingText String
-    | ServerResponse (Result Http.Error FromServer)
-    | SetLanguage Language
 
 
 {-| How our model should change when a message comes in
@@ -221,83 +157,34 @@ update msg model =
                 ( { model | authorRecognition = new }, Cmd.none )
 
 
-{-| How the model is displayed
--}
-view : Model -> Html Msg
-view model =
-    div []
-        [ CDN.stylesheet
-        , node "style"
-            []
-            [ text """\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-.btn-primary.active {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    background-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    border-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-.btn-primary {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    background-color: #A90023;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    border-color: #A90023;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-.btn-primary:hover {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    background-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    border-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+performAuthorRecognition : AuthorRecognitionState -> Cmd Msg
+performAuthorRecognition authorRecognition =
+    let
+        toServer =
+            { knownAuthorText = authorRecognition.knownAuthorText, unknownAuthorText = authorRecognition.unknownAuthorText }
 
-        """
-            ]
-        , navbar model
-        , case model.route of
-            Home ->
-                homeView
-
-            AuthorRecognition ->
-                authorRecognitionView model.authorRecognition
-
-            AuthorProfiling ->
-                authorProfilingView model.authorProfiling
-        , footer [ class "footer" ] [ footerbar model ]
-        ]
-
-This file wires all parts of the app together.
--}
-
-import Bootstrap.Navbar as Navbar
-import Html
-import View
-import Update
-import Types exposing (Model, Msg(NavbarMsg))
+        body =
+            Http.jsonBody (encodeToServer toServer)
+    in
+        Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeFromServer
+            |> Http.send ServerResponse
 
 
-main : Program Never Model Msg
-main =
-    Html.program
-        { update = Update.update
-        , view = View.view
-        , init = Update.initialState
-        , subscriptions = subscriptions
-        }
+webserverUrl : String
+webserverUrl =
+    "http://localhost:8080"
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Navbar.subscriptions model.navbarState NavbarMsg
+authorRecognitionEndpoint : String
+authorRecognitionEndpoint =
+    "/api/attribution"
 
 
-
-{- }
-   routeParser : Parser (Route -> a) a
-   routeParser =
-       oneOf
-           [ map Home top
-           , map AuthorRecognition (s "author-recognition")
-           , map AuthorProfiling (s "author-profiling")
-           ]
+fillerText1 =
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
+"""
 
 
-   route = parsePath routeParser location
--}
+fillerText2 =
+    """This is the update of Unknown Author.
+"""
