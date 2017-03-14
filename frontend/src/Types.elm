@@ -21,7 +21,7 @@ import Http
 type alias Model =
     { route : Route
     , navbarState : Navbar.State
-    , authorProfiling : AuthorProfilingState
+    , profiling : ProfilingState
     , attribution : AttributionState
     }
 
@@ -32,10 +32,8 @@ type Msg
     = NoOp
     | NavbarMsg Navbar.State
     | ChangeRoute Route
-    | UploadAuthorProfiling
-    | ToggleProfilingInputMode
-    | SetProfilingText String
     | AttributionMsg AttributionMessage
+    | ProfilingMsg ProfilingMessage
 
 
 type AttributionMessage
@@ -47,8 +45,14 @@ type AttributionMessage
 
 
 type Author
-    = Known
-    | Unknown
+    = KnownAuthor
+    | UnknownAuthor
+
+
+type ProfilingMessage
+    = UploadAuthorProfiling
+    | ToggleProfilingInputMode
+    | SetProfilingText String
 
 
 
@@ -84,7 +88,7 @@ type Language
     | NL
 
 
-type alias AuthorProfilingState =
+type alias ProfilingState =
     { profilingMode : InputMode
     , profilingText : String
     , result : Maybe FromServer2

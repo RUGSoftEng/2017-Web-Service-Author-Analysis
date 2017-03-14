@@ -28,7 +28,7 @@ initialState =
     in
         ( { route = AuthorRecognition
           , navbarState = navbarState
-          , authorProfiling = defaultAuthorProfiling
+          , profiling = defaultAuthorProfiling
           , attribution = defaultAuthorRecognition
           }
         , navbarCmd
@@ -71,28 +71,32 @@ update msg model =
                 , Cmd.map AttributionMsg attributionCommands
                 )
 
-        ToggleProfilingInputMode ->
+        ProfilingMsg msg ->
+            -- performs a nested update on the attribution
             let
-                old =
-                    model.authorProfiling
-
-                new =
-                    { old | profilingMode = toggleInputMode old.profilingMode }
+                ( newProfiling, profilingCommands ) =
+                    updateProfiling msg model.profiling
             in
-                ( { model | authorProfiling = new }, Cmd.none )
+                ( { model | profiling = newProfiling }
+                , Cmd.map ProfilingMsg profilingCommands
+                )
+
+
+updateProfiling : ProfilingMessage -> ProfilingState -> ( ProfilingState, Cmd ProfilingMessage )
+updateProfiling msg profiling =
+    case msg of
+        ToggleProfilingInputMode ->
+            ( { profiling | profilingMode = toggleInputMode profiling.profilingMode }
+            , Cmd.none
+            )
 
         SetProfilingText newText ->
-            let
-                old =
-                    model.authorProfiling
-
-                new =
-                    { old | profilingText = newText }
-            in
-                ( { model | authorProfiling = new }, Cmd.none )
+            ( { profiling | profilingText = newText }
+            , Cmd.none
+            )
 
         UploadAuthorProfiling ->
-            ( model, Cmd.none )
+            ( profiling, Cmd.none )
 
 
 updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
@@ -111,22 +115,22 @@ updateAttribution msg attribution =
                     , Cmd.none
                     )
 
-        ToggleInputMode Known ->
+        ToggleInputMode KnownAuthor ->
             ( { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode }
             , Cmd.none
             )
 
-        ToggleInputMode Unknown ->
+        ToggleInputMode UnknownAuthor ->
             ( { attribution | unknownAuthorMode = toggleInputMode attribution.unknownAuthorMode }
             , Cmd.none
             )
 
-        SetText Known newText ->
+        SetText KnownAuthor newText ->
             ( { attribution | knownAuthorText = newText }
             , Cmd.none
             )
 
-        SetText Unknown newText ->
+        SetText UnknownAuthor newText ->
             ( { attribution | unknownAuthorText = newText }
             , Cmd.none
             )

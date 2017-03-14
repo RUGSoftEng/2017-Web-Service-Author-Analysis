@@ -46,7 +46,8 @@ view model =
                     |> Html.map AttributionMsg
 
             AuthorProfiling ->
-                authorProfilingView model.authorProfiling
+                profilingView model.profiling
+                    |> Html.map ProfilingMsg
         , footer [ class "footer" ] [ footerbar model ]
         ]
 
@@ -96,11 +97,6 @@ homeView =
     text "home"
 
 
-profilingView : Html msg
-profilingView =
-    text "profiling"
-
-
 attributionView : AttributionState -> Html AttributionMessage
 attributionView attribution =
     let
@@ -109,7 +105,7 @@ attributionView attribution =
                 [ h2 [] [ text "Known Author" ]
                 , knownButtons
                 , textarea
-                    [ onInput (SetText Known)
+                    [ onInput (SetText KnownAuthor)
                     , defaultValue attribution.knownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
@@ -121,7 +117,7 @@ attributionView attribution =
                 [ h2 [] [ text "Unknown Author" ]
                 , unknownButtons
                 , textarea
-                    [ onInput (SetText Unknown)
+                    [ onInput (SetText UnknownAuthor)
                     , defaultValue attribution.unknownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
@@ -164,8 +160,8 @@ attributionView attribution =
                     attribution.knownAuthorMode == PasteText
             in
                 radioButtons "known-author-inputmode"
-                    [ ( pasteText, ToggleInputMode Known, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleInputMode Known, [ text "Upload File" ] )
+                    [ ( pasteText, ToggleInputMode KnownAuthor, [ text "Paste Text" ] )
+                    , ( not pasteText, ToggleInputMode KnownAuthor, [ text "Upload File" ] )
                     ]
 
         unknownButtons =
@@ -174,8 +170,8 @@ attributionView attribution =
                     attribution.unknownAuthorMode == PasteText
             in
                 radioButtons "unknown-author-inputmode"
-                    [ ( pasteText, ToggleInputMode Unknown, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleInputMode Unknown, [ text "Upload File" ] )
+                    [ ( pasteText, ToggleInputMode UnknownAuthor, [ text "Paste Text" ] )
+                    , ( not pasteText, ToggleInputMode UnknownAuthor, [ text "Upload File" ] )
                     ]
     in
         div []
@@ -197,8 +193,8 @@ attributionView attribution =
             ]
 
 
-authorProfilingView : AuthorProfilingState -> Html Msg
-authorProfilingView authorProfiling =
+profilingView : ProfilingState -> Html ProfilingMessage
+profilingView profiling =
     let
         profilingInput =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -206,7 +202,7 @@ authorProfilingView authorProfiling =
                 , knownButtons
                 , textarea
                     [ onInput SetProfilingText
-                    , defaultValue authorProfiling.profilingText
+                    , defaultValue profiling.profilingText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -215,7 +211,7 @@ authorProfilingView authorProfiling =
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
-                , case authorProfiling.result of
+                , case profiling.result of
                     Nothing ->
                         text ""
 
@@ -230,7 +226,7 @@ authorProfilingView authorProfiling =
         knownButtons =
             let
                 pasteText =
-                    authorProfiling.profilingMode == PasteText
+                    profiling.profilingMode == PasteText
             in
                 radioButtons "profiling-inputmode"
                     [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )
