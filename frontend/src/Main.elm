@@ -27,7 +27,13 @@ type alias AuthorRecognitionState =
     , unknownAuthorMode : InputMode
     , unknownAuthorText : String
     , result : Maybe FromServer
+    , language : Language
     }
+
+
+type Language
+    = EN
+    | NL
 
 
 type Route
@@ -58,6 +64,7 @@ initialState =
             , unknownAuthorMode = PasteText
             , unknownAuthorText = fillerText2
             , result = Just { sameAuthor = True, confidence = 0.5 }
+            , language = EN
             }
     in
         ( { route = AuthorRecognition
@@ -95,6 +102,7 @@ type Msg
     | SetKnownAuthorText String
     | SetUnknownAuthorText String
     | ServerResponse (Result Http.Error FromServer)
+    | SetLanguage Language
 
 
 {-| How our model should change when a message comes in
@@ -171,6 +179,16 @@ update msg model =
             in
                 ( { model | authorRecognition = new }, Cmd.none )
 
+        SetLanguage language ->
+            let
+                old =
+                    model.authorRecognition
+
+                new =
+                    { old | language = language }
+            in
+                ( { model | authorRecognition = new }, Cmd.none )
+
 
 {-| How the model is displayed
 -}
@@ -180,24 +198,24 @@ view model =
         [ CDN.stylesheet
         , node "style"
             []
-            [ text """
-.btn-primary.active {
-    background-color: #DC002D;
-    border-color: #DC002D;
-    }
-
-.btn-primary {
-    background-color: #A90023;
-    border-color: #A90023;
-    }
-
-.btn-primary:hover {
-    background-color: #DC002D;
-    border-color: #DC002D;
-    }
-
-
-
+            [ text """\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+.btn-primary.active {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    background-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    border-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+.btn-primary {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    background-color: #A90023;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    border-color: #A90023;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+.btn-primary:hover {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    background-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    border-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
         """
             ]
         , navbar model
@@ -250,7 +268,24 @@ authorRecognitionView authorRecognition =
 
                     Just a ->
                         text (toString a)
+                , languageSelector
                 ]
+
+        languageSelector =
+            let
+                language =
+                    authorRecognition.language
+            in
+                radioButtons "authorRecognition.language"
+                    [ ( language == EN
+                      , SetLanguage EN
+                      , [ text "EN" ]
+                      )
+                    , ( language == NL
+                      , SetLanguage NL
+                      , [ text "NL" ]
+                      )
+                    ]
 
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
@@ -366,12 +401,12 @@ subscriptions model =
 
 
 fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
 """
 
 
 fillerText2 =
-    """This is the update of Unknown Author.\x0D
+    """This is the update of Unknown Author.\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
 """
 
 
