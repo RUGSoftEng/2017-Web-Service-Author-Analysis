@@ -40,11 +40,6 @@ type Language
      = EN
      | NL
 
-type Language
-    = EN
-    | NL
-
-
 type Route
     = Home
     | AuthorRecognition
