@@ -18,7 +18,7 @@ import Bootstrap.Grid.Col as Col
 {-| Our model of the world
 -}
 type alias Model =
-    { route : Route, navbarState : Navbar.State, authorRecognition : AuthorRecognitionState }
+    { route : Route, navbarState : Navbar.State, authorRecognition : AuthorRecognitionState, authorProfiling: AuthorProfilingState }
 
 
 type alias AuthorRecognitionState =
@@ -30,6 +30,15 @@ type alias AuthorRecognitionState =
     , language : Language
     }
 
+type alias AuthorProfilingState =
+    { profilingMode : InputMode
+    , profilingText : String
+    , result : Maybe FromServer2
+    }
+
+type Language
+     = EN
+     | NL
 
 type Language
     = EN
@@ -39,18 +48,12 @@ type Language
 type Route
     = Home
     | AuthorRecognition
-    | Profiling
+    | AuthorProfiling
 
 
 homeView : Html msg
 homeView =
     text "home"
-
-
-profilingView : Html msg
-profilingView =
-    text "profiling"
-
 
 initialState : ( Model, Cmd Msg )
 initialState =
@@ -66,10 +69,17 @@ initialState =
             , result = Just { sameAuthor = True, confidence = 0.5 }
             , language = EN
             }
+
+        defaultAuthorProfiling =
+            { profilingMode = PasteText
+            , profilingText = fillerText1
+            , result = Just { gender = "Male", age = 20 }
+            }
     in
         ( { route = AuthorRecognition
           , navbarState = navbarState
           , authorRecognition = defaultAuthorRecognition
+          , authorProfiling = defaultAuthorProfiling
           }
         , navbarCmd
         )
@@ -97,10 +107,13 @@ type Msg
     | NavbarMsg Navbar.State
     | ChangeRoute Route
     | UploadAuthorRecognition
+    | UploadAuthorProfiling
     | ToggleKnownAuthorInputMode
     | ToggleUnknownAuthorInputMode
+    | ToggleProfilingInputMode
     | SetKnownAuthorText String
     | SetUnknownAuthorText String
+    | SetProfilingText String
     | ServerResponse (Result Http.Error FromServer)
     | SetLanguage Language
 
@@ -139,6 +152,9 @@ update msg model =
         UploadAuthorRecognition ->
             ( model, performAuthorRecognition model.authorRecognition )
 
+        UploadAuthorProfiling ->
+            ( model, Cmd.none )
+
         ToggleKnownAuthorInputMode ->
             let
                 old =
@@ -159,6 +175,16 @@ update msg model =
             in
                 ( { model | authorRecognition = new }, Cmd.none )
 
+        ToggleProfilingInputMode ->
+            let
+                old =
+                    model.authorProfiling
+
+                new =
+                    { old | profilingMode = toggleInputMode old.profilingMode }
+            in
+                ( { model | authorProfiling = new }, Cmd.none )
+
         SetKnownAuthorText newText ->
             let
                 old =
@@ -178,6 +204,16 @@ update msg model =
                     { old | unknownAuthorText = newText }
             in
                 ( { model | authorRecognition = new }, Cmd.none )
+
+        SetProfilingText newText ->
+            let
+                old =
+                    model.authorProfiling
+
+                new =
+                    { old | profilingText = newText }
+            in
+                ( { model | authorProfiling = new }, Cmd.none )
 
         SetLanguage language ->
             let
@@ -216,6 +252,7 @@ view model =
 \x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
 \x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
 \x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+
         """
             ]
         , navbar model
@@ -226,8 +263,8 @@ view model =
             AuthorRecognition ->
                 authorRecognitionView model.authorRecognition
 
-            Profiling ->
-                profilingView
+            AuthorProfiling ->
+                authorProfilingView model.authorProfiling
         , footer [ class "footer" ] [ footerbar model ]
         ]
 
@@ -330,6 +367,64 @@ authorRecognitionView authorRecognition =
             ]
 
 
+authorProfilingView : AuthorProfilingState -> Html Msg
+authorProfilingView authorProfiling =
+    let
+        profilingInput =
+            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                [ h2 [] [ text "Text" ]
+                , knownButtons
+                , textarea
+                    [ onInput SetProfilingText
+                    , defaultValue authorProfiling.profilingText
+                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                    ]
+                    []
+                ]
+
+        result =
+            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                [ h2 [] [ text "result: " ]
+                , case authorProfiling.result of
+                    Nothing ->
+                        text ""
+
+                    Just a ->
+                        text (toString  a)
+                ]
+
+        separator =
+            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
+                [ Button.button [ Button.primary, Button.attrs [ onClick UploadAuthorProfiling ] ] [ text "profiling" ] ]
+
+        knownButtons =
+            let
+                pasteText =
+                    authorProfiling.profilingMode == PasteText
+            in
+                radioButtons "profiling-inputmode"
+                    [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )
+                    , ( not pasteText, ToggleProfilingInputMode, [ text "Upload File" ] )
+                    ]
+
+    in
+        div []
+            [ div [ class "jumbotron" ]
+                [ Grid.container []
+                    [ h1 [ class "display-3" ] [ text "Author Profiling" ]
+                    , p [] [ text "Predict the age and the gender of the Author of the text" ]
+                    ]
+                ]
+            , Grid.container []
+                [ Grid.row [ Row.topXs ]
+                    [ profilingInput
+                    , separator
+                    , result
+                    ]
+                ]
+            ]
+
+
 {-| we have to do this html manually, until my fix to the elm-bootstrap package gets merged
 (this should be early next week, I spoke with the package author).
 
@@ -360,7 +455,7 @@ navbar ({ navbarState } as model) =
         |> Navbar.brand [ href "#", onClick (ChangeRoute Home) ] [ text "Author Analysis | " ]
         |> Navbar.items
             [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "Attribution" ]
-            , Navbar.itemLink [ href "#", onClick (ChangeRoute Profiling) ] [ text "Profiling" ]
+            , Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorProfiling) ] [ text "Profiling" ]
             ]
         |> Navbar.view navbarState
 
@@ -458,6 +553,8 @@ Example JSON:
 type alias FromServer =
     { sameAuthor : Bool, confidence : Float }
 
+type alias FromServer2 =
+    { gender : String, age : Float }
 
 encodeToServer : ToServer -> Encode.Value
 encodeToServer toServer =
