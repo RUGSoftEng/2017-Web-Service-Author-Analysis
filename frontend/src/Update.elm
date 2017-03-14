@@ -1,11 +1,7 @@
 module Update exposing (update, initialState)
 
-import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src)
-import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
 import Http
 import Bootstrap.Navbar as Navbar
-import View
 import Types exposing (..)
 
 
@@ -20,7 +16,7 @@ initialState =
             , knownAuthorText = ""
             , unknownAuthorMode = PasteText
             , unknownAuthorText = ""
-            , result = Just { sameAuthor = True, confidence = 0.5 }
+            , result = Nothing
             , language = EN
             }
 
@@ -59,40 +55,21 @@ update msg model =
             , Cmd.none
             )
 
-        ServerResponse resp ->
-            case resp of
-                Err error ->
-                    ( model, Cmd.none )
-
-                Ok fromServer ->
-                    ( model
-                        |> mapAttribution (\attribution -> { attribution | result = Just fromServer })
-                    , Cmd.none
-                    )
-
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
 
         ChangeRoute newRoute ->
             ( { model | route = newRoute }, Cmd.none )
 
-        UploadAuthorRecognition ->
-            ( model, performAttribution model.attribution )
-
-        UploadAuthorProfiling ->
-            ( model, Cmd.none )
-
-        ToggleKnownAuthorInputMode ->
-            ( model
-                |> mapAttribution (\attribution -> { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode })
-            , Cmd.none
-            )
-
-        ToggleUnknownAuthorInputMode ->
-            ( model
-                |> mapAttribution (\attribution -> { attribution | unknownAuthorMode = toggleInputMode attribution.unknownAuthorMode })
-            , Cmd.none
-            )
+        AttributionMsg msg ->
+            -- performs a nested update on the attribution
+            let
+                ( newAttribution, attributionCommands ) =
+                    updateAttribution msg model.attribution
+            in
+                ( { model | attribution = newAttribution }
+                , Cmd.map AttributionMsg attributionCommands
+                )
 
         ToggleProfilingInputMode ->
             let
@@ -104,12 +81,6 @@ update msg model =
             in
                 ( { model | authorProfiling = new }, Cmd.none )
 
-        SetKnownAuthorText newText ->
-            ( model
-                |> mapAttribution (\attribution -> { attribution | knownAuthorText = newText })
-            , Cmd.none
-            )
-
         SetProfilingText newText ->
             let
                 old =
@@ -120,20 +91,53 @@ update msg model =
             in
                 ( { model | authorProfiling = new }, Cmd.none )
 
-        SetUnknownAuthorText newText ->
-            ( model
-                |> mapAttribution (\attribution -> { attribution | unknownAuthorText = newText })
+        UploadAuthorProfiling ->
+            ( model, Cmd.none )
+
+
+updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
+updateAttribution msg attribution =
+    case msg of
+        PerformAttribution ->
+            ( attribution, performAttribution attribution )
+
+        ServerResponse response ->
+            case response of
+                Err error ->
+                    ( attribution, Cmd.none )
+
+                Ok fromServer ->
+                    ( { attribution | result = Just fromServer }
+                    , Cmd.none
+                    )
+
+        ToggleInputMode Known ->
+            ( { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode }
+            , Cmd.none
+            )
+
+        ToggleInputMode Unknown ->
+            ( { attribution | unknownAuthorMode = toggleInputMode attribution.unknownAuthorMode }
+            , Cmd.none
+            )
+
+        SetText Known newText ->
+            ( { attribution | knownAuthorText = newText }
+            , Cmd.none
+            )
+
+        SetText Unknown newText ->
+            ( { attribution | unknownAuthorText = newText }
             , Cmd.none
             )
 
         SetLanguage newLanguage ->
-            ( model
-                |> mapAttribution (\attribution -> { attribution | language = newLanguage })
+            ( { attribution | language = newLanguage }
             , Cmd.none
             )
 
 
-performAttribution : AttributionState -> Cmd Msg
+performAttribution : AttributionState -> Cmd AttributionMessage
 performAttribution attribution =
     let
         toServer =

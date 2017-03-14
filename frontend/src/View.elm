@@ -43,6 +43,7 @@ view model =
 
             AuthorRecognition ->
                 attributionView model.attribution
+                    |> Html.map AttributionMsg
 
             AuthorProfiling ->
                 authorProfilingView model.authorProfiling
@@ -100,7 +101,7 @@ profilingView =
     text "profiling"
 
 
-attributionView : AttributionState -> Html Msg
+attributionView : AttributionState -> Html AttributionMessage
 attributionView attribution =
     let
         knownAuthorInput =
@@ -108,7 +109,7 @@ attributionView attribution =
                 [ h2 [] [ text "Known Author" ]
                 , knownButtons
                 , textarea
-                    [ onInput SetKnownAuthorText
+                    [ onInput (SetText Known)
                     , defaultValue attribution.knownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
@@ -120,7 +121,7 @@ attributionView attribution =
                 [ h2 [] [ text "Unknown Author" ]
                 , unknownButtons
                 , textarea
-                    [ onInput SetUnknownAuthorText
+                    [ onInput (SetText Unknown)
                     , defaultValue attribution.unknownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
@@ -132,11 +133,10 @@ attributionView attribution =
                 [ h2 [] [ text "result: " ]
                 , case attribution.result of
                     Nothing ->
-                        text ""
+                        text "No result yet"
 
                     Just a ->
                         text (toString a)
-                , languageSelector
                 ]
 
         languageSelector =
@@ -144,14 +144,19 @@ attributionView attribution =
                 language =
                     attribution.language
             in
-                radioButtons "attribution.language"
-                    [ ( language == EN, SetLanguage EN, [ text "EN" ] )
-                    , ( language == NL, SetLanguage NL, [ text "NL" ] )
+                div []
+                    [ text "Language:"
+                    , radioButtons "attribution-language"
+                        [ ( language == EN, SetLanguage EN, [ text "EN" ] )
+                        , ( language == NL, SetLanguage NL, [ text "NL" ] )
+                        ]
                     ]
 
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
-                [ Button.button [ Button.primary, Button.attrs [ onClick UploadAuthorRecognition ] ] [ text "compare with" ] ]
+                [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
+                , languageSelector
+                ]
 
         knownButtons =
             let
@@ -159,8 +164,8 @@ attributionView attribution =
                     attribution.knownAuthorMode == PasteText
             in
                 radioButtons "known-author-inputmode"
-                    [ ( pasteText, ToggleKnownAuthorInputMode, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleKnownAuthorInputMode, [ text "Upload File" ] )
+                    [ ( pasteText, ToggleInputMode Known, [ text "Paste Text" ] )
+                    , ( not pasteText, ToggleInputMode Known, [ text "Upload File" ] )
                     ]
 
         unknownButtons =
@@ -169,8 +174,8 @@ attributionView attribution =
                     attribution.unknownAuthorMode == PasteText
             in
                 radioButtons "unknown-author-inputmode"
-                    [ ( pasteText, ToggleUnknownAuthorInputMode, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleUnknownAuthorInputMode, [ text "Upload File" ] )
+                    [ ( pasteText, ToggleInputMode Unknown, [ text "Paste Text" ] )
+                    , ( not pasteText, ToggleInputMode Unknown, [ text "Upload File" ] )
                     ]
     in
         div []

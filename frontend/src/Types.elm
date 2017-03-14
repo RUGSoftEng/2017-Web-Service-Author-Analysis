@@ -32,16 +32,23 @@ type Msg
     = NoOp
     | NavbarMsg Navbar.State
     | ChangeRoute Route
-    | UploadAuthorRecognition
     | UploadAuthorProfiling
-    | ToggleKnownAuthorInputMode
-    | ToggleUnknownAuthorInputMode
     | ToggleProfilingInputMode
-    | SetKnownAuthorText String
-    | SetUnknownAuthorText String
     | SetProfilingText String
+    | AttributionMsg AttributionMessage
+
+
+type AttributionMessage
+    = SetLanguage Language
+    | ToggleInputMode Author
+    | SetText Author String
+    | PerformAttribution
     | ServerResponse (Result Http.Error FromServer)
-    | SetLanguage Language
+
+
+type Author
+    = Known
+    | Unknown
 
 
 
