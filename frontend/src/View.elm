@@ -42,7 +42,7 @@ view model =
                 homeView
 
             AuthorRecognition ->
-                authorRecognitionView model.authorRecognition
+                attributionView model.attribution
 
             AuthorProfiling ->
                 authorProfilingView model.authorProfiling
@@ -100,8 +100,8 @@ profilingView =
     text "profiling"
 
 
-authorRecognitionView : AuthorRecognitionState -> Html Msg
-authorRecognitionView authorRecognition =
+attributionView : AttributionState -> Html Msg
+attributionView attribution =
     let
         knownAuthorInput =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -109,7 +109,7 @@ authorRecognitionView authorRecognition =
                 , knownButtons
                 , textarea
                     [ onInput SetKnownAuthorText
-                    , defaultValue authorRecognition.knownAuthorText
+                    , defaultValue attribution.knownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -121,7 +121,7 @@ authorRecognitionView authorRecognition =
                 , unknownButtons
                 , textarea
                     [ onInput SetUnknownAuthorText
-                    , defaultValue authorRecognition.unknownAuthorText
+                    , defaultValue attribution.unknownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -130,7 +130,7 @@ authorRecognitionView authorRecognition =
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
-                , case authorRecognition.result of
+                , case attribution.result of
                     Nothing ->
                         text ""
 
@@ -142,9 +142,9 @@ authorRecognitionView authorRecognition =
         languageSelector =
             let
                 language =
-                    authorRecognition.language
+                    attribution.language
             in
-                radioButtons "authorRecognition.language"
+                radioButtons "attribution.language"
                     [ ( language == EN, SetLanguage EN, [ text "EN" ] )
                     , ( language == NL, SetLanguage NL, [ text "NL" ] )
                     ]
@@ -156,7 +156,7 @@ authorRecognitionView authorRecognition =
         knownButtons =
             let
                 pasteText =
-                    authorRecognition.knownAuthorMode == PasteText
+                    attribution.knownAuthorMode == PasteText
             in
                 radioButtons "known-author-inputmode"
                     [ ( pasteText, ToggleKnownAuthorInputMode, [ text "Paste Text" ] )
@@ -166,7 +166,7 @@ authorRecognitionView authorRecognition =
         unknownButtons =
             let
                 pasteText =
-                    authorRecognition.unknownAuthorMode == PasteText
+                    attribution.unknownAuthorMode == PasteText
             in
                 radioButtons "unknown-author-inputmode"
                     [ ( pasteText, ToggleUnknownAuthorInputMode, [ text "Paste Text" ] )

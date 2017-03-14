@@ -21,8 +21,8 @@ import Http
 type alias Model =
     { route : Route
     , navbarState : Navbar.State
-    , authorRecognition : AuthorRecognitionState
     , authorProfiling : AuthorProfilingState
+    , attribution : AttributionState
     }
 
 
@@ -48,7 +48,7 @@ type Msg
 -- nested structures
 
 
-type alias AuthorRecognitionState =
+type alias AttributionState =
     { knownAuthorMode : InputMode
     , knownAuthorText : String
     , unknownAuthorMode : InputMode
@@ -56,6 +56,18 @@ type alias AuthorRecognitionState =
     , result : Maybe FromServer
     , language : Language
     }
+
+
+{-| Update a wrapped AttributionState
+
+    mapAttribution (\attribution -> { attribution | language = EN }) model
+-}
+mapAttribution :
+    (AttributionState -> AttributionState)
+    -> { a | attribution : AttributionState }
+    -> { a | attribution : AttributionState }
+mapAttribution updater record =
+    { record | attribution = updater record.attribution }
 
 
 {-| Supported languages

@@ -32,8 +32,8 @@ initialState =
     in
         ( { route = AuthorRecognition
           , navbarState = navbarState
-          , authorRecognition = defaultAuthorRecognition
           , authorProfiling = defaultAuthorProfiling
+          , attribution = defaultAuthorRecognition
           }
         , navbarCmd
         )
@@ -65,14 +65,10 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok fromServer ->
-                    let
-                        old =
-                            model.authorRecognition
-
-                        new =
-                            { old | result = Just fromServer }
-                    in
-                        ( { model | authorRecognition = new }, Cmd.none )
+                    ( model
+                        |> mapAttribution (\attribution -> { attribution | result = Just fromServer })
+                    , Cmd.none
+                    )
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
@@ -81,30 +77,22 @@ update msg model =
             ( { model | route = newRoute }, Cmd.none )
 
         UploadAuthorRecognition ->
-            ( model, performAuthorRecognition model.authorRecognition )
+            ( model, performAttribution model.attribution )
 
         UploadAuthorProfiling ->
             ( model, Cmd.none )
 
         ToggleKnownAuthorInputMode ->
-            let
-                old =
-                    model.authorRecognition
-
-                new =
-                    { old | knownAuthorMode = toggleInputMode old.knownAuthorMode }
-            in
-                ( { model | authorRecognition = new }, Cmd.none )
+            ( model
+                |> mapAttribution (\attribution -> { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode })
+            , Cmd.none
+            )
 
         ToggleUnknownAuthorInputMode ->
-            let
-                old =
-                    model.authorRecognition
-
-                new =
-                    { old | unknownAuthorMode = toggleInputMode old.unknownAuthorMode }
-            in
-                ( { model | authorRecognition = new }, Cmd.none )
+            ( model
+                |> mapAttribution (\attribution -> { attribution | unknownAuthorMode = toggleInputMode attribution.unknownAuthorMode })
+            , Cmd.none
+            )
 
         ToggleProfilingInputMode ->
             let
@@ -117,24 +105,10 @@ update msg model =
                 ( { model | authorProfiling = new }, Cmd.none )
 
         SetKnownAuthorText newText ->
-            let
-                old =
-                    model.authorRecognition
-
-                new =
-                    { old | knownAuthorText = newText }
-            in
-                ( { model | authorRecognition = new }, Cmd.none )
-
-        SetUnknownAuthorText newText ->
-            let
-                old =
-                    model.authorRecognition
-
-                new =
-                    { old | unknownAuthorText = newText }
-            in
-                ( { model | authorRecognition = new }, Cmd.none )
+            ( model
+                |> mapAttribution (\attribution -> { attribution | knownAuthorText = newText })
+            , Cmd.none
+            )
 
         SetProfilingText newText ->
             let
@@ -146,22 +120,24 @@ update msg model =
             in
                 ( { model | authorProfiling = new }, Cmd.none )
 
-        SetLanguage language ->
-            let
-                old =
-                    model.authorRecognition
+        SetUnknownAuthorText newText ->
+            ( model
+                |> mapAttribution (\attribution -> { attribution | unknownAuthorText = newText })
+            , Cmd.none
+            )
 
-                new =
-                    { old | language = language }
-            in
-                ( { model | authorRecognition = new }, Cmd.none )
+        SetLanguage newLanguage ->
+            ( model
+                |> mapAttribution (\attribution -> { attribution | language = newLanguage })
+            , Cmd.none
+            )
 
 
-performAuthorRecognition : AuthorRecognitionState -> Cmd Msg
-performAuthorRecognition authorRecognition =
+performAttribution : AttributionState -> Cmd Msg
+performAttribution attribution =
     let
         toServer =
-            { knownAuthorText = authorRecognition.knownAuthorText, unknownAuthorText = authorRecognition.unknownAuthorText }
+            { knownAuthorText = attribution.knownAuthorText, unknownAuthorText = attribution.unknownAuthorText }
 
         body =
             Http.jsonBody (encodeToServer toServer)
