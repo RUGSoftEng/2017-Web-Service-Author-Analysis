@@ -10,6 +10,7 @@ for the types would lead to circular dependencies.
 -}
 
 import Bootstrap.Navbar as Navbar
+import Navigation
 import Json.Decode as Decode exposing (string, bool, int, float)
 import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
@@ -34,6 +35,7 @@ type Msg
     | ChangeRoute Route
     | AttributionMsg AttributionMessage
     | ProfilingMsg ProfilingMessage
+    | UrlChange Navigation.Location
 
 
 type AttributionMessage

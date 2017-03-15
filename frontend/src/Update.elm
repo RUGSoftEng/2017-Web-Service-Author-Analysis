@@ -2,11 +2,27 @@ module Update exposing (update, initialState)
 
 import Http
 import Bootstrap.Navbar as Navbar
+import UrlParser exposing (s, top)
+import Navigation
 import Types exposing (..)
 
 
-initialState : ( Model, Cmd Msg )
-initialState =
+routeParser : UrlParser.Parser (Route -> a) a
+routeParser =
+    UrlParser.oneOf
+        [ UrlParser.map Home top
+        , UrlParser.map AuthorRecognition (s "attribution")
+        , UrlParser.map AuthorProfiling (s "profiling")
+        ]
+
+
+route : Navigation.Location -> Maybe Route
+route location =
+    UrlParser.parsePath routeParser location
+
+
+initialState : Navigation.Location -> ( Model, Cmd Msg )
+initialState location =
     let
         ( navbarState, navbarCmd ) =
             Navbar.initialState NavbarMsg
@@ -25,6 +41,10 @@ initialState =
             , profilingText = fillerText1
             , result = Just { gender = "Male", age = 20 }
             }
+
+        defaultRoute =
+            route location
+                |> Maybe.withDefault Home
     in
         ( { route = AuthorRecognition
           , navbarState = navbarState
@@ -59,7 +79,34 @@ update msg model =
             ( { model | navbarState = state }, Cmd.none )
 
         ChangeRoute newRoute ->
-            ( { model | route = newRoute }, Cmd.none )
+            if newRoute == model.route then
+                ( model, Cmd.none )
+            else
+                let
+                    _ =
+                        Debug.log "new route" newRoute
+
+                    newUrl =
+                        case newRoute of
+                            Home ->
+                                "/"
+
+                            AuthorRecognition ->
+                                "attribution"
+
+                            AuthorProfiling ->
+                                "profiling"
+                in
+                    ( { model | route = newRoute }
+                    , Navigation.newUrl newUrl
+                    )
+
+        UrlChange location ->
+            {- nothing happends here
+               Any url change made by the user will result in a reload from the server. Reaction is irrelevant
+               Any url change made by elm is the result of a route change. Reaction to that change will lead to infinite cycles
+            -}
+            ( model, Cmd.none )
 
         AttributionMsg msg ->
             -- performs a nested update on the attribution
@@ -72,7 +119,7 @@ update msg model =
                 )
 
         ProfilingMsg msg ->
-            -- performs a nested update on the attribution
+            -- performs a nested update on the profiling
             let
                 ( newProfiling, profilingCommands ) =
                     updateProfiling msg model.profiling
