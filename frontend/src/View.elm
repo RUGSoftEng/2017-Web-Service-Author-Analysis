@@ -41,11 +41,11 @@ view model =
             Home ->
                 homeView
 
-            AuthorRecognition ->
+            AttributionRoute ->
                 attributionView model.attribution
                     |> Html.map AttributionMsg
 
-            AuthorProfiling ->
+            ProfilingRoute ->
                 profilingView model.profiling
                     |> Html.map ProfilingMsg
         , footer [ class "footer" ] [ footerbar model ]
@@ -59,8 +59,8 @@ navbar ({ navbarState } as model) =
         |> Navbar.withAnimation
         |> Navbar.brand [ href "#", onClick (ChangeRoute Home) ] [ text "Author Analysis | " ]
         |> Navbar.items
-            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "Attribution" ]
-            , Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorProfiling) ] [ text "Profiling" ]
+            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
+            , Navbar.itemLink [ href "#", onClick (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
             ]
         |> Navbar.view navbarState
 
@@ -73,7 +73,7 @@ footerbar ({ navbarState } as model) =
         |> Navbar.withAnimation
         |> Navbar.items
             -- TODO empty element. somehow needed for styling. need to look into this
-            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AuthorRecognition) ] [ text "" ]
+            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AttributionRoute) ] [ text "" ]
             ]
         |> Navbar.customItems
             [ Navbar.customItem <|
@@ -277,20 +277,20 @@ buttonStyle : Html msg
 buttonStyle =
     node "style"
         []
-        [ text """
-.btn-primary.active {
-    background-color: #DC002D;
-    border-color: #DC002D;
-    }
-
-.btn-primary {
-    background-color: #A90023;
-    border-color: #A90023;
-    }
-
-.btn-primary:hover {
-    background-color: #DC002D;
-    border-color: #DC002D;
-    }
+        [ text """\x0D
+.btn-primary.active {\x0D
+    background-color: #DC002D;\x0D
+    border-color: #DC002D;\x0D
+    }\x0D
+\x0D
+.btn-primary {\x0D
+    background-color: #A90023;\x0D
+    border-color: #A90023;\x0D
+    }\x0D
+\x0D
+.btn-primary:hover {\x0D
+    background-color: #DC002D;\x0D
+    border-color: #DC002D;\x0D
+    }\x0D
         """
         ]

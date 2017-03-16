@@ -11,8 +11,8 @@ routeParser : UrlParser.Parser (Route -> a) a
 routeParser =
     UrlParser.oneOf
         [ UrlParser.map Home top
-        , UrlParser.map AuthorRecognition (s "attribution")
-        , UrlParser.map AuthorProfiling (s "profiling")
+        , UrlParser.map AttributionRoute (s "attribution")
+        , UrlParser.map ProfilingRoute (s "profiling")
         ]
 
 
@@ -46,7 +46,7 @@ initialState location =
             route location
                 |> Maybe.withDefault Home
     in
-        ( { route = AuthorRecognition
+        ( { route = AttributionRoute
           , navbarState = navbarState
           , profiling = defaultAuthorProfiling
           , attribution = defaultAuthorRecognition
@@ -91,10 +91,10 @@ update msg model =
                             Home ->
                                 "/"
 
-                            AuthorRecognition ->
+                            AttributionRoute ->
                                 "attribution"
 
-                            AuthorProfiling ->
+                            ProfilingRoute ->
                                 "profiling"
                 in
                     ( { model | route = newRoute }
@@ -212,10 +212,10 @@ authorRecognitionEndpoint =
 
 
 fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D
 """
 
 
 fillerText2 =
-    """This is the update of Unknown Author.
+    """This is the update of Unknown Author.\x0D
 """

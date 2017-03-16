@@ -101,8 +101,8 @@ type alias ProfilingState =
 -}
 type Route
     = Home
-    | AuthorRecognition
-    | AuthorProfiling
+    | AttributionRoute
+    | ProfilingRoute
 
 
 {-| How the user inputs a document
