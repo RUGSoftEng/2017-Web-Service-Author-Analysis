@@ -43,7 +43,7 @@ type AttributionMessage
     | ToggleInputMode Author
     | SetText Author String
     | PerformAttribution
-    | ServerResponse (Result Http.Error FromServer)
+    | ServerResponse (Result Http.Error AttributionResponse)
 
 
 type Author
@@ -66,7 +66,7 @@ type alias AttributionState =
     , knownAuthorText : String
     , unknownAuthorMode : InputMode
     , unknownAuthorText : String
-    , result : Maybe FromServer
+    , result : Maybe AttributionResponse
     , language : Language
     }
 
@@ -93,7 +93,7 @@ type Language
 type alias ProfilingState =
     { profilingMode : InputMode
     , profilingText : String
-    , result : Maybe FromServer2
+    , result : Maybe AttributionResponse2
     }
 
 
@@ -118,8 +118,20 @@ Example JSON:
 { "knownAuthorText": "lorem", "unknownAuthorText": "ipsum" }
 
 -}
-type alias ToServer =
+type alias AuthorRequest =
     { knownAuthorText : String, unknownAuthorText : String }
+
+
+
+{-
+   Example JSON:
+   {"profilingText": "lorem"}
+
+-}
+
+
+type alias ProfilingRequest =
+    { profilingText : String }
 
 
 {-| Response from the server
@@ -128,11 +140,11 @@ Example JSON:
 { "sameAuthor": true, "confidence": 0.67 }
 
 -}
-type alias FromServer =
+type alias AttributionResponse =
     { sameAuthor : Bool, confidence : Float }
 
 
-type alias FromServer2 =
+type alias ProfilingResponse =
     { gender : String, age : Float }
 
 
@@ -151,8 +163,8 @@ encodeToServer toServer =
         ]
 
 
-decodeFromServer : Decode.Decoder FromServer
-decodeFromServer =
-    Decode.succeed FromServer
+decodeAttributionResponse : Decode.Decoder AttributionResponse
+decodeAttributionResponse =
+    Decode.succeed AttributionResponse
         |> required "sameAuthor" bool
         |> required "confidence" float
