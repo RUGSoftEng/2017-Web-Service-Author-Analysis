@@ -93,7 +93,7 @@ type Language
 type alias ProfilingState =
     { profilingMode : InputMode
     , profilingText : String
-    , result : Maybe AttributionResponse2
+    , result : Maybe ProfilingResponse
     }
 
 
@@ -118,7 +118,7 @@ Example JSON:
 { "knownAuthorText": "lorem", "unknownAuthorText": "ipsum" }
 
 -}
-type alias AuthorRequest =
+type alias AttributionRequest =
     { knownAuthorText : String, unknownAuthorText : String }
 
 
@@ -145,7 +145,12 @@ type alias AttributionResponse =
 
 
 type alias ProfilingResponse =
-    { gender : String, age : Float }
+    { gender : Gender, age : Int }
+
+
+type Gender
+    = M
+    | F
 
 
 {-| A shorthand for creating a tuple, saves typing parenthises
@@ -155,7 +160,7 @@ type alias ProfilingResponse =
     (,)
 
 
-encodeToServer : ToServer -> Encode.Value
+encodeToServer : AttributionRequest -> Encode.Value
 encodeToServer toServer =
     Encode.object
         [ "knownAuthorText" => Encode.string toServer.knownAuthorText
@@ -168,3 +173,24 @@ decodeAttributionResponse =
     Decode.succeed AttributionResponse
         |> required "sameAuthor" bool
         |> required "confidence" float
+
+
+decodeProfilingResponse : Decode.Decoder ProfilingResponse
+decodeProfilingResponse =
+    Decode.succeed ProfilingResponse
+        |> required "gender"
+            (string
+                |> Decode.andThen
+                    (\genderString ->
+                        case genderString of
+                            "M" ->
+                                Decode.succeed M
+
+                            "F" ->
+                                Decode.succeed F
+
+                            _ ->
+                                Decode.fail <| "cannot convert" ++ genderString ++ "to a gender"
+                    )
+            )
+        |> required "age" int
