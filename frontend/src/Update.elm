@@ -7,18 +7,20 @@ import Navigation
 import Types exposing (..)
 
 
-routeParser : UrlParser.Parser (Route -> a) a
-routeParser =
-    UrlParser.oneOf
-        [ UrlParser.map Home top
-        , UrlParser.map AttributionRoute (s "attribution")
-        , UrlParser.map ProfilingRoute (s "profiling")
-        ]
 
-
+{-| Convert a Url into a Route - the page that should be displayed -} 
 route : Navigation.Location -> Maybe Route
 route location =
-    UrlParser.parsePath routeParser location
+    let 
+        routeParser : UrlParser.Parser (Route -> a) a
+        routeParser =
+            UrlParser.oneOf
+                [ UrlParser.map Home top
+                , UrlParser.map AttributionRoute (s "attribution")
+                , UrlParser.map ProfilingRoute (s "profiling")
+                ]
+    in
+        UrlParser.parsePath routeParser location
 
 
 initialState : Navigation.Location -> ( Model, Cmd Msg )
@@ -27,7 +29,7 @@ initialState location =
         ( navbarState, navbarCmd ) =
             Navbar.initialState NavbarMsg
 
-        defaultAuthorRecognition =
+        defaultAttribution =
             { knownAuthorMode = PasteText
             , knownAuthorText = ""
             , unknownAuthorMode = PasteText
@@ -36,7 +38,7 @@ initialState location =
             , language = EN
             }
 
-        defaultAuthorProfiling =
+        defaultProfiling =
             { profilingMode = PasteText
             , profilingText = fillerText1
             , result = Just { gender = "Male", age = 20 }
@@ -66,14 +68,19 @@ toggleInputMode mode =
 
 
 {-| How our model should change when a message comes in
+
+* NoOp, does nothing
+* NavBarMsg, updates highlight in the navigation bar
+* ChangeRoute, changes the route - the currently displayed page
+* UrlChange, does nothing, see comment
+* AttributionMsg, nested update on the attribution
+* ProfilingMsg, nested update on the profiling 
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( model
-            , Cmd.none
-            )
+            ( model , Cmd.none)
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
@@ -128,7 +135,6 @@ update msg model =
                 , Cmd.map ProfilingMsg profilingCommands
                 )
 
-
 updateProfiling : ProfilingMessage -> ProfilingState -> ( ProfilingState, Cmd ProfilingMessage )
 updateProfiling msg profiling =
     case msg of
@@ -143,6 +149,7 @@ updateProfiling msg profiling =
             )
 
         UploadAuthorProfiling ->
+            -- currently not implemented
             ( profiling, Cmd.none )
 
 
@@ -188,6 +195,7 @@ updateAttribution msg attribution =
             )
 
 
+{-| describes the action of sending the attribution state to the server and receiving a response -}
 performAttribution : AttributionState -> Cmd AttributionMessage
 performAttribution attribution =
     let
