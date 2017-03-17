@@ -90,18 +90,13 @@ navbar ({ navbarState } as model) =
 
 {-| The bar at the bottom, this is a modified navigation bar
 
-TODO prevent collapsing of this bar on small screens
+TODO separate this bar from the top one
 -}
 footerbar : Model -> Html Msg
-footerbar model =
+footerbar ({ navbarState } as model) =
     Navbar.config NavbarMsg
         |> Navbar.inverse
         |> Navbar.fixBottom
-        |> Navbar.withAnimation
-        |> Navbar.items
-            -- TODO empty element. somehow needed for styling. need to look into this
-            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AttributionRoute) ] [ text "" ]
-            ]
         |> Navbar.customItems
             [ Navbar.customItem <|
                 div
@@ -116,7 +111,10 @@ footerbar model =
                         []
                     ]
             ]
-        |> Navbar.view (Tuple.first <| Navbar.initialState NavbarMsg)
+        -- this is a little hacky, we reuse the state for
+        -- the top and bottom bar.
+        |>
+            Navbar.view navbarState
 
 
 homeView : Html msg
@@ -229,7 +227,7 @@ profilingView profiling =
                 , knownButtons
                 , textarea
                     [ onInput SetProfilingText
-                    , defaultValue profiling.profilingText
+                    , defaultValue profiling.text
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -253,7 +251,7 @@ profilingView profiling =
         knownButtons =
             let
                 pasteText =
-                    profiling.profilingMode == PasteText
+                    profiling.mode == PasteText
             in
                 radioButtons "profiling-inputmode"
                     [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )

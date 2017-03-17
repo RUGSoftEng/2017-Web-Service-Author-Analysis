@@ -39,16 +39,19 @@ initialState location =
             }
 
         defaultProfiling =
-            { profilingMode = PasteText
-            , profilingText = fillerText1
+            { mode = PasteText
+            , text = fillerText1
             , result = Just { gender = M, age = 20 }
             }
 
         defaultRoute =
             route location
-                |> Maybe.withDefault Home
+                -- default to attribution during development, so that
+                -- we don't have to switch pages (from home) to see results
+                |>
+                    Maybe.withDefault AttributionRoute
     in
-        ( { route = AttributionRoute
+        ( { route = defaultRoute
           , navbarState = navbarState
           , profiling = defaultProfiling
           , attribution = defaultAttribution
@@ -144,12 +147,12 @@ updateProfiling : ProfilingMessage -> ProfilingState -> ( ProfilingState, Cmd Pr
 updateProfiling msg profiling =
     case msg of
         ToggleProfilingInputMode ->
-            ( { profiling | profilingMode = toggleInputMode profiling.profilingMode }
+            ( { profiling | mode = toggleInputMode profiling.mode }
             , Cmd.none
             )
 
         SetProfilingText newText ->
-            ( { profiling | profilingText = newText }
+            ( { profiling | text = newText }
             , Cmd.none
             )
 
