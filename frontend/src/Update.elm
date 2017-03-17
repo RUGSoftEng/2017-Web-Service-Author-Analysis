@@ -41,7 +41,7 @@ initialState location =
         defaultProfiling =
             { profilingMode = PasteText
             , profilingText = fillerText1
-            , result = Just { gender = "Male", age = 20 }
+            , result = Just { gender = M, age = 20 }
             }
 
         defaultRoute =
@@ -50,8 +50,8 @@ initialState location =
     in
         ( { route = AttributionRoute
           , navbarState = navbarState
-          , profiling = defaultAuthorProfiling
-          , attribution = defaultAuthorRecognition
+          , profiling = defaultProfiling
+          , attribution = defaultAttribution
           }
         , navbarCmd
         )
@@ -205,7 +205,7 @@ performAttribution attribution =
         body =
             Http.jsonBody (encodeToServer toServer)
     in
-        Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeFromServer
+        Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
 
 
