@@ -21,7 +21,7 @@ import Html.Attributes exposing (style, class, defaultValue, classList, attribut
 import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
-import Bootstrap.CDN as CDN
+import Bootstrap.CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
@@ -30,11 +30,32 @@ import Types exposing (..)
 
 
 {-| How the model is displayed
+
+
+note on styles/css:
+
+currently these are inserted as <style> tags into the html (specifically within <body>). This is not ideal
+for many reasons, but has been convenient so far because we don't need to do any server configuration
+
+This will/should change in the second iteration, where the nodejs backend will actually serve the elm code
+and the resources it needs.
+
+html in elm:
+
+html is represented by normal elm functions that take two arguments: a list of attributes and a list of children
+Because the html in elm is just functions and values, normal language features can be used to create the markup
+(if-then-else, case-of, variables, arithmetic) without the need for a special templating language
+
+The type `Html Msg` means that the html can produce messages of type Msg, for instance when a button is clicked.
+
+We also use `Html msg` (note the lowercase m in msg) in some places. The lower case name implies
+that a piece of html is polymorphic in msg. This means that the piece of html produces no messages (so no buttons, no input fields) and
+can be part of any piece of html, no matter its message type.
 -}
 view : Model -> Html Msg
 view model =
     div []
-        [ CDN.stylesheet
+        [ Bootstrap.CDN.stylesheet
         , buttonStyle
         , navbar model
         , case model.route of
@@ -52,6 +73,8 @@ view model =
         ]
 
 
+{-| The navigation bar at the top
+-}
 navbar : Model -> Html Msg
 navbar ({ navbarState } as model) =
     Navbar.config NavbarMsg
@@ -65,16 +88,15 @@ navbar ({ navbarState } as model) =
         |> Navbar.view navbarState
 
 
+{-| The bar at the bottom, this is a modified navigation bar
+
+TODO separate this bar from the top one
+-}
 footerbar : Model -> Html Msg
 footerbar ({ navbarState } as model) =
     Navbar.config NavbarMsg
         |> Navbar.inverse
         |> Navbar.fixBottom
-        |> Navbar.withAnimation
-        |> Navbar.items
-            -- TODO empty element. somehow needed for styling. need to look into this
-            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AttributionRoute) ] [ text "" ]
-            ]
         |> Navbar.customItems
             [ Navbar.customItem <|
                 div
@@ -89,7 +111,10 @@ footerbar ({ navbarState } as model) =
                         []
                     ]
             ]
-        |> Navbar.view navbarState
+        -- this is a little hacky, we reuse the state for
+        -- the top and bottom bar.
+        |>
+            Navbar.view navbarState
 
 
 homeView : Html msg
@@ -202,7 +227,7 @@ profilingView profiling =
                 , knownButtons
                 , textarea
                     [ onInput SetProfilingText
-                    , defaultValue profiling.profilingText
+                    , defaultValue profiling.text
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -226,7 +251,7 @@ profilingView profiling =
         knownButtons =
             let
                 pasteText =
-                    profiling.profilingMode == PasteText
+                    profiling.mode == PasteText
             in
                 radioButtons "profiling-inputmode"
                     [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )
@@ -254,6 +279,8 @@ profilingView profiling =
 (this should be early next week, I spoke with the package author).
 
 Until then, just assume this function works
+
+this doesn't go into a separate file because why would it? just adds overhead.
 -}
 radioButtons : String -> List ( Bool, msg, List (Html msg) ) -> Html msg
 radioButtons groupName options =

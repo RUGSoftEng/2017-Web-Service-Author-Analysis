@@ -21,6 +21,10 @@ main =
         }
 
 
+{-| Signals from the outside world that our app may want to respond to
+-}
 subscriptions : Model -> Sub Msg
 subscriptions model =
+    -- fires when an item in the navbar is clicked
+    -- this will change what item is highlighted
     Navbar.subscriptions model.navbarState NavbarMsg

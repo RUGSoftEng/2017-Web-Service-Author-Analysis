@@ -91,8 +91,8 @@ type Language
 
 
 type alias ProfilingState =
-    { profilingMode : InputMode
-    , profilingText : String
+    { mode : InputMode
+    , text : String
     , result : Maybe ProfilingResponse
     }
 

@@ -7,11 +7,11 @@ import Navigation
 import Types exposing (..)
 
 
-
-{-| Convert a Url into a Route - the page that should be displayed -} 
+{-| Convert a Url into a Route - the page that should be displayed
+-}
 route : Navigation.Location -> Maybe Route
 route location =
-    let 
+    let
         routeParser : UrlParser.Parser (Route -> a) a
         routeParser =
             UrlParser.oneOf
@@ -39,16 +39,19 @@ initialState location =
             }
 
         defaultProfiling =
-            { profilingMode = PasteText
-            , profilingText = fillerText1
+            { mode = PasteText
+            , text = fillerText1
             , result = Just { gender = M, age = 20 }
             }
 
         defaultRoute =
             route location
-                |> Maybe.withDefault Home
+                -- default to attribution during development, so that
+                -- we don't have to switch pages (from home) to see results
+                |>
+                    Maybe.withDefault AttributionRoute
     in
-        ( { route = AttributionRoute
+        ( { route = defaultRoute
           , navbarState = navbarState
           , profiling = defaultProfiling
           , attribution = defaultAttribution
@@ -74,13 +77,13 @@ toggleInputMode mode =
 * ChangeRoute, changes the route - the currently displayed page
 * UrlChange, does nothing, see comment
 * AttributionMsg, nested update on the attribution
-* ProfilingMsg, nested update on the profiling 
+* ProfilingMsg, nested update on the profiling
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( model , Cmd.none)
+            ( model, Cmd.none )
 
         NavbarMsg state ->
             ( { model | navbarState = state }, Cmd.none )
@@ -105,7 +108,11 @@ update msg model =
                                 "profiling"
                 in
                     ( { model | route = newRoute }
-                    , Navigation.newUrl newUrl
+                      -- update the url to represent the currently displayed page.
+                      -- Turned off for now because we first need to serve the elm code from the nodejs server
+                      -- for the url updating to work properly
+                      -- , Navigation.newUrl newUrl
+                    , Cmd.none
                     )
 
         UrlChange location ->
@@ -135,16 +142,17 @@ update msg model =
                 , Cmd.map ProfilingMsg profilingCommands
                 )
 
+
 updateProfiling : ProfilingMessage -> ProfilingState -> ( ProfilingState, Cmd ProfilingMessage )
 updateProfiling msg profiling =
     case msg of
         ToggleProfilingInputMode ->
-            ( { profiling | profilingMode = toggleInputMode profiling.profilingMode }
+            ( { profiling | mode = toggleInputMode profiling.mode }
             , Cmd.none
             )
 
         SetProfilingText newText ->
-            ( { profiling | profilingText = newText }
+            ( { profiling | text = newText }
             , Cmd.none
             )
 
@@ -195,7 +203,8 @@ updateAttribution msg attribution =
             )
 
 
-{-| describes the action of sending the attribution state to the server and receiving a response -}
+{-| describes the action of sending the attribution state to the server and receiving a response
+-}
 performAttribution : AttributionState -> Cmd AttributionMessage
 performAttribution attribution =
     let
@@ -220,10 +229,10 @@ authorRecognitionEndpoint =
 
 
 fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
 """
 
 
 fillerText2 =
-    """This is the update of Unknown Author.\x0D
+    """This is the update of Unknown Author.
 """
