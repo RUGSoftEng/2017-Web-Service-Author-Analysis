@@ -4,6 +4,7 @@ import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
 import Navigation
+import Dict exposing (Dict)
 import Types exposing (..)
 
 
@@ -30,17 +31,14 @@ initialState location =
             Navbar.initialState NavbarMsg
 
         defaultAttribution =
-            { knownAuthorMode = PasteText
-            , knownAuthorText = ""
-            , unknownAuthorMode = PasteText
-            , unknownAuthorText = ""
+            { knownAuthorMode = PasteMode { fileUpload = { files = Dict.empty }, pasteText = { text = "" } }
+            , unknownAuthorMode = PasteMode { fileUpload = { files = Dict.empty }, pasteText = { text = "" } }
             , result = Nothing
             , language = EN
             }
 
         defaultProfiling =
-            { mode = PasteText
-            , text = fillerText1
+            { mode = PasteMode { fileUpload = { files = Dict.empty }, pasteText = { text = "" } }
             , result = Just { gender = M, age = 20 }
             }
 
@@ -63,11 +61,11 @@ initialState location =
 toggleInputMode : InputMode -> InputMode
 toggleInputMode mode =
     case mode of
-        FileUpload ->
-            PasteText
+        UploadMode data ->
+            PasteMode data
 
-        PasteText ->
-            FileUpload
+        PasteMode data ->
+            UploadMode data
 
 
 {-| How our model should change when a message comes in
@@ -152,9 +150,12 @@ updateProfiling msg profiling =
             )
 
         SetProfilingText newText ->
-            ( { profiling | text = newText }
-            , Cmd.none
-            )
+            case profiling.mode of
+                PasteMode { fileUpload } ->
+                    ( { profiling | mode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
+
+                UploadMode x ->
+                    ( profiling, Cmd.none )
 
         UploadAuthorProfiling ->
             -- currently not implemented
@@ -188,14 +189,20 @@ updateAttribution msg attribution =
             )
 
         SetText KnownAuthor newText ->
-            ( { attribution | knownAuthorText = newText }
-            , Cmd.none
-            )
+            case attribution.knownAuthorMode of
+                PasteMode { fileUpload } ->
+                    ( { attribution | knownAuthorMode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
+
+                UploadMode x ->
+                    ( attribution, Cmd.none )
 
         SetText UnknownAuthor newText ->
-            ( { attribution | unknownAuthorText = newText }
-            , Cmd.none
-            )
+            case attribution.unknownAuthorMode of
+                PasteMode { fileUpload } ->
+                    ( { attribution | unknownAuthorMode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
+
+                UploadMode x ->
+                    ( attribution, Cmd.none )
 
         SetLanguage newLanguage ->
             ( { attribution | language = newLanguage }
@@ -208,11 +215,8 @@ updateAttribution msg attribution =
 performAttribution : AttributionState -> Cmd AttributionMessage
 performAttribution attribution =
     let
-        toServer =
-            { knownAuthorText = attribution.knownAuthorText, unknownAuthorText = attribution.unknownAuthorText }
-
         body =
-            Http.jsonBody (encodeToServer toServer)
+            Http.jsonBody (encodeToServer attribution)
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
@@ -229,10 +233,10 @@ authorRecognitionEndpoint =
 
 
 fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
+    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
 """
 
 
 fillerText2 =
-    """This is the update of Unknown Author.
+    """This is the update of Unknown Author.\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
 """

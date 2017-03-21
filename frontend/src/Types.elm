@@ -64,24 +64,10 @@ type ProfilingMessage
 
 type alias AttributionState =
     { knownAuthorMode : InputMode
-    , knownAuthorText : String
     , unknownAuthorMode : InputMode
-    , unknownAuthorText : String
     , result : Maybe AttributionResponse
     , language : Language
     }
-
-
-{-| Update a wrapped AttributionState
-
-    mapAttribution (\attribution -> { attribution | language = EN }) model
--}
-mapAttribution :
-    (AttributionState -> AttributionState)
-    -> { a | attribution : AttributionState }
-    -> { a | attribution : AttributionState }
-mapAttribution updater record =
-    { record | attribution = updater record.attribution }
 
 
 {-| Supported languages
@@ -93,7 +79,6 @@ type Language
 
 type alias ProfilingState =
     { mode : InputMode
-    , text : String
     , result : Maybe ProfilingResponse
     }
 
@@ -125,14 +110,14 @@ type alias PasteText =
     { text : String }
 
 
-{-| Request to the server
+inputModeToFiles : InputMode -> List File
+inputModeToFiles inputMode =
+    case inputMode of
+        UploadMode { fileUpload } ->
+            Dict.values fileUpload.files
 
-Example JSON:
-{ "knownAuthorText": "lorem", "unknownAuthorText": "ipsum" }
-
--}
-type alias AttributionRequest =
-    { knownAuthorText : String, unknownAuthorText : String }
+        PasteMode { pasteText } ->
+            [ { name = "", content = pasteText.text } ]
 
 
 
@@ -173,11 +158,19 @@ type Gender
     (,)
 
 
-encodeToServer : AttributionRequest -> Encode.Value
+encodeInputMode : InputMode -> Encode.Value
+encodeInputMode mode =
+    mode
+        |> inputModeToFiles
+        |> List.map (.content >> Encode.string)
+        |> Encode.list
+
+
+encodeToServer : AttributionState -> Encode.Value
 encodeToServer toServer =
     Encode.object
-        [ "knownAuthorText" => Encode.string toServer.knownAuthorText
-        , "unknownAuthorText" => Encode.string toServer.unknownAuthorText
+        [ "knownAuthorText" => encodeInputMode toServer.knownAuthorMode
+        , "unknownAuthorText" => encodeInputMode toServer.unknownAuthorMode
         ]
 
 
