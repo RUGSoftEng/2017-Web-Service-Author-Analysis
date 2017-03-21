@@ -87,11 +87,12 @@ navbar ({ navbarState } as model) =
             -- there is no meaningful value for it, so we define `href='#'`.
             -- but, when the href attribute is '#', firefox will reload the page when the element is clicked (chrome will not).
             -- To prevent the reload (in firefox), we stop the event here.
+            -- also, we want the href for accessibility (for instance the browser knows this thing is clickable and shows the proper cursor)
             |>
                 Navbar.brand [ href "#", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis | " ]
             |> Navbar.items
-                [ Navbar.itemLink [ onClick (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
-                , Navbar.itemLink [ onClick (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
+                [ Navbar.itemLink [ href "#", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
+                , Navbar.itemLink [ href "#", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
                 ]
             |> Navbar.view navbarState
 
