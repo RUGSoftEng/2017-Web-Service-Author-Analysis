@@ -21,7 +21,6 @@ import Html.Attributes exposing (style, class, defaultValue, classList, attribut
 import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
-import Bootstrap.CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
@@ -55,8 +54,7 @@ can be part of any piece of html, no matter its message type.
 view : Model -> Html Msg
 view model =
     div []
-        [ Bootstrap.CDN.stylesheet
-        , buttonStyle
+        [ buttonStyle
         , navbar model
         , case model.route of
             Home ->
