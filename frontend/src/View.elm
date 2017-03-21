@@ -140,7 +140,6 @@ attributionView attribution =
                 , knownButtons
                 , textarea
                     [ onInput (SetText KnownAuthor)
-                    , defaultValue attribution.knownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -152,7 +151,6 @@ attributionView attribution =
                 , unknownButtons
                 , textarea
                     [ onInput (SetText UnknownAuthor)
-                    , defaultValue attribution.unknownAuthorText
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -191,7 +189,12 @@ attributionView attribution =
         knownButtons =
             let
                 pasteText =
-                    attribution.knownAuthorMode == PasteText
+                    case attribution.knownAuthorMode of
+                        PasteMode _ ->
+                            True
+
+                        UploadMode _ ->
+                            False
             in
                 radioButtons "known-author-inputmode"
                     [ ( pasteText, ToggleInputMode KnownAuthor, [ text "Paste Text" ] )
@@ -201,7 +204,12 @@ attributionView attribution =
         unknownButtons =
             let
                 pasteText =
-                    attribution.unknownAuthorMode == PasteText
+                    case attribution.unknownAuthorMode of
+                        PasteMode _ ->
+                            True
+
+                        UploadMode _ ->
+                            False
             in
                 radioButtons "unknown-author-inputmode"
                     [ ( pasteText, ToggleInputMode UnknownAuthor, [ text "Paste Text" ] )
@@ -236,7 +244,6 @@ profilingView profiling =
                 , knownButtons
                 , textarea
                     [ onInput SetProfilingText
-                    , defaultValue profiling.text
                     , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                     ]
                     []
@@ -260,7 +267,12 @@ profilingView profiling =
         knownButtons =
             let
                 pasteText =
-                    profiling.mode == PasteText
+                    case profiling.mode of
+                        PasteMode _ ->
+                            True
+
+                        UploadMode _ ->
+                            False
             in
                 radioButtons "profiling-inputmode"
                     [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )
