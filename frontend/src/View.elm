@@ -25,9 +25,11 @@ import Bootstrap.CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
+import Bootstrap.ListGroup as ListGroup
 import Json.Decode as Decode
 import Dict exposing (Dict)
 import Types exposing (..)
+import Octicons exposing (xIcon, xOptions)
 
 
 {-| How the model is displayed
@@ -123,29 +125,31 @@ homeView =
     text "home"
 
 
+{-|
+Dict String File
 
-uploadListView: Dict String ( name : String, content : String ) -> Html Msg
+Dict.vlaues : Dict comparable value -> List value
+
+List.map : (a -> b) -> List a -> List b
+
+ListGroup.ul : List (Item Msg) -> Html Msg
+-}
+uploadListView : Dict String File -> Html Msg
 uploadListView files =
+    files
+        |> Dict.values
+        |> List.map uploadFileView
+        |> ListGroup.ul
 
-  ListGroup.ul
-    [ ListGroup.li
+
+uploadFileView : File -> ListGroup.Item Msg
+uploadFileView file =
+    ListGroup.li
         [ ListGroup.attrs [ class "justify-content-between" ] ]
-        [ text "List item 1"
-        , Badge.pill [] [ text "14" ]
+        [ text file.name
+        , label [ onClick NoOp ] [ xIcon xOptions ]
         ]
-    , ListGroup.li
-        [ ListGroup.attrs [ class "justify-content-between" ] ]
-        [ text "List item 2"
-        , Badge.pill [] [ text "1" ]
-        ]
-    , ListGroup.li
-        [ ListGroup.attrs [ class "justify-content-between" ]
-        , ListGroup.success
-        ]
-        [ text "List item 3"
-        , Badge.pillSuccess [] [ text "2" ]
-        ]
-    ]
+
 
 attributionView : AttributionState -> Html AttributionMessage
 attributionView attribution =
@@ -341,20 +345,20 @@ buttonStyle : Html msg
 buttonStyle =
     node "style"
         []
-        [ text """\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-.btn-primary.active {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    background-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    border-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-.btn-primary {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    background-color: #A90023;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    border-color: #A90023;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-.btn-primary:hover {\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    background-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    border-color: #DC002D;\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-    }\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
+        [ text """\x0D\x0D\x0D
+.btn-primary.active {\x0D\x0D\x0D
+    background-color: #DC002D;\x0D\x0D\x0D
+    border-color: #DC002D;\x0D\x0D\x0D
+    }\x0D\x0D\x0D
+\x0D\x0D\x0D
+.btn-primary {\x0D\x0D\x0D
+    background-color: #A90023;\x0D\x0D\x0D
+    border-color: #A90023;\x0D\x0D\x0D
+    }\x0D\x0D\x0D
+\x0D\x0D\x0D
+.btn-primary:hover {\x0D\x0D\x0D
+    background-color: #DC002D;\x0D\x0D\x0D
+    border-color: #DC002D;\x0D\x0D\x0D
+    }\x0D\x0D\x0D
         """
         ]
