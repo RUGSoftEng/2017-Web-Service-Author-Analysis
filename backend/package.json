@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:windows": "nodemon --exec \"node_modules\\.bin\\ts-node\" -- \"index.ts\"",
-    "build:linux": "nodemon --exec \"node_modules/.bin/ts-node\" -- \"index.ts\""
+    "build-frontend": "cd ../frontend && elm-make src/Main.elm --output=index.js && mv index.js ../backend/public_html/",
+    "build:windows": "npm run build-frontend && nodemon --exec \"node_modules\\.bin\\ts-node\" -- \"index.ts\"",
+    "build:linux": "npm run build-frontend && nodemon --exec \"node_modules/.bin/ts-node\" -- \"index.ts\""
   },
   "keywords": [],
   "author": "",

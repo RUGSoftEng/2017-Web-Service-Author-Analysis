@@ -1,0 +1,15 @@
+/* Give buttons a red (instead of the default blue) color */
+.btn-primary.active {
+    background-color: #DC002D;
+    border-color: #DC002D;
+    }
+
+.btn-primary {
+    background-color: #A90023;
+    border-color: #A90023;
+    }
+
+.btn-primary:hover {
+    background-color: #DC002D;
+    border-color: #DC002D;
+    }

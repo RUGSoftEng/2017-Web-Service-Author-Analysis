@@ -2,3 +2,4 @@
 ###############
 node_modules/
 resources/glad
+public_html/index.js

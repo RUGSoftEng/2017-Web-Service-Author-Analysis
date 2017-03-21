@@ -46,10 +46,7 @@ initialState location =
 
         defaultRoute =
             route location
-                -- default to attribution during development, so that
-                -- we don't have to switch pages (from home) to see results
-                |>
-                    Maybe.withDefault AttributionRoute
+                |> Maybe.withDefault Home
     in
         ( { route = defaultRoute
           , navbarState = navbarState
@@ -109,10 +106,7 @@ update msg model =
                 in
                     ( { model | route = newRoute }
                       -- update the url to represent the currently displayed page.
-                      -- Turned off for now because we first need to serve the elm code from the nodejs server
-                      -- for the url updating to work properly
-                      -- , Navigation.newUrl newUrl
-                    , Cmd.none
+                    , Navigation.newUrl newUrl
                     )
 
         UrlChange location ->

@@ -21,7 +21,6 @@ import Html.Attributes exposing (style, class, defaultValue, classList, attribut
 import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
-import Bootstrap.CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
@@ -55,9 +54,7 @@ can be part of any piece of html, no matter its message type.
 view : Model -> Html Msg
 view model =
     div []
-        [ Bootstrap.CDN.stylesheet
-        , buttonStyle
-        , navbar model
+        [ navbar model
         , case model.route of
             Home ->
                 homeView
@@ -77,15 +74,27 @@ view model =
 -}
 navbar : Model -> Html Msg
 navbar ({ navbarState } as model) =
-    Navbar.config NavbarMsg
-        |> Navbar.inverse
-        |> Navbar.withAnimation
-        |> Navbar.brand [ href "#", onClick (ChangeRoute Home) ] [ text "Author Analysis | " ]
-        |> Navbar.items
-            [ Navbar.itemLink [ href "#", onClick (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
-            , Navbar.itemLink [ href "#", onClick (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
-            ]
-        |> Navbar.view navbarState
+    let
+        onClickStopEvent msg =
+            onWithOptions "click"
+                { defaultOptions | stopPropagation = True, preventDefault = True }
+                (Decode.succeed msg)
+    in
+        Navbar.config NavbarMsg
+            |> Navbar.inverse
+            |> Navbar.withAnimation
+            -- the brand needs the href attribute to be specified (no idea why).
+            -- there is no meaningful value for it, so we define `href='#'`.
+            -- but, when the href attribute is '#', firefox will reload the page when the element is clicked (chrome will not).
+            -- To prevent the reload (in firefox), we stop the event here.
+            -- also, we want the href for accessibility (for instance the browser knows this thing is clickable and shows the proper cursor)
+            |>
+                Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis | " ]
+            |> Navbar.items
+                [ Navbar.itemLink [ href "/attribution", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
+                , Navbar.itemLink [ href "/profiling", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
+                ]
+            |> Navbar.view navbarState
 
 
 {-| The bar at the bottom, this is a modified navigation bar
@@ -293,31 +302,3 @@ radioButtons groupName options =
                 (input [ attribute "autocomplete" "off", attribute "checked" "", name groupName, type_ "radio" ] [] :: children)
     in
         div [ class "btn-group", attribute "data-toggle" "buttons" ] (List.map viewRadioButton options)
-
-
-{-| Make the buttons red.
-
-This should be in a css file, but that requires serving through the node server
-instead of elm-reactor. This has to happen at some point, but not now.
--}
-buttonStyle : Html msg
-buttonStyle =
-    node "style"
-        []
-        [ text """\x0D
-.btn-primary.active {\x0D
-    background-color: #DC002D;\x0D
-    border-color: #DC002D;\x0D
-    }\x0D
-\x0D
-.btn-primary {\x0D
-    background-color: #A90023;\x0D
-    border-color: #A90023;\x0D
-    }\x0D
-\x0D
-.btn-primary:hover {\x0D
-    background-color: #DC002D;\x0D
-    border-color: #DC002D;\x0D
-    }\x0D
-        """
-        ]
