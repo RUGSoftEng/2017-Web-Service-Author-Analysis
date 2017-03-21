@@ -107,9 +107,13 @@ type Route
 
 {-| How the user inputs a document
 -}
-type InputMode
-    = FileUpload
-    | PasteText
+type alias InputMode = {fileUpload: FileUpload, pasteText: PasteText}
+
+type alias File { name: String, content: String}
+
+type alias FileUpload = {files : Dict String File}
+
+type alias PasteText = { text: String}
 
 
 {-| Request to the server
