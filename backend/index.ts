@@ -19,11 +19,13 @@ app.use( '/api', appApi );
 // Bind the 'public_html' directory to '/' for all remaining resources
 app.use( express.static( 'public_html' ) );
 
-// Any other resource not previously mentioned - 404
-app.get( '*', ( req, res ) => {
-  res.status( 404 );
-  res.sendFile( path.join( __dirname, '/resources/404.html' ) );
+// Any other resource not previously mentioned - Serve index
+app.all( '*', ( req, res ) => {
+  res.status( 200 );
+  res.sendFile( path.join( __dirname, '/public_html/index.html' ) );
 } );
+
+
 
 // Start server using 'http'. Useful when later HTTPS is used
 http.createServer( app ).listen( 8080, ( ) => {
