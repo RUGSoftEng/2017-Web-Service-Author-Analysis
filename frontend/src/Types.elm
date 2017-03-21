@@ -14,6 +14,7 @@ import Navigation
 import Json.Decode as Decode exposing (string, bool, int, float)
 import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
+import Dict exposing (Dict)
 import Http
 
 
@@ -107,13 +108,20 @@ type Route
 
 {-| How the user inputs a document
 -}
-type alias InputMode = {fileUpload: FileUpload, pasteText: PasteText}
+type alias InputMode =
+    { fileUpload : FileUpload, pasteText : PasteText }
 
-type alias File { name: String, content: String}
 
-type alias FileUpload = {files : Dict String File}
+type alias File =
+    { name : String, content : String }
 
-type alias PasteText = { text: String}
+
+type alias FileUpload =
+    { files : Dict String File }
+
+
+type alias PasteText =
+    { text : String }
 
 
 {-| Request to the server
