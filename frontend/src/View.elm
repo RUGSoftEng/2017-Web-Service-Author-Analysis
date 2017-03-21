@@ -83,8 +83,10 @@ navbar ({ navbarState } as model) =
         Navbar.config NavbarMsg
             |> Navbar.inverse
             |> Navbar.withAnimation
-            -- the brand needs the href attribute specified. When the href attribute is '#', firefox will reload the page when the element is clicked (chrome will not).
-            -- To prevent the reload (in firefox), we stop the even here.
+            -- the brand needs the href attribute to be specified (no idea why).
+            -- there is no meaningful value for it, so we define `href='#'`.
+            -- but, when the href attribute is '#', firefox will reload the page when the element is clicked (chrome will not).
+            -- To prevent the reload (in firefox), we stop the event here.
             |>
                 Navbar.brand [ href "#", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis | " ]
             |> Navbar.items
