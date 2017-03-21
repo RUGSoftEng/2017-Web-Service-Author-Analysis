@@ -46,10 +46,7 @@ initialState location =
 
         defaultRoute =
             route location
-                -- default to attribution during development, so that
-                -- we don't have to switch pages (from home) to see results
-                |>
-                    Maybe.withDefault AttributionRoute
+                |> Maybe.withDefault Home
     in
         ( { route = defaultRoute
           , navbarState = navbarState
