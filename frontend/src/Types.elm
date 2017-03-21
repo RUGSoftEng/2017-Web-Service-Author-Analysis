@@ -108,8 +108,9 @@ type Route
 
 {-| How the user inputs a document
 -}
-type alias InputMode =
-    { fileUpload : FileUpload, pasteText : PasteText }
+type InputMode
+    = UploadMode { fileUpload : FileUpload, pasteText : PasteText }
+    | PasteMode { fileUpload : FileUpload, pasteText : PasteText }
 
 
 type alias File =
