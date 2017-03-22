@@ -17,8 +17,8 @@ http://package.elm-lang.org/packages/rundis/elm-bootstrap/latest
 -}
 
 import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src)
-import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
+import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
+import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
@@ -28,7 +28,8 @@ import Bootstrap.ListGroup as ListGroup
 import Json.Decode as Decode
 import Dict exposing (Dict)
 import Types exposing (..)
-import Octicons exposing (xIcon, xOptions)
+import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
+import InputField
 
 
 {-| How the model is displayed
@@ -132,32 +133,6 @@ footerbar ({ navbarState } as model) =
 homeView : Html msg
 homeView =
     text "home"
-
-
-{-|
-Dict String File
-
-Dict.vlaues : Dict comparable value -> List value
-
-List.map : (a -> b) -> List a -> List b
-
-ListGroup.ul : List (Item Msg) -> Html Msg
--}
-uploadListView : Dict String File -> Html Msg
-uploadListView files =
-    files
-        |> Dict.values
-        |> List.map uploadFileView
-        |> ListGroup.ul
-
-
-uploadFileView : File -> ListGroup.Item Msg
-uploadFileView file =
-    ListGroup.li
-        [ ListGroup.attrs [ class "justify-content-between" ] ]
-        [ text file.name
-        , label [ onClick NoOp ] [ xIcon xOptions ]
-        ]
 
 
 attributionView : AttributionState -> Html AttributionMessage
@@ -268,15 +243,14 @@ profilingView : ProfilingState -> Html ProfilingMessage
 profilingView profiling =
     let
         profilingInput =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "Text" ]
-                , knownButtons
-                , textarea
-                    [ onInput SetProfilingText
-                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                    ]
-                    []
-                ]
+            let
+                config =
+                    { label = "Text", radioButtonName = "profiling-mode-buttons", fileInputId = "profiling-file-input" }
+            in
+                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                    (InputField.view profiling.input config
+                        |> List.map (Html.map ProfilingInputField)
+                    )
 
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -292,21 +266,6 @@ profilingView profiling =
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
                 [ Button.button [ Button.primary, Button.attrs [ onClick UploadAuthorProfiling ] ] [ text "profiling" ] ]
-
-        knownButtons =
-            let
-                pasteText =
-                    case profiling.mode of
-                        PasteMode _ ->
-                            True
-
-                        UploadMode _ ->
-                            False
-            in
-                radioButtons "profiling-inputmode"
-                    [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleProfilingInputMode, [ text "Upload File" ] )
-                    ]
     in
         div []
             [ div [ class "jumbotron" ]

@@ -18,6 +18,11 @@ import Dict exposing (Dict)
 import Http
 
 
+--
+
+import InputField
+
+
 {-| Our model of the world
 -}
 type alias Model =
@@ -37,6 +42,7 @@ type Msg
     | AttributionMsg AttributionMessage
     | ProfilingMsg ProfilingMessage
     | UrlChange Navigation.Location
+    | AddFile ( String, File )
 
 
 type AttributionMessage
@@ -45,6 +51,8 @@ type AttributionMessage
     | SetText Author String
     | PerformAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
+    | LoadFile Author
+    | RemoveFile Author String
 
 
 type Author
@@ -53,9 +61,8 @@ type Author
 
 
 type ProfilingMessage
-    = UploadAuthorProfiling
-    | ToggleProfilingInputMode
-    | SetProfilingText String
+    = ProfilingInputField InputField.Msg
+    | UploadAuthorProfiling
 
 
 
@@ -78,7 +85,7 @@ type Language
 
 
 type alias ProfilingState =
-    { mode : InputMode
+    { input : InputField.State
     , result : Maybe ProfilingResponse
     }
 

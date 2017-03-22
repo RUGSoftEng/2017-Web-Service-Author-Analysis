@@ -4,10 +4,32 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <link rel="stylesheet" href="/style.css" > 
     <script src="/index.js"></script>
+    <script src="/fileupload.js"></script>
 </head>
 <body>
     <script>
     var app = Elm.Main.fullscreen()
+
+
+    /*| read files from disk, pass contents to elm */
+    app.ports.readFiles.subscribe(function(arguments) { 
+        id = arguments[0];
+        author = arguments[1];
+        files = document.getElementById(id).files;
+        for (var i = 0; i < files.length; i++) {
+            reader = new FileReader();
+            reader.onloadend = function (progressEvent) { 
+                content = progressEvent.target.result;
+                var elmFile = { name: this.filename, content: content};
+                console.log(content);
+                app.ports.addFile.send([ author, elmFile ]);
+            };
+            reader.filename = files[i].name;
+            reader.readAsText(files[i]);
+        };
+        
+            
+    }); 
     </script>
 </body>
 </html>

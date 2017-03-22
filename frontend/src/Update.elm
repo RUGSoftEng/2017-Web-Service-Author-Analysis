@@ -6,6 +6,8 @@ import UrlParser exposing (s, top)
 import Navigation
 import Dict exposing (Dict)
 import Types exposing (..)
+import InputField exposing (OutMsg(..))
+import Ports
 
 
 {-| Convert a Url into a Route - the page that should be displayed
@@ -38,7 +40,7 @@ initialState location =
             }
 
         defaultProfiling =
-            { mode = PasteMode { fileUpload = { files = Dict.empty }, pasteText = { text = "" } }
+            { input = InputField.init
             , result = Just { gender = M, age = 20 }
             }
 
@@ -107,6 +109,20 @@ update msg model =
                     , Navigation.newUrl newUrl
                     )
 
+        AddFile ( id, file ) ->
+            case id of
+                "KnownAuthor" ->
+                    ( model, Cmd.none )
+
+                "UnknownAuthor" ->
+                    ( model, Cmd.none )
+
+                "Profiling" ->
+                    update (ProfilingMsg (ProfilingInputField (InputField.AddFile file))) model
+
+                _ ->
+                    Debug.crash <| "trying to add a file to " ++ id ++ ", but it does not exist!"
+
         UrlChange location ->
             {- nothing happends here
                Any url change made by the user will result in a reload from the server. Reaction is irrelevant
@@ -138,22 +154,52 @@ update msg model =
 updateProfiling : ProfilingMessage -> ProfilingState -> ( ProfilingState, Cmd ProfilingMessage )
 updateProfiling msg profiling =
     case msg of
-        ToggleProfilingInputMode ->
-            ( { profiling | mode = toggleInputMode profiling.mode }
-            , Cmd.none
-            )
-
-        SetProfilingText newText ->
-            case profiling.mode of
-                PasteMode { fileUpload } ->
-                    ( { profiling | mode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
-
-                UploadMode x ->
-                    ( profiling, Cmd.none )
-
         UploadAuthorProfiling ->
-            -- currently not implemented
             ( profiling, Cmd.none )
+
+        ProfilingInputField msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg profiling.input
+
+                _ =
+                    Debug.log "profiling update response" ( newInput, inputOutMsg )
+
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
+
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "profiling-file-input", "Profiling" )
+            in
+                ( { profiling | input = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map ProfilingInputField inputCommands
+                    ]
+                )
+
+
+
+{-
+   ToggleProfilingInputMode ->
+       ( { profiling | mode = toggleInputMode profiling.mode }
+       , Cmd.none
+       )
+
+   SetProfilingText newText ->
+       case profiling.mode of
+           PasteMode { fileUpload } ->
+               ( { profiling | mode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
+
+           UploadMode x ->
+               ( profiling, Cmd.none )
+
+   UploadAuthorProfiling ->
+       -- currently not implemented
+       ( profiling, Cmd.none )
+-}
 
 
 updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
@@ -171,6 +217,12 @@ updateAttribution msg attribution =
                     ( { attribution | result = Just fromServer }
                     , Cmd.none
                     )
+
+        LoadFile author ->
+            ( attribution, Ports.readFiles ( "fileInputId", toString author ) )
+
+        RemoveFile author filename ->
+            ( attribution, Cmd.none )
 
         ToggleInputMode KnownAuthor ->
             ( { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode }
