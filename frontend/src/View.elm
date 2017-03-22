@@ -29,6 +29,7 @@ import Json.Decode as Decode
 import Dict exposing (Dict)
 import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
+import ViewHelpers
 import InputField
 
 
@@ -139,26 +140,30 @@ attributionView : AttributionState -> Html AttributionMessage
 attributionView attribution =
     let
         knownAuthorInput =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "Known Author" ]
-                , knownButtons
-                , textarea
-                    [ onInput (SetText KnownAuthor)
-                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                    ]
-                    []
-                ]
+            let
+                config =
+                    { label = "Known Author"
+                    , radioButtonName = "attribution-known-author-buttons"
+                    , fileInputId = "attribution-known-author-file-input"
+                    }
+            in
+                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                    (InputField.view attribution.knownAuthor config
+                        |> List.map (Html.map (AttributionInputField KnownAuthor))
+                    )
 
         unknownAuthorInput =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "Unknown Author" ]
-                , unknownButtons
-                , textarea
-                    [ onInput (SetText UnknownAuthor)
-                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                    ]
-                    []
-                ]
+            let
+                config =
+                    { label = "Unknown Author"
+                    , radioButtonName = "attribution-unknown-author-buttons"
+                    , fileInputId = "attribution-unknown-author-file-input"
+                    }
+            in
+                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                    (InputField.view attribution.unknownAuthor config
+                        |> List.map (Html.map (AttributionInputField UnknownAuthor))
+                    )
 
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -171,62 +176,14 @@ attributionView attribution =
                         text (toString a)
                 ]
 
-        languageSelector =
-            let
-                language =
-                    attribution.language
-            in
-                div []
-                    [ text "Language:"
-                    , radioButtons "attribution-language"
-                        [ ( language == EN, SetLanguage EN, [ text "EN" ] )
-                        , ( language == NL, SetLanguage NL, [ text "NL" ] )
-                        ]
-                    ]
-
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
                 [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
-                , languageSelector
+                , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
                 ]
-
-        knownButtons =
-            let
-                pasteText =
-                    case attribution.knownAuthorMode of
-                        PasteMode _ ->
-                            True
-
-                        UploadMode _ ->
-                            False
-            in
-                radioButtons "known-author-inputmode"
-                    [ ( pasteText, ToggleInputMode KnownAuthor, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleInputMode KnownAuthor, [ text "Upload File" ] )
-                    ]
-
-        unknownButtons =
-            let
-                pasteText =
-                    case attribution.unknownAuthorMode of
-                        PasteMode _ ->
-                            True
-
-                        UploadMode _ ->
-                            False
-            in
-                radioButtons "unknown-author-inputmode"
-                    [ ( pasteText, ToggleInputMode UnknownAuthor, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleInputMode UnknownAuthor, [ text "Upload File" ] )
-                    ]
     in
         div []
-            [ div [ class "jumbotron" ]
-                [ Grid.container []
-                    [ h1 [ class "display-3" ] [ text "Author Recognition" ]
-                    , p [] [ text "Predict whether two texts are written by the same author" ]
-                    ]
-                ]
+            [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
             , Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ result ]
@@ -245,7 +202,10 @@ profilingView profiling =
         profilingInput =
             let
                 config =
-                    { label = "Text", radioButtonName = "profiling-mode-buttons", fileInputId = "profiling-file-input" }
+                    { label = "Text"
+                    , radioButtonName = "profiling-mode-buttons"
+                    , fileInputId = "profiling-file-input"
+                    }
             in
                 Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                     (InputField.view profiling.input config
@@ -268,12 +228,7 @@ profilingView profiling =
                 [ Button.button [ Button.primary, Button.attrs [ onClick UploadAuthorProfiling ] ] [ text "profiling" ] ]
     in
         div []
-            [ div [ class "jumbotron" ]
-                [ Grid.container []
-                    [ h1 [ class "display-3" ] [ text "Author Profiling" ]
-                    , p [] [ text "Predict the age and the gender of the Author of the text" ]
-                    ]
-                ]
+            [ ViewHelpers.jumbotron "Author Profiling" "Predict the age and the gender of the Author of the text"
             , Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ profilingInput
@@ -284,21 +239,17 @@ profilingView profiling =
             ]
 
 
-{-| we have to do this html manually, until my fix to the elm-bootstrap package gets merged
-(this should be early next week, I spoke with the package author).
+{-| Language selection
 
-Until then, just assume this function works
-
-this doesn't go into a separate file because why would it? just adds overhead.
+this can't be in ViewHelpers because it creates circular dependencies (via Types.elm, which is needed for Language
 -}
-radioButtons : String -> List ( Bool, msg, List (Html msg) ) -> Html msg
-radioButtons groupName options =
+languageSelector : String -> (Language -> msg) -> List Language -> Language -> Html msg
+languageSelector name toMsg languages current =
     let
-        viewRadioButton ( checked, onclick, children ) =
-            label
-                [ classList [ ( "btn", True ), ( "btn-primary", True ), ( "active", checked ) ]
-                , onWithOptions "click" { defaultOptions | preventDefault = True } (Decode.succeed onclick)
-                ]
-                (input [ attribute "autocomplete" "off", attribute "checked" "", name groupName, type_ "radio" ] [] :: children)
+        languageButton language =
+            ( language == current, toMsg language, [ text (toString language) ] )
     in
-        div [ class "btn-group", attribute "data-toggle" "buttons" ] (List.map viewRadioButton options)
+        div []
+            [ text "Language:"
+            , ViewHelpers.radioButtons name (List.map languageButton languages)
+            ]

@@ -47,12 +47,9 @@ type Msg
 
 type AttributionMessage
     = SetLanguage Language
-    | ToggleInputMode Author
-    | SetText Author String
     | PerformAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
-    | LoadFile Author
-    | RemoveFile Author String
+    | AttributionInputField Author InputField.Msg
 
 
 type Author
@@ -70,10 +67,11 @@ type ProfilingMessage
 
 
 type alias AttributionState =
-    { knownAuthorMode : InputMode
-    , unknownAuthorMode : InputMode
+    { knownAuthor : InputField.State
+    , unknownAuthor : InputField.State
     , result : Maybe AttributionResponse
     , language : Language
+    , languages : List Language
     }
 
 
@@ -117,16 +115,6 @@ type alias PasteText =
     { text : String }
 
 
-inputModeToFiles : InputMode -> List File
-inputModeToFiles inputMode =
-    case inputMode of
-        UploadMode { fileUpload } ->
-            Dict.values fileUpload.files
-
-        PasteMode { pasteText } ->
-            [ { name = "", content = pasteText.text } ]
-
-
 
 {-
    Example JSON:
@@ -165,19 +153,11 @@ type Gender
     (,)
 
 
-encodeInputMode : InputMode -> Encode.Value
-encodeInputMode mode =
-    mode
-        |> inputModeToFiles
-        |> List.map (.content >> Encode.string)
-        |> Encode.list
-
-
-encodeToServer : AttributionState -> Encode.Value
-encodeToServer toServer =
+encodeAttributionRequest : AttributionState -> Encode.Value
+encodeAttributionRequest toServer =
     Encode.object
-        [ "knownAuthorText" => encodeInputMode toServer.knownAuthorMode
-        , "unknownAuthorText" => encodeInputMode toServer.unknownAuthorMode
+        [ "knownAuthorText" => InputField.encodeState toServer.knownAuthor
+        , "unknownAuthorText" => InputField.encodeState toServer.unknownAuthor
         ]
 
 

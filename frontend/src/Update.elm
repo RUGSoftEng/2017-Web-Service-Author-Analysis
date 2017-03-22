@@ -33,10 +33,11 @@ initialState location =
             Navbar.initialState NavbarMsg
 
         defaultAttribution =
-            { knownAuthorMode = PasteMode { fileUpload = { files = Dict.empty }, pasteText = { text = "" } }
-            , unknownAuthorMode = PasteMode { fileUpload = { files = Dict.empty }, pasteText = { text = "" } }
+            { knownAuthor = InputField.init
+            , unknownAuthor = InputField.init
             , result = Nothing
             , language = EN
+            , languages = [ EN, NL ]
             }
 
         defaultProfiling =
@@ -55,16 +56,6 @@ initialState location =
           }
         , navbarCmd
         )
-
-
-toggleInputMode : InputMode -> InputMode
-toggleInputMode mode =
-    case mode of
-        UploadMode data ->
-            PasteMode data
-
-        PasteMode data ->
-            UploadMode data
 
 
 {-| How our model should change when a message comes in
@@ -110,15 +101,28 @@ update msg model =
                     )
 
         AddFile ( id, file ) ->
+            -- We get a File and the id of the destination. Based on that ID, we create a Msg to get the file
+            -- to the destination (either in AttributionState or ProfilingState).
+            -- then we call update (recursively) to execute the Msg we created
+            -- flip reverses the order of arguments, so `flip (-) 12 4 == (-) 4 12 == 4 - 12 == 8`.
             case id of
                 "KnownAuthor" ->
-                    ( model, Cmd.none )
+                    InputField.AddFile file
+                        |> AttributionInputField KnownAuthor
+                        |> AttributionMsg
+                        |> flip update model
 
                 "UnknownAuthor" ->
-                    ( model, Cmd.none )
+                    InputField.AddFile file
+                        |> AttributionInputField UnknownAuthor
+                        |> AttributionMsg
+                        |> flip update model
 
                 "Profiling" ->
-                    update (ProfilingMsg (ProfilingInputField (InputField.AddFile file))) model
+                    InputField.AddFile file
+                        |> ProfilingInputField
+                        |> ProfilingMsg
+                        |> flip update model
 
                 _ ->
                     Debug.crash <| "trying to add a file to " ++ id ++ ", but it does not exist!"
@@ -162,9 +166,6 @@ updateProfiling msg profiling =
                 ( newInput, inputCommands, inputOutMsg ) =
                     InputField.update msg profiling.input
 
-                _ =
-                    Debug.log "profiling update response" ( newInput, inputOutMsg )
-
                 outCmd =
                     case inputOutMsg of
                         Nothing ->
@@ -179,27 +180,6 @@ updateProfiling msg profiling =
                     , Cmd.map ProfilingInputField inputCommands
                     ]
                 )
-
-
-
-{-
-   ToggleProfilingInputMode ->
-       ( { profiling | mode = toggleInputMode profiling.mode }
-       , Cmd.none
-       )
-
-   SetProfilingText newText ->
-       case profiling.mode of
-           PasteMode { fileUpload } ->
-               ( { profiling | mode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
-
-           UploadMode x ->
-               ( profiling, Cmd.none )
-
-   UploadAuthorProfiling ->
-       -- currently not implemented
-       ( profiling, Cmd.none )
--}
 
 
 updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
@@ -218,37 +198,40 @@ updateAttribution msg attribution =
                     , Cmd.none
                     )
 
-        LoadFile author ->
-            ( attribution, Ports.readFiles ( "fileInputId", toString author ) )
+        AttributionInputField author msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    case author of
+                        KnownAuthor ->
+                            InputField.update msg attribution.knownAuthor
 
-        RemoveFile author filename ->
-            ( attribution, Cmd.none )
+                        UnknownAuthor ->
+                            InputField.update msg attribution.unknownAuthor
 
-        ToggleInputMode KnownAuthor ->
-            ( { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode }
-            , Cmd.none
-            )
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
 
-        ToggleInputMode UnknownAuthor ->
-            ( { attribution | unknownAuthorMode = toggleInputMode attribution.unknownAuthorMode }
-            , Cmd.none
-            )
+                        Just ListenForFiles ->
+                            case author of
+                                KnownAuthor ->
+                                    Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
 
-        SetText KnownAuthor newText ->
-            case attribution.knownAuthorMode of
-                PasteMode { fileUpload } ->
-                    ( { attribution | knownAuthorMode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
+                                UnknownAuthor ->
+                                    Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+            in
+                ( case author of
+                    KnownAuthor ->
+                        { attribution | knownAuthor = newInput }
 
-                UploadMode x ->
-                    ( attribution, Cmd.none )
-
-        SetText UnknownAuthor newText ->
-            case attribution.unknownAuthorMode of
-                PasteMode { fileUpload } ->
-                    ( { attribution | unknownAuthorMode = PasteMode { fileUpload = fileUpload, pasteText = { text = newText } } }, Cmd.none )
-
-                UploadMode x ->
-                    ( attribution, Cmd.none )
+                    UnknownAuthor ->
+                        { attribution | unknownAuthor = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map (AttributionInputField author) inputCommands
+                    ]
+                )
 
         SetLanguage newLanguage ->
             ( { attribution | language = newLanguage }
@@ -262,7 +245,7 @@ performAttribution : AttributionState -> Cmd AttributionMessage
 performAttribution attribution =
     let
         body =
-            Http.jsonBody (encodeToServer attribution)
+            Http.jsonBody (encodeAttributionRequest attribution)
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
@@ -276,13 +259,3 @@ webserverUrl =
 authorRecognitionEndpoint : String
 authorRecognitionEndpoint =
     "/api/attribution"
-
-
-fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-"""
-
-
-fillerText2 =
-    """This is the update of Unknown Author.\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D
-"""
