@@ -6,7 +6,6 @@
 
 import * as child_process from 'child_process'; //require('child_process').execFile;
 const execFile = child_process.execFile;
-
  
 import { FromClient, ToClient } from './network_interface';
 
@@ -15,7 +14,7 @@ export class Attributor {
   
   // Callback that gets called once the Python program has finished
   // TODO: Wrap this with a task class
-  private programFinishedCallback( callback, error, stdout, stderr ) {
+  private programFinishedCallback( callback: ( out: any ) => void, error, stdout, stderr ) {
     if ( error ) {
       callback( 'An error occurred' );
       return;
