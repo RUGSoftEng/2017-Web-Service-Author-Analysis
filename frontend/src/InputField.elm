@@ -1,4 +1,4 @@
-module InputField exposing (..)
+module InputField exposing (State, Msg, init, update, view, OutMsg(..), addFile, encodeState, File)
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -25,10 +25,6 @@ import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 
 
-type ID
-    = ID String
-
-
 type alias File =
     { name : String, content : String }
 
@@ -42,10 +38,20 @@ type Msg
     = NoOp
     | SetPaste
     | SetUpload
-    | AddFile (File)
+    | AddFile File
     | SendListenForFiles
     | RemoveFile String
     | ChangeText String
+
+
+{-| Wrapper. This way we can expose this functionality
+without exposing Msg constructors
+
+exposing the constructors of a type is seen as an anti-pattern
+-}
+addFile : File -> Msg
+addFile =
+    AddFile
 
 
 type OutMsg

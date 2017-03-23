@@ -62,6 +62,13 @@ type ProfilingMessage
     | UploadAuthorProfiling
 
 
+{-| type alias with the same name.
+this is the (only) way to re-export a type
+-}
+type alias File =
+    InputField.File
+
+
 
 -- nested structures
 
@@ -94,25 +101,6 @@ type Route
     = Home
     | AttributionRoute
     | ProfilingRoute
-
-
-{-| How the user inputs a document
--}
-type InputMode
-    = UploadMode { fileUpload : FileUpload, pasteText : PasteText }
-    | PasteMode { fileUpload : FileUpload, pasteText : PasteText }
-
-
-type alias File =
-    { name : String, content : String }
-
-
-type alias FileUpload =
-    { files : Dict String File }
-
-
-type alias PasteText =
-    { text : String }
 
 
 

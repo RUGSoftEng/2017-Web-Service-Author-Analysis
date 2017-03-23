@@ -1,5 +1,13 @@
 module Update exposing (update, initialState)
 
+{-| Update
+
+describes how the model and the world should change based on a message.
+
+this file also contains the initial state, definition of http requests to the server,
+and routing - what page to display based on the url.
+-}
+
 import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
@@ -63,6 +71,7 @@ initialState location =
 * NoOp, does nothing
 * NavBarMsg, updates highlight in the navigation bar
 * ChangeRoute, changes the route - the currently displayed page
+* AddFile, receive a file from JS, put it in the correct place in the model
 * UrlChange, does nothing, see comment
 * AttributionMsg, nested update on the attribution
 * ProfilingMsg, nested update on the profiling
@@ -104,33 +113,35 @@ update msg model =
             -- We get a File and the id of the destination. Based on that ID, we create a Msg to get the file
             -- to the destination (either in AttributionState or ProfilingState).
             -- then we call update (recursively) to execute the Msg we created
-            -- flip reverses the order of arguments, so `flip (-) 12 4 == (-) 4 12 == 4 - 12 == 8`.
+            -- flip reverses the order of arguments, so `flip (-) 12 4 == (-) 4 12 == 4 - 12 == -8`.
             case id of
                 "KnownAuthor" ->
-                    InputField.AddFile file
+                    InputField.addFile file
                         |> AttributionInputField KnownAuthor
                         |> AttributionMsg
                         |> flip update model
 
                 "UnknownAuthor" ->
-                    InputField.AddFile file
+                    InputField.addFile file
                         |> AttributionInputField UnknownAuthor
                         |> AttributionMsg
                         |> flip update model
 
                 "Profiling" ->
-                    InputField.AddFile file
+                    InputField.addFile file
                         |> ProfilingInputField
                         |> ProfilingMsg
                         |> flip update model
 
                 _ ->
+                    -- throws a javascript error
                     Debug.crash <| "trying to add a file to " ++ id ++ ", but it does not exist!"
 
         UrlChange location ->
-            {- nothing happends here
+            {- nothing happens here
                Any url change made by the user will result in a reload from the server. Reaction is irrelevant
                Any url change made by elm is the result of a route change. Reaction to that change will lead to infinite cycles
+               kept for documentation purposes.
             -}
             ( model, Cmd.none )
 
@@ -198,15 +209,10 @@ updateAttribution msg attribution =
                     , Cmd.none
                     )
 
-        AttributionInputField author msg ->
+        AttributionInputField KnownAuthor msg ->
             let
                 ( newInput, inputCommands, inputOutMsg ) =
-                    case author of
-                        KnownAuthor ->
-                            InputField.update msg attribution.knownAuthor
-
-                        UnknownAuthor ->
-                            InputField.update msg attribution.unknownAuthor
+                    InputField.update msg attribution.knownAuthor
 
                 outCmd =
                     case inputOutMsg of
@@ -214,22 +220,32 @@ updateAttribution msg attribution =
                             Cmd.none
 
                         Just ListenForFiles ->
-                            case author of
-                                KnownAuthor ->
-                                    Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
-
-                                UnknownAuthor ->
-                                    Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+                            Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
             in
-                ( case author of
-                    KnownAuthor ->
-                        { attribution | knownAuthor = newInput }
-
-                    UnknownAuthor ->
-                        { attribution | unknownAuthor = newInput }
+                ( { attribution | knownAuthor = newInput }
                 , Cmd.batch
                     [ outCmd
-                    , Cmd.map (AttributionInputField author) inputCommands
+                    , Cmd.map (AttributionInputField KnownAuthor) inputCommands
+                    ]
+                )
+
+        AttributionInputField UnknownAuthor msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg attribution.unknownAuthor
+
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
+
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+            in
+                ( { attribution | unknownAuthor = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map (AttributionInputField UnknownAuthor) inputCommands
                     ]
                 )
 

@@ -35,15 +35,6 @@ import InputField
 
 {-| How the model is displayed
 
-
-note on styles/css:
-
-currently these are inserted as <style> tags into the html (specifically within <body>). This is not ideal
-for many reasons, but has been convenient so far because we don't need to do any server configuration
-
-This will/should change in the second iteration, where the nodejs backend will actually serve the elm code
-and the resources it needs.
-
 html in elm:
 
 html is represented by normal elm functions that take two arguments: a list of attributes and a list of children
@@ -80,6 +71,7 @@ view model =
 navbar : Model -> Html Msg
 navbar ({ navbarState } as model) =
     let
+        onClickStopEvent : Msg -> Attribute Msg
         onClickStopEvent msg =
             onWithOptions "click"
                 { defaultOptions | stopPropagation = True, preventDefault = True }
@@ -88,11 +80,9 @@ navbar ({ navbarState } as model) =
         Navbar.config NavbarMsg
             |> Navbar.inverse
             |> Navbar.withAnimation
-            -- the brand needs the href attribute to be specified (no idea why).
-            -- there is no meaningful value for it, so we define `href='#'`.
-            -- but, when the href attribute is '#', firefox will reload the page when the element is clicked (chrome will not).
-            -- To prevent the reload (in firefox), we stop the event here.
-            -- also, we want the href for accessibility (for instance the browser knows this thing is clickable and shows the proper cursor)
+            -- The brand needs the href attribute to be specified.
+            -- the href is the url (address) that the browser will navigate to when an item is clicked.
+            -- Instead of letting the browser reload, we intercept and stop the signal and do our own routing
             |>
                 Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis | " ]
             |> Navbar.items
@@ -241,7 +231,7 @@ profilingView profiling =
 
 {-| Language selection
 
-this can't be in ViewHelpers because it creates circular dependencies (via Types.elm, which is needed for Language
+this can't be in ViewHelpers because it creates circular dependencies (via Types.elm, which is needed for Language)
 -}
 languageSelector : String -> (Language -> msg) -> List Language -> Language -> Html msg
 languageSelector name toMsg languages current =
