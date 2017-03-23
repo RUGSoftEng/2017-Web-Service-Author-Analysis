@@ -17,27 +17,23 @@ http://package.elm-lang.org/packages/rundis/elm-bootstrap/latest
 -}
 
 import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src)
-import Html.Events exposing (onClick, onInput, onWithOptions, defaultOptions)
+import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
+import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
+import Bootstrap.ListGroup as ListGroup
 import Json.Decode as Decode
+import Dict exposing (Dict)
 import Types exposing (..)
+import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
+import ViewHelpers
+import InputField
 
 
 {-| How the model is displayed
-
-
-note on styles/css:
-
-currently these are inserted as <style> tags into the html (specifically within <body>). This is not ideal
-for many reasons, but has been convenient so far because we don't need to do any server configuration
-
-This will/should change in the second iteration, where the nodejs backend will actually serve the elm code
-and the resources it needs.
 
 html in elm:
 
@@ -75,6 +71,7 @@ view model =
 navbar : Model -> Html Msg
 navbar ({ navbarState } as model) =
     let
+        onClickStopEvent : Msg -> Attribute Msg
         onClickStopEvent msg =
             onWithOptions "click"
                 { defaultOptions | stopPropagation = True, preventDefault = True }
@@ -83,11 +80,9 @@ navbar ({ navbarState } as model) =
         Navbar.config NavbarMsg
             |> Navbar.inverse
             |> Navbar.withAnimation
-            -- the brand needs the href attribute to be specified (no idea why).
-            -- there is no meaningful value for it, so we define `href='#'`.
-            -- but, when the href attribute is '#', firefox will reload the page when the element is clicked (chrome will not).
-            -- To prevent the reload (in firefox), we stop the event here.
-            -- also, we want the href for accessibility (for instance the browser knows this thing is clickable and shows the proper cursor)
+            -- The brand needs the href attribute to be specified.
+            -- the href is the url (address) that the browser will navigate to when an item is clicked.
+            -- Instead of letting the browser reload, we intercept and stop the signal and do our own routing
             |>
                 Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis | " ]
             |> Navbar.items
@@ -135,28 +130,38 @@ attributionView : AttributionState -> Html AttributionMessage
 attributionView attribution =
     let
         knownAuthorInput =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "Known Author" ]
-                , knownButtons
-                , textarea
-                    [ onInput (SetText KnownAuthor)
-                    , defaultValue attribution.knownAuthorText
-                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                    ]
-                    []
-                ]
+            let
+                config =
+                    { label =
+                        "Known Author"
+                        -- the `name` attribute for radio buttons
+                    , radioButtonName =
+                        "attribution-known-author-buttons"
+                        -- the id for the <input> element where the files are stored
+                    , fileInputId =
+                        "attribution-known-author-file-input"
+                        -- allow multiple files to be selected
+                    , multiple = True
+                    }
+            in
+                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                    (InputField.view attribution.knownAuthor config
+                        |> List.map (Html.map (AttributionInputField KnownAuthor))
+                    )
 
         unknownAuthorInput =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "Unknown Author" ]
-                , unknownButtons
-                , textarea
-                    [ onInput (SetText UnknownAuthor)
-                    , defaultValue attribution.unknownAuthorText
-                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                    ]
-                    []
-                ]
+            let
+                config =
+                    { label = "Unknown Author"
+                    , radioButtonName = "attribution-unknown-author-buttons"
+                    , fileInputId = "attribution-unknown-author-file-input"
+                    , multiple = False
+                    }
+            in
+                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                    (InputField.view attribution.unknownAuthor config
+                        |> List.map (Html.map (AttributionInputField UnknownAuthor))
+                    )
 
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -169,52 +174,15 @@ attributionView attribution =
                         text (toString a)
                 ]
 
-        languageSelector =
-            let
-                language =
-                    attribution.language
-            in
-                div []
-                    [ text "Language:"
-                    , radioButtons "attribution-language"
-                        [ ( language == EN, SetLanguage EN, [ text "EN" ] )
-                        , ( language == NL, SetLanguage NL, [ text "NL" ] )
-                        ]
-                    ]
-
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
                 [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
-                , languageSelector
+                , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
+                , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
                 ]
-
-        knownButtons =
-            let
-                pasteText =
-                    attribution.knownAuthorMode == PasteText
-            in
-                radioButtons "known-author-inputmode"
-                    [ ( pasteText, ToggleInputMode KnownAuthor, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleInputMode KnownAuthor, [ text "Upload File" ] )
-                    ]
-
-        unknownButtons =
-            let
-                pasteText =
-                    attribution.unknownAuthorMode == PasteText
-            in
-                radioButtons "unknown-author-inputmode"
-                    [ ( pasteText, ToggleInputMode UnknownAuthor, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleInputMode UnknownAuthor, [ text "Upload File" ] )
-                    ]
     in
         div []
-            [ div [ class "jumbotron" ]
-                [ Grid.container []
-                    [ h1 [ class "display-3" ] [ text "Author Recognition" ]
-                    , p [] [ text "Predict whether two texts are written by the same author" ]
-                    ]
-                ]
+            [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
             , Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ result ]
@@ -231,16 +199,18 @@ profilingView : ProfilingState -> Html ProfilingMessage
 profilingView profiling =
     let
         profilingInput =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "Text" ]
-                , knownButtons
-                , textarea
-                    [ onInput SetProfilingText
-                    , defaultValue profiling.text
-                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                    ]
-                    []
-                ]
+            let
+                config =
+                    { label = "Text"
+                    , radioButtonName = "profiling-mode-buttons"
+                    , fileInputId = "profiling-file-input"
+                    , multiple = False
+                    }
+            in
+                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+                    (InputField.view profiling.input config
+                        |> List.map (Html.map ProfilingInputField)
+                    )
 
         result =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -256,24 +226,9 @@ profilingView profiling =
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
                 [ Button.button [ Button.primary, Button.attrs [ onClick UploadAuthorProfiling ] ] [ text "profiling" ] ]
-
-        knownButtons =
-            let
-                pasteText =
-                    profiling.mode == PasteText
-            in
-                radioButtons "profiling-inputmode"
-                    [ ( pasteText, ToggleProfilingInputMode, [ text "Paste Text" ] )
-                    , ( not pasteText, ToggleProfilingInputMode, [ text "Upload File" ] )
-                    ]
     in
         div []
-            [ div [ class "jumbotron" ]
-                [ Grid.container []
-                    [ h1 [ class "display-3" ] [ text "Author Profiling" ]
-                    , p [] [ text "Predict the age and the gender of the Author of the text" ]
-                    ]
-                ]
+            [ ViewHelpers.jumbotron "Author Profiling" "Predict the age and the gender of the Author of the text"
             , Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ profilingInput
@@ -284,21 +239,29 @@ profilingView profiling =
             ]
 
 
-{-| we have to do this html manually, until my fix to the elm-bootstrap package gets merged
-(this should be early next week, I spoke with the package author).
+{-| Language selection
 
-Until then, just assume this function works
-
-this doesn't go into a separate file because why would it? just adds overhead.
+this can't be in ViewHelpers because it creates circular dependencies (via Types.elm, which is needed for Language)
 -}
-radioButtons : String -> List ( Bool, msg, List (Html msg) ) -> Html msg
-radioButtons groupName options =
+languageSelector : String -> (Language -> msg) -> List Language -> Language -> Html msg
+languageSelector name toMsg languages current =
     let
-        viewRadioButton ( checked, onclick, children ) =
-            label
-                [ classList [ ( "btn", True ), ( "btn-primary", True ), ( "active", checked ) ]
-                , onWithOptions "click" { defaultOptions | preventDefault = True } (Decode.succeed onclick)
-                ]
-                (input [ attribute "autocomplete" "off", attribute "checked" "", name groupName, type_ "radio" ] [] :: children)
+        languageButton language =
+            ( language == current, toMsg language, [ text (toString language) ] )
     in
-        div [ class "btn-group", attribute "data-toggle" "buttons" ] (List.map viewRadioButton options)
+        div []
+            [ text "Language:"
+            , ViewHelpers.radioButtons name (List.map languageButton languages)
+            ]
+
+
+featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
+featureComboSelector name toMsg featureCombos current =
+    let
+        featureComboButton featureCombo =
+            ( featureCombo == current, toMsg featureCombo, [ text (toString featureCombo) ] )
+    in
+        div []
+            [ text "Feature Combo:"
+            , ViewHelpers.radioButtons name (List.map featureComboButton featureCombos)
+            ]

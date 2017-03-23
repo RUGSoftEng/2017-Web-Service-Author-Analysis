@@ -14,7 +14,13 @@ import Navigation
 import Json.Decode as Decode exposing (string, bool, int, float)
 import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
+import Dict exposing (Dict)
 import Http
+
+
+--
+
+import InputField
 
 
 {-| Our model of the world
@@ -36,14 +42,15 @@ type Msg
     | AttributionMsg AttributionMessage
     | ProfilingMsg ProfilingMessage
     | UrlChange Navigation.Location
+    | AddFile ( String, File )
 
 
 type AttributionMessage
     = SetLanguage Language
-    | ToggleInputMode Author
-    | SetText Author String
+    | SetFeatureCombo FeatureCombo
     | PerformAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
+    | AttributionInputField Author InputField.Msg
 
 
 type Author
@@ -52,9 +59,15 @@ type Author
 
 
 type ProfilingMessage
-    = UploadAuthorProfiling
-    | ToggleProfilingInputMode
-    | SetProfilingText String
+    = ProfilingInputField InputField.Msg
+    | UploadAuthorProfiling
+
+
+{-| type alias with the same name.
+this is the (only) way to re-export a type
+-}
+type alias File =
+    InputField.File
 
 
 
@@ -62,25 +75,14 @@ type ProfilingMessage
 
 
 type alias AttributionState =
-    { knownAuthorMode : InputMode
-    , knownAuthorText : String
-    , unknownAuthorMode : InputMode
-    , unknownAuthorText : String
+    { knownAuthor : InputField.State
+    , unknownAuthor : InputField.State
     , result : Maybe AttributionResponse
     , language : Language
+    , languages : List Language
+    , featureCombo : FeatureCombo
+    , featureCombos : List FeatureCombo
     }
-
-
-{-| Update a wrapped AttributionState
-
-    mapAttribution (\attribution -> { attribution | language = EN }) model
--}
-mapAttribution :
-    (AttributionState -> AttributionState)
-    -> { a | attribution : AttributionState }
-    -> { a | attribution : AttributionState }
-mapAttribution updater record =
-    { record | attribution = updater record.attribution }
 
 
 {-| Supported languages
@@ -90,9 +92,13 @@ type Language
     | NL
 
 
+type FeatureCombo
+    = Combo1
+    | Combo4
+
+
 type alias ProfilingState =
-    { mode : InputMode
-    , text : String
+    { input : InputField.State
     , result : Maybe ProfilingResponse
     }
 
@@ -103,23 +109,6 @@ type Route
     = Home
     | AttributionRoute
     | ProfilingRoute
-
-
-{-| How the user inputs a document
--}
-type InputMode
-    = FileUpload
-    | PasteText
-
-
-{-| Request to the server
-
-Example JSON:
-{ "knownAuthorText": "lorem", "unknownAuthorText": "ipsum" }
-
--}
-type alias AttributionRequest =
-    { knownAuthorText : String, unknownAuthorText : String }
 
 
 
@@ -160,19 +149,40 @@ type Gender
     (,)
 
 
-encodeToServer : AttributionRequest -> Encode.Value
-encodeToServer toServer =
-    Encode.object
-        [ "knownAuthorText" => Encode.string toServer.knownAuthorText
-        , "unknownAuthorText" => Encode.string toServer.unknownAuthorText
-        ]
+encodeAttributionRequest : AttributionState -> Encode.Value
+encodeAttributionRequest attribution =
+    let
+        featureComboToInt combo =
+            case combo of
+                Combo1 ->
+                    1
+
+                Combo4 ->
+                    4
+    in
+        Encode.object
+            [ "knownAuthorTexts" => InputField.encodeState attribution.knownAuthor
+            , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
+            , "language" => Encode.string (toString attribution.language)
+            , "genre" => Encode.int 0
+            , "featureSet" => Encode.int (featureComboToInt attribution.featureCombo)
+            ]
 
 
 decodeAttributionResponse : Decode.Decoder AttributionResponse
 decodeAttributionResponse =
     Decode.succeed AttributionResponse
-        |> required "sameAuthor" bool
-        |> required "confidence" float
+        |> required "sameAuthorConfidence" float
+
+
+encodeProfilingRequest : ProfilingState -> Encode.Value
+encodeProfilingRequest profiling =
+    Encode.object
+        [ "text" => InputField.encodeFirstFile profiling.text
+        , "language" => Encode.string (toString EN)
+        , "genre " => Encode.int 0
+        , "featureSet" => Encode.int 0
+        ]
 
 
 decodeProfilingResponse : Decode.Decoder ProfilingResponse
