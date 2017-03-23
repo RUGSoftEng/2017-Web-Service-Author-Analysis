@@ -5,8 +5,7 @@
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script>
     var data = {
-      knownAuthorTexts: ['To be, or not to be'],
-      unknownAuthorText: 'Hell is empty, and all the devils are here!',
+      text: 'Hell is empty, and all the devils are here!',
       language: 'EN',
       genre: 0,
       featureSet: 0
@@ -14,7 +13,7 @@
     
     $.ajax( {
       type: 'POST',
-      url: '/api/attribution',
+      url: '/api/profiling',
       data: JSON.stringify( data ),
       success: ( res ) => { console.log( res ); },
       dataType: 'json',
@@ -24,6 +23,6 @@
     <title>Index</title>
   </head>
   <body>
-    Sends a post request to the Authorship Attribution API.<br>See JavaScript console (Ctrl+Shift+I)
+    Sends a post request to the Author Profiling API.<br>See JavaScript console (Ctrl+Shift+I)
   </body>
 </html>

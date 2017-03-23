@@ -6,19 +6,21 @@
 /**
  * The message requesting an Authorship verification.
  *
- * Also known as: ToServer
+ * Also known as: ToServerAttribution
  */
-export interface FromClient {
-  knownAuthorText: string;
+export interface FromClientAttribution {
+  knownAuthorTexts: string[];
   unknownAuthorText: string;
+  language: string;
+  genre: number;
+  featureSet: number;
 }
 
 /**
  * The message responding to an Authorship verification, in case of success
  *
- * Also known as: FromClient
+ * Also known as: FromClientAttribution
  */
-export interface ToClient {
-  sameAuthor: boolean;
-  confidence: number;
+export interface ToClientAttribution {
+  sameAuthorConfidence: number;
 }

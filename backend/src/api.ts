@@ -14,10 +14,12 @@
  */
 import * as express from 'express';
 import { routerAttribution } from './attribution';
+import { routerProfiling } from './profiling';
 
 const app = express( );
 
 app.use( routerAttribution );
+app.use( routerProfiling );
 
 // For '/api', a plain-text 404 should be used, because '/api' resources are not
 // appropriated for the front-end application. External entities communicating
