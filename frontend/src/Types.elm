@@ -130,7 +130,7 @@ Example JSON:
 
 -}
 type alias AttributionResponse =
-    { sameAuthor : Bool, confidence : Float }
+    { confidence : Float }
 
 
 type alias ProfilingResponse =
@@ -178,7 +178,7 @@ decodeAttributionResponse =
 encodeProfilingRequest : ProfilingState -> Encode.Value
 encodeProfilingRequest profiling =
     Encode.object
-        [ "text" => InputField.encodeFirstFile profiling.text
+        [ "text" => InputField.encodeFirstFile profiling.input
         , "language" => Encode.string (toString EN)
         , "genre " => Encode.int 0
         , "featureSet" => Encode.int 0
