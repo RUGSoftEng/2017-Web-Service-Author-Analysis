@@ -132,9 +132,16 @@ attributionView attribution =
         knownAuthorInput =
             let
                 config =
-                    { label = "Known Author"
-                    , radioButtonName = "attribution-known-author-buttons"
-                    , fileInputId = "attribution-known-author-file-input"
+                    { label =
+                        "Known Author"
+                        -- the `name` attribute for radio buttons
+                    , radioButtonName =
+                        "attribution-known-author-buttons"
+                        -- the id for the <input> element where the files are stored
+                    , fileInputId =
+                        "attribution-known-author-file-input"
+                        -- allow multiple files to be selected
+                    , multiple = True
                     }
             in
                 Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -148,6 +155,7 @@ attributionView attribution =
                     { label = "Unknown Author"
                     , radioButtonName = "attribution-unknown-author-buttons"
                     , fileInputId = "attribution-unknown-author-file-input"
+                    , multiple = False
                     }
             in
                 Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
@@ -196,6 +204,7 @@ profilingView profiling =
                     { label = "Text"
                     , radioButtonName = "profiling-mode-buttons"
                     , fileInputId = "profiling-file-input"
+                    , multiple = False
                     }
             in
                 Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]

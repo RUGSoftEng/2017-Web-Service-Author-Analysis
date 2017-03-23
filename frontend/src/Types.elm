@@ -150,18 +150,39 @@ type Gender
 
 
 encodeAttributionRequest : AttributionState -> Encode.Value
-encodeAttributionRequest toServer =
-    Encode.object
-        [ "knownAuthorTexts" => InputField.encodeState toServer.knownAuthor
-        , "unknownAuthorText" => InputField.encodeState toServer.unknownAuthor
-        ]
+encodeAttributionRequest attribution =
+    let
+        featureComboToInt combo =
+            case combo of
+                Combo1 ->
+                    1
+
+                Combo4 ->
+                    4
+    in
+        Encode.object
+            [ "knownAuthorTexts" => InputField.encodeState attribution.knownAuthor
+            , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
+            , "language" => Encode.string (toString attribution.language)
+            , "genre" => Encode.int 0
+            , "featureSet" => Encode.int (featureComboToInt attribution.featureCombo)
+            ]
 
 
 decodeAttributionResponse : Decode.Decoder AttributionResponse
 decodeAttributionResponse =
     Decode.succeed AttributionResponse
-        |> required "sameAuthor" bool
-        |> required "confidence" float
+        |> required "sameAuthorConfidence" float
+
+
+encodeProfilingRequest : ProfilingState -> Encode.Value
+encodeProfilingRequest profiling =
+    Encode.object
+        [ "text" => InputField.encodeFirstFile profiling.text
+        , "language" => Encode.string (toString EN)
+        , "genre " => Encode.int 0
+        , "featureSet" => Encode.int 0
+        ]
 
 
 decodeProfilingResponse : Decode.Decoder ProfilingResponse

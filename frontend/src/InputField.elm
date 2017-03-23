@@ -1,4 +1,4 @@
-module InputField exposing (State, Msg, init, update, view, OutMsg(..), addFile, encodeState, File)
+module InputField exposing (State, Msg, init, update, view, OutMsg(..), addFile, encodeState, File, encodeFirstFile)
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -76,6 +76,22 @@ encodeState mode =
         |> Encode.list
 
 
+encodeFirstFile : State -> Encode.Value
+encodeFirstFile state =
+    case state of
+        Paste { text } ->
+            Encode.string text
+
+        Upload { files } ->
+            case Dict.values files of
+                { content } :: _ ->
+                    Encode.string content
+
+                [] ->
+                    -- TODO make this fail graciously
+                    Debug.crash "no file to encode"
+
+
 init : State
 init =
     Paste { text = "", files = Dict.empty }
@@ -135,6 +151,7 @@ type alias Config =
     { label : String
     , fileInputId : String
     , radioButtonName : String
+    , multiple : Bool
     }
 
 
@@ -158,6 +175,8 @@ view model config =
                         [ type_ "file"
                         , on "change" (Decode.succeed SendListenForFiles)
                         , id config.fileInputId
+                        , multiple config.multiple
+                        , disabled (not config.multiple && not (Dict.isEmpty data.files))
                         ]
                         []
                     ]
