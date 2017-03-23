@@ -170,6 +170,7 @@ attributionView attribution =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
                 [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
                 , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
+                , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
                 ]
     in
         div []
@@ -242,4 +243,16 @@ languageSelector name toMsg languages current =
         div []
             [ text "Language:"
             , ViewHelpers.radioButtons name (List.map languageButton languages)
+            ]
+
+
+featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
+featureComboSelector name toMsg featureCombos current =
+    let
+        featureComboButton featureCombo =
+            ( featureCombo == current, toMsg featureCombo, [ text (toString featureCombo) ] )
+    in
+        div []
+            [ text "Feature Combo:"
+            , ViewHelpers.radioButtons name (List.map featureComboButton featureCombos)
             ]

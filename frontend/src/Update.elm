@@ -46,6 +46,8 @@ initialState location =
             , result = Nothing
             , language = EN
             , languages = [ EN, NL ]
+            , featureCombo = Combo4
+            , featureCombos = [ Combo1, Combo4 ]
             }
 
         defaultProfiling =
@@ -251,6 +253,11 @@ updateAttribution msg attribution =
 
         SetLanguage newLanguage ->
             ( { attribution | language = newLanguage }
+            , Cmd.none
+            )
+
+        SetFeatureCombo newFeatureCombo ->
+            ( { attribution | featureCombo = newFeatureCombo }
             , Cmd.none
             )
 

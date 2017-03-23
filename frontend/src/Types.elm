@@ -47,6 +47,7 @@ type Msg
 
 type AttributionMessage
     = SetLanguage Language
+    | SetFeatureCombo FeatureCombo
     | PerformAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
     | AttributionInputField Author InputField.Msg
@@ -79,6 +80,8 @@ type alias AttributionState =
     , result : Maybe AttributionResponse
     , language : Language
     , languages : List Language
+    , featureCombo : FeatureCombo
+    , featureCombos : List FeatureCombo
     }
 
 
@@ -87,6 +90,11 @@ type alias AttributionState =
 type Language
     = EN
     | NL
+
+
+type FeatureCombo
+    = Combo1
+    | Combo4
 
 
 type alias ProfilingState =
@@ -144,7 +152,7 @@ type Gender
 encodeAttributionRequest : AttributionState -> Encode.Value
 encodeAttributionRequest toServer =
     Encode.object
-        [ "knownAuthorText" => InputField.encodeState toServer.knownAuthor
+        [ "knownAuthorTexts" => InputField.encodeState toServer.knownAuthor
         , "unknownAuthorText" => InputField.encodeState toServer.unknownAuthor
         ]
 
