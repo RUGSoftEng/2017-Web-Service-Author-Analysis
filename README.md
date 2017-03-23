@@ -23,7 +23,7 @@ Example JSON:
 
 -}
 type alias ToServerAttribution =
-    { knownAuthorTexts : String[]
+    { knownAuthorTexts : List String
     , unknownAuthorText : String
     , language : String
     , genre : number
