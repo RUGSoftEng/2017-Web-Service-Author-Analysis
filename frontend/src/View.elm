@@ -31,6 +31,7 @@ import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
+import Visualization
 
 
 {-| How the model is displayed
@@ -123,7 +124,15 @@ footerbar ({ navbarState } as model) =
 
 homeView : Html msg
 homeView =
-    text "home"
+    div []
+        [ text "home"
+        , Grid.containerFluid []
+            [ Grid.row []
+                [ Grid.col [] [ Visualization.plotPunctuation Visualization.example ]
+                , Grid.col [] [ Visualization.plotLineEndings Visualization.example ]
+                ]
+            ]
+        ]
 
 
 attributionView : AttributionState -> Html AttributionMessage

@@ -11,7 +11,7 @@ for the types would lead to circular dependencies.
 
 import Bootstrap.Navbar as Navbar
 import Navigation
-import Json.Decode as Decode exposing (string, bool, int, float)
+import Json.Decode as Decode exposing (string, bool, int, float, dict)
 import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
 import Dict exposing (Dict)
@@ -204,3 +204,64 @@ decodeProfilingResponse =
                     )
             )
         |> required "age" int
+
+
+type alias Statistics =
+    { known : FileStatistics
+    , unknown : FileStatistics
+    }
+
+
+decodeStatistics =
+    Decode.succeed Statistics
+        |> required "known" decodeFileStatistics
+        |> required "unknown" decodeFileStatistics
+
+
+type alias FileStatistics =
+    { characters : Int
+    , lines : Int
+    , blocks : Int
+    , uppers : Int
+    , lowers : Int
+    , punctuation : Dict Char Int
+    , lineEndings : Dict Char Int
+    }
+
+
+{-| Convert a dict's keys from string to char
+this conversion may fail, so we return a decoder
+(a decoder can fail or succeed, so represents the possibility of failure)
+-}
+keysToChar : Dict String a -> Decode.Decoder (Dict Char a)
+keysToChar dict =
+    Dict.foldr
+        (\key value accum ->
+            case String.uncons key of
+                Nothing ->
+                    Decode.fail "cannot decode empty string to char"
+
+                Just ( char, "" ) ->
+                    Decode.map (Dict.insert char value) accum
+
+                Just _ ->
+                    Decode.fail <| "expected a single character, but got `" ++ key ++ "`"
+        )
+        (Decode.succeed Dict.empty)
+        dict
+
+
+charIntDict : Decode.Decoder (Dict Char Int)
+charIntDict =
+    (dict int |> Decode.andThen keysToChar)
+
+
+decodeFileStatistics =
+    decode FileStatistics
+        |> required "characters" int
+        |> required "lines" int
+        |> required "blocks" int
+        |> required "uppers" int
+        |> required "lowers" int
+        |> required "lineEndings" charIntDict
+        |> required "punctuation" (dict int |> Decode.andThen keysToChar)
