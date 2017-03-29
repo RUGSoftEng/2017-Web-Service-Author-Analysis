@@ -5,12 +5,15 @@
  */
 
 import * as child_process from 'child_process'; //require('child_process').execFile;
+import { BackendWrapper } from '../backend_wrapper';
 const execFile = child_process.execFile;
  
-import { FromClientAttribution, ToClientAttribution } from './network_interface';
+import { FromClientAttribution, ToClientAttribution, FromClientAttribution_isValid } from './network_interface';
 
-export class Attributor {
-  constructor( ) { }
+export class Attributor extends BackendWrapper<FromClientAttribution> {
+  constructor( ) {
+    super( FromClientAttribution_isValid );
+  }
   
   // Callback that gets called once the Python program has finished
   // TODO: Wrap this with a task class
@@ -35,12 +38,8 @@ export class Attributor {
     }
   }
   
-  public handleRequest( request: FromClientAttribution, callback: ( out: any ) => void ) {
-    if ( !this.isValid_FromClient( request ) ) {
-      callback( 'Invalid input' );
-      return;
-    }
-    
+  // Override
+  protected doHandleRequest( request: FromClientAttribution, callback: ( out: any ) => void ): void {
     // NOTE: Only one known author text is used at the moment
     // Add multiple once GLAD input supports this
     const args = [ 'glad-copy.py',
@@ -50,17 +49,5 @@ export class Attributor {
     const options = { cwd: 'resources/glad' };
     
     execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
-  }
-  
-  /**
-   * True if the request is a valid 'FromClientAttribution' interface
-   */
-  private isValid_FromClient( request: FromClientAttribution ): boolean {
-    // TODO: More in-depth validity testing
-    return ( request.knownAuthorTexts instanceof Array &&
-             typeof request.unknownAuthorText === 'string' &&
-             typeof request.language === 'string' &&
-             typeof request.genre === 'number' &&
-             typeof request.featureSet === 'number' );
   }
 }
