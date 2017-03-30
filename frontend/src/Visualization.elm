@@ -10,28 +10,47 @@ import Dict exposing (Dict)
 data =
     let
         getters =
-            [ (\v -> v // 100) << .characters
+            [ (\v -> v / 100) << .characters
             , .lines
             , .blocks
             , .uppers
-            , (\v -> v // 100) << .lowers
+            , (\v -> v / 100) << .lowers
             ]
     in
-        List.map (\getter -> [ toFloat <| getter example.known, toFloat <| getter example.unknown ]) getters
+        List.map (\getter -> [ getter example.known, getter example.unknown ]) getters
+
+
+plotAverages : Statistics -> Html.Html msg
+plotAverages { known, unknown } =
+    let
+        data =
+            [ ( "sentence length", [ known.sentences / known.lines, unknown.sentences / unknown.lines ] )
+            , ( "words per line", [ known.words / known.lines, unknown.words, unknown.lines ] )
+              -- , ( "lines per paragraph", [ known.blockLines / known.blocks, unknown.blockLines / unknown.blocks ] )
+              -- , ("uppercase per lowercase", [ known.uppers / known.lowers, unknown.uppers / unknown.lowers ]
+            ]
+    in
+        viewBars (groups (List.map (\( label, value ) -> group label value))) data
 
 
 plotPunctuation : Statistics -> Html.Html msg
 plotPunctuation { known, unknown } =
-    Dict.toList known.punctuation
-        |> List.map2 (\v2 ( k, v ) -> ( k, [ v, v2 ] )) (Dict.values unknown.punctuation)
-        |> viewBars (groups (List.map (\( key, value ) -> group (String.fromChar key) (List.map toFloat value))))
+    let
+        construct ( label, v1 ) ( _, v2 ) =
+            ( String.fromChar label, [ v1 / known.characters, v2 / known.characters ] )
+    in
+        List.map2 construct (Dict.toList known.punctuation) (Dict.toList unknown.punctuation)
+            |> viewBars (groups (List.map (uncurry group)))
 
 
 plotLineEndings : Statistics -> Html.Html msg
 plotLineEndings { known, unknown } =
-    Dict.toList known.lineEndings
-        |> List.map2 (\v2 ( k, v ) -> ( k, [ v, v2 ] )) (Dict.values unknown.lineEndings)
-        |> viewBars (groups (List.map (\( key, value ) -> group (String.fromChar key) (List.map toFloat value))))
+    let
+        construct ( label, v1 ) ( _, v2 ) =
+            ( String.fromChar label, [ v1 / known.lines, v2 / known.lines ] )
+    in
+        List.map2 construct (Dict.toList known.lineEndings) (Dict.toList unknown.lineEndings)
+            |> viewBars (groups (List.map (uncurry group)))
 
 
 bars : Maybe Point -> Bars (List (List Float)) msg

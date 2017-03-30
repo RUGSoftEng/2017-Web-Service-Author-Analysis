@@ -126,10 +126,24 @@ homeView : Html msg
 homeView =
     div []
         [ text "home"
-        , Grid.containerFluid []
+        , Grid.container []
             [ Grid.row []
-                [ Grid.col [] [ Visualization.plotPunctuation Visualization.example ]
-                , Grid.col [] [ Visualization.plotLineEndings Visualization.example ]
+                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                    [ h3 [] [ text "punctuation per character" ]
+                    , Visualization.plotPunctuation Visualization.example
+                    ]
+                ]
+            , Grid.row []
+                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                    [ h3 [] [ text "line endings per line" ]
+                    , Visualization.plotLineEndings Visualization.example
+                    ]
+                ]
+            , Grid.row []
+                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                    [ h3 [] [ text "some averages" ]
+                    , Visualization.plotAverages Visualization.example
+                    ]
                 ]
             ]
         ]

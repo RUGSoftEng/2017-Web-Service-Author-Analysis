@@ -219,13 +219,15 @@ decodeStatistics =
 
 
 type alias FileStatistics =
-    { characters : Int
-    , lines : Int
-    , blocks : Int
-    , uppers : Int
-    , lowers : Int
-    , punctuation : Dict Char Int
-    , lineEndings : Dict Char Int
+    { characters : Float
+    , lines : Float
+    , blocks : Float
+    , uppers : Float
+    , lowers : Float
+    , punctuation : Dict Char Float
+    , lineEndings : Dict Char Float
+    , sentences : Float
+    , words : Float
     }
 
 
@@ -251,17 +253,14 @@ keysToChar dict =
         dict
 
 
-charIntDict : Decode.Decoder (Dict Char Int)
-charIntDict =
-    (dict int |> Decode.andThen keysToChar)
-
-
 decodeFileStatistics =
     decode FileStatistics
-        |> required "characters" int
-        |> required "lines" int
-        |> required "blocks" int
-        |> required "uppers" int
-        |> required "lowers" int
-        |> required "lineEndings" charIntDict
-        |> required "punctuation" (dict int |> Decode.andThen keysToChar)
+        |> required "characters" float
+        |> required "lines" float
+        |> required "blocks" float
+        |> required "uppers" float
+        |> required "lowers" float
+        |> required "lineEndings" (dict float |> Decode.andThen keysToChar)
+        |> required "punctuation" (dict float |> Decode.andThen keysToChar)
+        |> required "sentences" float
+        |> required "words" float
