@@ -50,7 +50,7 @@ can be part of any piece of html, no matter its message type.
 -}
 view : Model -> Html Msg
 view model =
-    div []
+    div [ id "maincontainer" ]
         [ navbar model
         , case model.route of
             Home ->
@@ -183,20 +183,39 @@ attributionView attribution =
 
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
-                [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
-                , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
-                , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
-                ]
+                []
     in
         div []
             [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
             , Grid.container []
                 [ Grid.row [ Row.topXs ]
-                    [ result ]
-                , Grid.row [ Row.topXs ]
                     [ knownAuthorInput
                     , separator
                     , unknownAuthorInput
+                    ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Compare!" ]
+                        ]
+                    ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ h2 []
+                            [ hr [] []
+                            , text "Settings"
+                            , hr [] []
+                            ]
+                        ]
+                    ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ h3 [] [ text "language" ]
+                        , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
+                        ]
+                    , Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ h3 [] [ text "feature combination" ]
+                        , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
+                        ]
                     ]
                 ]
             ]
@@ -256,10 +275,7 @@ languageSelector name toMsg languages current =
         languageButton language =
             ( language == current, toMsg language, [ text (toString language) ] )
     in
-        div []
-            [ text "Language:"
-            , ViewHelpers.radioButtons name (List.map languageButton languages)
-            ]
+        ViewHelpers.radioButtonsVertical name (List.map languageButton languages)
 
 
 featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
@@ -268,7 +284,4 @@ featureComboSelector name toMsg featureCombos current =
         featureComboButton featureCombo =
             ( featureCombo == current, toMsg featureCombo, [ text (toString featureCombo) ] )
     in
-        div []
-            [ text "Feature Combo:"
-            , ViewHelpers.radioButtons name (List.map featureComboButton featureCombos)
-            ]
+        ViewHelpers.radioButtonsVertical name (List.map featureComboButton featureCombos)
