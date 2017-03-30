@@ -23,14 +23,20 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
       return;
     }
     
-    // Hackerish extraction of Python output
+    // GLAD outputs 2 lines.
+    // Line 0 contains the JSON statistics
+    // Line 1 contains the probability
+    let lines: string[] = stdout.split( '\n' );
+    
+    // Hackerish extraction of probability
     // Clean this up after input/output rules are better established
     try {
-      var arr = /.*((0|1)\.(\d*)).*((0|1)\.(\d*)).*/g.exec( stdout );
+      var arr = /.*((0|1)\.(\d*)).*((0|1)\.(\d*)).*/g.exec( lines[1] );
       let probability = parseFloat( arr[4] );
       
       let output: ToClientAttribution = {
-        sameAuthorConfidence: probability
+        sameAuthorConfidence: probability,
+        statistics: JSON.parse( lines[0] )
       };
       callback( output );
     } catch ( ex ) {
@@ -45,7 +51,8 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
     const args = [ 'glad-copy.py',
                    '--inputknown', request.knownAuthorTexts[0],
                    '--inputunknown', request.unknownAuthorText,
-                   '-m', 'models/default' ];
+                   '--combo', request.featureSet.toString(),
+                   '-m', `models/combo${request.featureSet}` ];
     const options = { cwd: 'resources/glad' };
     
     execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
