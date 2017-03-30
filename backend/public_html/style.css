@@ -13,3 +13,14 @@
     background-color: #DC002D;
     border-color: #DC002D;
     }
+
+#maincontainer { 
+    margin-bottom: 50px; /* size of the bottom navbar */
+}
+
+#compare-button { 
+    width: 250px;
+    height: 50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
