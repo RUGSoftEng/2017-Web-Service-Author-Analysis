@@ -35,4 +35,5 @@ export function FromClientAttribution_isValid( request: any ): boolean {
  */
 export interface ToClientAttribution {
   sameAuthorConfidence: number;
+  statistics: any;
 }
