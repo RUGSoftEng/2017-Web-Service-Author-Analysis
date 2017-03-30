@@ -131,7 +131,9 @@ Example JSON:
 
 -}
 type alias AttributionResponse =
-    { confidence : Float }
+    { confidence : Float
+    , statistics : Statistics
+    }
 
 
 type alias ProfilingResponse =
@@ -174,6 +176,7 @@ decodeAttributionResponse : Decode.Decoder AttributionResponse
 decodeAttributionResponse =
     Decode.succeed AttributionResponse
         |> required "sameAuthorConfidence" float
+        |> required "statistics" decodeStatistics
 
 
 encodeProfilingRequest : ProfilingState -> Encode.Value

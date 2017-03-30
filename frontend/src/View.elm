@@ -25,6 +25,7 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
 import Bootstrap.ListGroup as ListGroup
+import Bootstrap.Progress as Progress
 import Json.Decode as Decode
 import Dict exposing (Dict)
 import Types exposing (..)
@@ -127,26 +128,6 @@ homeView : Html msg
 homeView =
     div []
         [ text "home"
-        , Grid.container []
-            [ Grid.row []
-                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                    [ h3 [] [ text "punctuation per character" ]
-                    , Visualization.plotPunctuation Visualization.example
-                    ]
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                    [ h3 [] [ text "line endings per line" ]
-                    , Visualization.plotLineEndings Visualization.example
-                    ]
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                    [ h3 [] [ text "some averages" ]
-                    , Visualization.plotAverages Visualization.example
-                    ]
-                ]
-            ]
         ]
 
 
@@ -188,21 +169,51 @@ attributionView attribution =
                     )
 
         result =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "result: " ]
-                , case attribution.result of
-                    NotAsked ->
-                        text "Initialising."
+            case attribution.result of
+                Success { statistics, confidence } ->
+                    [ Grid.row []
+                        [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                            [ h2 []
+                                [ hr [] []
+                                , text "Results"
+                                , hr [] []
+                                ]
+                            ]
+                        ]
+                    , Grid.row []
+                        [ Grid.col []
+                            [ Progress.progress [ Progress.value (floor <| confidence * 100) ]
+                            , hr [] []
+                            ]
+                        ]
+                    , Grid.row []
+                        [ Grid.col []
+                            [ Grid.container []
+                                [ Grid.row []
+                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                                        [ h3 [] [ text "punctuation per character" ]
+                                        , Visualization.plotPunctuation Visualization.example
+                                        ]
+                                    ]
+                                , Grid.row []
+                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                                        [ h3 [] [ text "line endings per line" ]
+                                        , Visualization.plotLineEndings Visualization.example
+                                        ]
+                                    ]
+                                , Grid.row []
+                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                                        [ h3 [] [ text "some averages" ]
+                                        , Visualization.plotAverages Visualization.example
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
 
-                    Loading ->
-                        text "Loading."
-
-                    Failure err ->
-                        text ("Error: " ++ toString err)
-
-                    Success result ->
-                        text (toString result)
-                ]
+                _ ->
+                    []
 
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
@@ -211,17 +222,17 @@ attributionView attribution =
         div []
             [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
             , Grid.container []
-                [ Grid.row [ Row.topXs ]
+                ([ Grid.row [ Row.topXs ]
                     [ knownAuthorInput
                     , separator
                     , unknownAuthorInput
                     ]
-                , Grid.row []
+                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
                         [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Compare!" ]
                         ]
                     ]
-                , Grid.row []
+                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
                         [ h2 []
                             [ hr [] []
@@ -230,7 +241,7 @@ attributionView attribution =
                             ]
                         ]
                     ]
-                , Grid.row []
+                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
                         [ h3 [] [ text "language" ]
                         , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
@@ -240,7 +251,9 @@ attributionView attribution =
                         , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
                         ]
                     ]
-                ]
+                 ]
+                    ++ result
+                )
             ]
 
 
