@@ -31,7 +31,6 @@ import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
-import RemoteData exposing (RemoteData(..))
 
 
 {-| How the model is displayed
@@ -168,39 +167,12 @@ attributionView attribution =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
                 , case attribution.result of
-                    NotAsked ->
-                        text "Initialising."
+                    Nothing ->
+                        text "No result yet"
 
-                    Loading ->
-                        text "Loading."
-
-                    Failure err ->
-                        text ("Error: " ++ toString err)
-
-                    Success result ->
-                        text (toString result)
+                    Just a ->
+                        text (toString a)
                 ]
-
-        isLoading =
-            case attribution.result of
-                NotAsked ->
-                    div [] []
-
-                Loading ->
-                    let
-                        loadingAnimation =
-                            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
-                                [ text "Loading ..."
-                                , Button.button [ Button.primary, Button.attrs [ onClick CancelAttribution ] ] [ text "cancel" ]
-                                ]
-                    in
-                        div [ class "overlay" ] [ div [ class "loading-prompt" ] [ Grid.container [] [ Grid.row [] [ loadingAnimation ] ] ] ]
-
-                Failure err ->
-                    div [] []
-
-                Success result ->
-                    div [] []
 
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
@@ -220,7 +192,6 @@ attributionView attribution =
                     , unknownAuthorInput
                     ]
                 ]
-            , isLoading
             ]
 
 
