@@ -43,7 +43,7 @@ initialState location =
         defaultAttribution =
             { knownAuthor = InputField.init
             , unknownAuthor = InputField.init
-            , result = Nothing
+            , result = NotAsked
             , language = EN
             , languages = [ EN, NL ]
             , featureCombo = Combo4
@@ -203,11 +203,11 @@ updateAttribution msg attribution =
 
         ServerResponse response ->
             case response of
-                Err error ->
-                    ( attribution, Cmd.none )
+                Err err ->
+                    ( { attribution | result = Failure (toString err) }, Cmd.none )
 
-                Ok fromServer ->
-                    ( { attribution | result = Just fromServer }
+                Success fromServer ->
+                    ( { attribution | result = Success fromServer }
                     , Cmd.none
                     )
 

@@ -77,12 +77,23 @@ type alias File =
 type alias AttributionState =
     { knownAuthor : InputField.State
     , unknownAuthor : InputField.State
-    , result : Maybe AttributionResponse
+    , result : RemoteData String AttributionResponse
     , language : Language
     , languages : List Language
     , featureCombo : FeatureCombo
     , featureCombos : List FeatureCombo
     }
+
+
+
+{- Result type -}
+
+
+type RemoteData e a
+    = NotAsked
+    | Loading
+    | Failure e
+    | Success a
 
 
 {-| Supported languages

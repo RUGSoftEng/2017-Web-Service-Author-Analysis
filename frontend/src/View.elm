@@ -167,11 +167,17 @@ attributionView attribution =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
                 , case attribution.result of
-                    Nothing ->
-                        text "No result yet"
+                    NotAsked ->
+                        text "Initialising."
 
-                    Just a ->
-                        text (toString a)
+                    Loading ->
+                        text "Loading."
+
+                    Failure ->
+                        text ("Error.")
+
+                    Success result ->
+                        text (toString result)
                 ]
 
         separator =
