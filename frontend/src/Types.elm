@@ -16,7 +16,6 @@ import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
 import Dict exposing (Dict)
 import Http
-import RemoteData exposing (WebData)
 
 
 --
@@ -50,7 +49,6 @@ type AttributionMessage
     = SetLanguage Language
     | SetFeatureCombo FeatureCombo
     | PerformAttribution
-    | CancelAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
     | AttributionInputField Author InputField.Msg
 
@@ -79,7 +77,7 @@ type alias File =
 type alias AttributionState =
     { knownAuthor : InputField.State
     , unknownAuthor : InputField.State
-    , result : WebData AttributionResponse
+    , result : Maybe AttributionResponse
     , language : Language
     , languages : List Language
     , featureCombo : FeatureCombo
