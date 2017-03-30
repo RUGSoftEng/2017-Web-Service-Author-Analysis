@@ -220,7 +220,7 @@ attributionView attribution =
                     , unknownAuthorInput
                     ]
                 ]
-            , isLoading {- div [ class "overlay" ] [ div [ class "loading-prompt" ] [] ] -}
+            , isLoading
             ]
 
 

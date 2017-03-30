@@ -55,10 +55,6 @@ type AttributionMessage
     | AttributionInputField Author InputField.Msg
 
 
-type alias Id =
-    Platform.ProcessId
-
-
 type Author
     = KnownAuthor
     | UnknownAuthor

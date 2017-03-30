@@ -17,7 +17,6 @@ import Dict exposing (Dict)
 import Types exposing (..)
 import InputField exposing (OutMsg(..))
 import Ports
-import Process
 
 
 {-| Convert a Url into a Route - the page that should be displayed
@@ -281,14 +280,6 @@ performAttribution attribution =
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
-
-
-
-{-
-   cancelAttribution : AttributionState
-   cancelAttribution attribution =
-     ( Process.kill id )
--}
 
 
 webserverUrl : String
