@@ -199,7 +199,11 @@ updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState
 updateAttribution msg attribution =
     case msg of
         PerformAttribution ->
-            ( attribution, performAttribution attribution )
+            let
+                newresult =
+                    Loading
+            in
+                ( { attribution | result = newresult }, performAttribution attribution )
 
         ServerResponse response ->
             case response of
@@ -269,6 +273,9 @@ performAttribution attribution =
     let
         body =
             Http.jsonBody (encodeAttributionRequest attribution)
+
+        result =
+            Loading
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
