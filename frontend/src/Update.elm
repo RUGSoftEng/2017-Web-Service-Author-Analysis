@@ -1,10 +1,21 @@
 module Update exposing (update, initialState)
 
+{-| Update
+
+describes how the model and the world should change based on a message.
+
+this file also contains the initial state, definition of http requests to the server,
+and routing - what page to display based on the url.
+-}
+
 import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
 import Navigation
+import Dict exposing (Dict)
 import Types exposing (..)
+import InputField exposing (OutMsg(..))
+import Ports
 
 
 {-| Convert a Url into a Route - the page that should be displayed
@@ -30,17 +41,17 @@ initialState location =
             Navbar.initialState NavbarMsg
 
         defaultAttribution =
-            { knownAuthorMode = PasteText
-            , knownAuthorText = ""
-            , unknownAuthorMode = PasteText
-            , unknownAuthorText = ""
+            { knownAuthor = InputField.init
+            , unknownAuthor = InputField.init
             , result = Nothing
             , language = EN
+            , languages = [ EN, NL ]
+            , featureCombo = Combo4
+            , featureCombos = [ Combo1, Combo4 ]
             }
 
         defaultProfiling =
-            { mode = PasteText
-            , text = fillerText1
+            { input = InputField.init
             , result = Just { gender = M, age = 20 }
             }
 
@@ -57,21 +68,12 @@ initialState location =
         )
 
 
-toggleInputMode : InputMode -> InputMode
-toggleInputMode mode =
-    case mode of
-        FileUpload ->
-            PasteText
-
-        PasteText ->
-            FileUpload
-
-
 {-| How our model should change when a message comes in
 
 * NoOp, does nothing
 * NavBarMsg, updates highlight in the navigation bar
 * ChangeRoute, changes the route - the currently displayed page
+* AddFile, receive a file from JS, put it in the correct place in the model
 * UrlChange, does nothing, see comment
 * AttributionMsg, nested update on the attribution
 * ProfilingMsg, nested update on the profiling
@@ -109,10 +111,39 @@ update msg model =
                     , Navigation.newUrl newUrl
                     )
 
+        AddFile ( id, file ) ->
+            -- We get a File and the id of the destination. Based on that ID, we create a Msg to get the file
+            -- to the destination (either in AttributionState or ProfilingState).
+            -- then we call update (recursively) to execute the Msg we created
+            -- flip reverses the order of arguments, so `flip (-) 12 4 == (-) 4 12 == 4 - 12 == -8`.
+            case id of
+                "KnownAuthor" ->
+                    InputField.addFile file
+                        |> AttributionInputField KnownAuthor
+                        |> AttributionMsg
+                        |> flip update model
+
+                "UnknownAuthor" ->
+                    InputField.addFile file
+                        |> AttributionInputField UnknownAuthor
+                        |> AttributionMsg
+                        |> flip update model
+
+                "Profiling" ->
+                    InputField.addFile file
+                        |> ProfilingInputField
+                        |> ProfilingMsg
+                        |> flip update model
+
+                _ ->
+                    -- throws a javascript error
+                    Debug.crash <| "trying to add a file to " ++ id ++ ", but it does not exist!"
+
         UrlChange location ->
-            {- nothing happends here
+            {- nothing happens here
                Any url change made by the user will result in a reload from the server. Reaction is irrelevant
                Any url change made by elm is the result of a route change. Reaction to that change will lead to infinite cycles
+               kept for documentation purposes.
             -}
             ( model, Cmd.none )
 
@@ -140,19 +171,28 @@ update msg model =
 updateProfiling : ProfilingMessage -> ProfilingState -> ( ProfilingState, Cmd ProfilingMessage )
 updateProfiling msg profiling =
     case msg of
-        ToggleProfilingInputMode ->
-            ( { profiling | mode = toggleInputMode profiling.mode }
-            , Cmd.none
-            )
-
-        SetProfilingText newText ->
-            ( { profiling | text = newText }
-            , Cmd.none
-            )
-
         UploadAuthorProfiling ->
-            -- currently not implemented
             ( profiling, Cmd.none )
+
+        ProfilingInputField msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg profiling.input
+
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
+
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "profiling-file-input", "Profiling" )
+            in
+                ( { profiling | input = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map ProfilingInputField inputCommands
+                    ]
+                )
 
 
 updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
@@ -171,28 +211,53 @@ updateAttribution msg attribution =
                     , Cmd.none
                     )
 
-        ToggleInputMode KnownAuthor ->
-            ( { attribution | knownAuthorMode = toggleInputMode attribution.knownAuthorMode }
-            , Cmd.none
-            )
+        AttributionInputField KnownAuthor msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg attribution.knownAuthor
 
-        ToggleInputMode UnknownAuthor ->
-            ( { attribution | unknownAuthorMode = toggleInputMode attribution.unknownAuthorMode }
-            , Cmd.none
-            )
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
 
-        SetText KnownAuthor newText ->
-            ( { attribution | knownAuthorText = newText }
-            , Cmd.none
-            )
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+            in
+                ( { attribution | knownAuthor = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map (AttributionInputField KnownAuthor) inputCommands
+                    ]
+                )
 
-        SetText UnknownAuthor newText ->
-            ( { attribution | unknownAuthorText = newText }
-            , Cmd.none
-            )
+        AttributionInputField UnknownAuthor msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg attribution.unknownAuthor
+
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
+
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+            in
+                ( { attribution | unknownAuthor = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map (AttributionInputField UnknownAuthor) inputCommands
+                    ]
+                )
 
         SetLanguage newLanguage ->
             ( { attribution | language = newLanguage }
+            , Cmd.none
+            )
+
+        SetFeatureCombo newFeatureCombo ->
+            ( { attribution | featureCombo = newFeatureCombo }
             , Cmd.none
             )
 
@@ -202,11 +267,8 @@ updateAttribution msg attribution =
 performAttribution : AttributionState -> Cmd AttributionMessage
 performAttribution attribution =
     let
-        toServer =
-            { knownAuthorText = attribution.knownAuthorText, unknownAuthorText = attribution.unknownAuthorText }
-
         body =
-            Http.jsonBody (encodeToServer toServer)
+            Http.jsonBody (encodeAttributionRequest attribution)
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
@@ -220,13 +282,3 @@ webserverUrl =
 authorRecognitionEndpoint : String
 authorRecognitionEndpoint =
     "/api/attribution"
-
-
-fillerText1 =
-    """Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
-"""
-
-
-fillerText2 =
-    """This is the update of Unknown Author.
-"""

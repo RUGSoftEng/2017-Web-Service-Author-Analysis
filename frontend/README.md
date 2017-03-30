@@ -18,6 +18,12 @@ If you want to modify the elm code, pleas install and use [elm-format](https://g
 
 ## Running the app 
 
+### with the nodejs server (recommended)
+
+make sure the webserver is running (see `backend/README.md`), then browse to [localhost:8080](http://localhost:8080/) to view
+the application. 
+
+### Elm-reactor (development only) 
 In a new terminal window run (in the `/frontend` directory)
 
 ```
@@ -29,7 +35,6 @@ this should display
 ```
 Listening on http://localhost:8000
 ```
-
 
 You can now browse to `http://localhost:8000/src/Main.elm` in your webbrowser to see the app.
 When you change the elm code, a refresh (f5) of the browser page will recompile and show the new version. 

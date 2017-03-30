@@ -7,7 +7,8 @@ This file wires all parts of the app together.
 import Bootstrap.Navbar as Navbar
 import View
 import Update
-import Types exposing (Model, Msg(NavbarMsg, UrlChange))
+import Ports
+import Types exposing (Model, Msg(NavbarMsg, UrlChange, AddFile))
 import Navigation
 
 
@@ -25,6 +26,9 @@ main =
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    -- fires when an item in the navbar is clicked
-    -- this will change what item is highlighted
-    Navbar.subscriptions model.navbarState NavbarMsg
+    Sub.batch
+        [ -- fires when an item in the navbar is clicked
+          -- this will change what item is highlighted
+          Navbar.subscriptions model.navbarState NavbarMsg
+        , Ports.addFile AddFile
+        ]

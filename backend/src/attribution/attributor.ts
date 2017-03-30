@@ -7,7 +7,7 @@
 import * as child_process from 'child_process'; //require('child_process').execFile;
 const execFile = child_process.execFile;
  
-import { FromClient, ToClient } from './network_interface';
+import { FromClientAttribution, ToClientAttribution } from './network_interface';
 
 export class Attributor {
   constructor( ) { }
@@ -26,9 +26,8 @@ export class Attributor {
       var arr = /.*((0|1)\.(\d*)).*((0|1)\.(\d*)).*/g.exec( stdout );
       let probability = parseFloat( arr[4] );
       
-      let output: ToClient = {
-        sameAuthor: true,
-        confidence: probability
+      let output: ToClientAttribution = {
+        sameAuthorConfidence: probability
       };
       callback( output );
     } catch ( ex ) {
@@ -36,14 +35,16 @@ export class Attributor {
     }
   }
   
-  public handleRequest( request: FromClient, callback: ( out: any ) => void ) {
+  public handleRequest( request: FromClientAttribution, callback: ( out: any ) => void ) {
     if ( !this.isValid_FromClient( request ) ) {
       callback( 'Invalid input' );
       return;
     }
     
+    // NOTE: Only one known author text is used at the moment
+    // Add multiple once GLAD input supports this
     const args = [ 'glad-copy.py',
-                   '--inputknown', request.knownAuthorText,
+                   '--inputknown', request.knownAuthorTexts[0],
                    '--inputunknown', request.unknownAuthorText,
                    '-m', 'models/default' ];
     const options = { cwd: 'resources/glad' };
@@ -52,10 +53,14 @@ export class Attributor {
   }
   
   /**
-   * True if the request is a valid 'FromClient' interface
+   * True if the request is a valid 'FromClientAttribution' interface
    */
-  private isValid_FromClient( request: FromClient ): boolean {
-    return ( typeof request.knownAuthorText !== 'undefined' &&
-             typeof request.unknownAuthorText !== 'undefined' );
+  private isValid_FromClient( request: FromClientAttribution ): boolean {
+    // TODO: More in-depth validity testing
+    return ( request.knownAuthorTexts instanceof Array &&
+             typeof request.unknownAuthorText === 'string' &&
+             typeof request.language === 'string' &&
+             typeof request.genre === 'number' &&
+             typeof request.featureSet === 'number' );
   }
 }

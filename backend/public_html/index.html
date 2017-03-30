@@ -8,6 +8,26 @@
 <body>
     <script>
     var app = Elm.Main.fullscreen()
+
+
+    /*| read files from disk, pass contents to elm */
+    app.ports.readFiles.subscribe(function(arguments) { 
+        id = arguments[0];
+        author = arguments[1];
+        files = document.getElementById(id).files;
+        for (var i = 0; i < files.length; i++) {
+            reader = new FileReader();
+            reader.onloadend = function (progressEvent) { 
+                content = progressEvent.target.result;
+                var elmFile = { name: this.filename, content: content};
+                app.ports.addFile.send([ author, elmFile ]);
+            };
+            reader.filename = files[i].name;
+            reader.readAsText(files[i]);
+        };
+        
+            
+    }); 
     </script>
 </body>
 </html>
