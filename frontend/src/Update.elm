@@ -206,7 +206,7 @@ updateAttribution msg attribution =
                 Err err ->
                     ( { attribution | result = Failure (toString err) }, Cmd.none )
 
-                Success fromServer ->
+                Ok fromServer ->
                     ( { attribution | result = Success fromServer }
                     , Cmd.none
                     )

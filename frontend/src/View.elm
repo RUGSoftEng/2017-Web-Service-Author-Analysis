@@ -173,8 +173,8 @@ attributionView attribution =
                     Loading ->
                         text "Loading."
 
-                    Failure ->
-                        text ("Error.")
+                    Failure err ->
+                        text ("Error: " ++ toString err)
 
                     Success result ->
                         text (toString result)
