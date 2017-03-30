@@ -31,6 +31,7 @@ import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
+import RemoteData exposing (RemoteData(..))
 
 
 {-| How the model is displayed
@@ -167,11 +168,17 @@ attributionView attribution =
             Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
                 [ h2 [] [ text "result: " ]
                 , case attribution.result of
-                    Nothing ->
-                        text "No result yet"
+                    NotAsked ->
+                        text "Initialising."
 
-                    Just a ->
-                        text (toString a)
+                    Loading ->
+                        text "Loading."
+
+                    Failure err ->
+                        text ("Error: " ++ toString err)
+
+                    Success result ->
+                        text (toString result)
                 ]
 
         separator =

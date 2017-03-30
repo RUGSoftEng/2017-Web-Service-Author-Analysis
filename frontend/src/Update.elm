@@ -11,6 +11,7 @@ and routing - what page to display based on the url.
 import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
+import RemoteData exposing (RemoteData(..))
 import Navigation
 import Dict exposing (Dict)
 import Types exposing (..)
@@ -43,7 +44,7 @@ initialState location =
         defaultAttribution =
             { knownAuthor = InputField.init
             , unknownAuthor = InputField.init
-            , result = Nothing
+            , result = NotAsked
             , language = EN
             , languages = [ EN, NL ]
             , featureCombo = Combo4
@@ -199,17 +200,14 @@ updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState
 updateAttribution msg attribution =
     case msg of
         PerformAttribution ->
-            ( attribution, performAttribution attribution )
+            let
+                newresult =
+                    Loading
+            in
+                ( { attribution | result = newresult }, performAttribution attribution )
 
         ServerResponse response ->
-            case response of
-                Err error ->
-                    ( attribution, Cmd.none )
-
-                Ok fromServer ->
-                    ( { attribution | result = Just fromServer }
-                    , Cmd.none
-                    )
+            ( { attribution | result = RemoteData.fromResult response }, Cmd.none )
 
         AttributionInputField KnownAuthor msg ->
             let
@@ -269,6 +267,9 @@ performAttribution attribution =
     let
         body =
             Http.jsonBody (encodeAttributionRequest attribution)
+
+        result =
+            Loading
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
