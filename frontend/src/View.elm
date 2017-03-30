@@ -32,6 +32,7 @@ import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
 import RemoteData exposing (RemoteData(..))
+import Visualization
 
 
 {-| How the model is displayed
@@ -124,7 +125,29 @@ footerbar ({ navbarState } as model) =
 
 homeView : Html msg
 homeView =
-    text "home"
+    div []
+        [ text "home"
+        , Grid.container []
+            [ Grid.row []
+                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                    [ h3 [] [ text "punctuation per character" ]
+                    , Visualization.plotPunctuation Visualization.example
+                    ]
+                ]
+            , Grid.row []
+                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                    [ h3 [] [ text "line endings per line" ]
+                    , Visualization.plotLineEndings Visualization.example
+                    ]
+                ]
+            , Grid.row []
+                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                    [ h3 [] [ text "some averages" ]
+                    , Visualization.plotAverages Visualization.example
+                    ]
+                ]
+            ]
+        ]
 
 
 attributionView : AttributionState -> Html AttributionMessage
