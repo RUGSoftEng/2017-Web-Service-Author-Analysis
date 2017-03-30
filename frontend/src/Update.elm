@@ -17,6 +17,7 @@ import Dict exposing (Dict)
 import Types exposing (..)
 import InputField exposing (OutMsg(..))
 import Ports
+import Process
 
 
 {-| Convert a Url into a Route - the page that should be displayed
@@ -206,6 +207,13 @@ updateAttribution msg attribution =
             in
                 ( { attribution | result = newresult }, performAttribution attribution )
 
+        CancelAttribution ->
+            let
+                newresult =
+                    NotAsked
+            in
+                ( { attribution | result = newresult }, Cmd.none {- cancelAttribution attribution -} )
+
         ServerResponse response ->
             ( { attribution | result = RemoteData.fromResult response }, Cmd.none )
 
@@ -273,6 +281,14 @@ performAttribution attribution =
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send ServerResponse
+
+
+
+{-
+   cancelAttribution : AttributionState
+   cancelAttribution attribution =
+     ( Process.kill id )
+-}
 
 
 webserverUrl : String

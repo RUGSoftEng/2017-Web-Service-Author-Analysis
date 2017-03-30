@@ -50,8 +50,13 @@ type AttributionMessage
     = SetLanguage Language
     | SetFeatureCombo FeatureCombo
     | PerformAttribution
+    | CancelAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
     | AttributionInputField Author InputField.Msg
+
+
+type alias Id =
+    Platform.ProcessId
 
 
 type Author

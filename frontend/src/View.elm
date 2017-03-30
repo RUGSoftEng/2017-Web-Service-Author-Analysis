@@ -181,6 +181,27 @@ attributionView attribution =
                         text (toString result)
                 ]
 
+        isLoading =
+            case attribution.result of
+                NotAsked ->
+                    div [] []
+
+                Loading ->
+                    let
+                        loadingAnimation =
+                            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
+                                [ text "Loading ..."
+                                , Button.button [ Button.primary, Button.attrs [ onClick CancelAttribution ] ] [ text "cancel" ]
+                                ]
+                    in
+                        div [ class "overlay" ] [ div [ class "loading-prompt" ] [ Grid.container [] [ Grid.row [] [ loadingAnimation ] ] ] ]
+
+                Failure err ->
+                    div [] []
+
+                Success result ->
+                    div [] []
+
         separator =
             Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
                 [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
@@ -199,6 +220,7 @@ attributionView attribution =
                     , unknownAuthorInput
                     ]
                 ]
+            , isLoading {- div [ class "overlay" ] [ div [ class "loading-prompt" ] [] ] -}
             ]
 
 
