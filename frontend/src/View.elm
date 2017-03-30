@@ -31,6 +31,7 @@ import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
+import RemoteData exposing (RemoteData(..))
 
 
 {-| How the model is displayed

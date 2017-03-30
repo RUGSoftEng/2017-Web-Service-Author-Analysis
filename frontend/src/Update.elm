@@ -11,6 +11,7 @@ and routing - what page to display based on the url.
 import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
+import RemoteData exposing (RemoteData(..))
 import Navigation
 import Dict exposing (Dict)
 import Types exposing (..)
@@ -206,14 +207,7 @@ updateAttribution msg attribution =
                 ( { attribution | result = newresult }, performAttribution attribution )
 
         ServerResponse response ->
-            case response of
-                Err err ->
-                    ( { attribution | result = Failure (toString err) }, Cmd.none )
-
-                Ok fromServer ->
-                    ( { attribution | result = Success fromServer }
-                    , Cmd.none
-                    )
+            ( { attribution | result = RemoteData.fromResult response }, Cmd.none )
 
         AttributionInputField KnownAuthor msg ->
             let
