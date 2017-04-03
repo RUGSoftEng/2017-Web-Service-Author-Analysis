@@ -317,7 +317,15 @@ languageSelector name toMsg languages current =
 featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
 featureComboSelector name toMsg featureCombos current =
     let
+        labelFor combo =
+            case combo of
+                Combo1 ->
+                    "shallow"
+
+                Combo4 ->
+                    "deep"
+
         featureComboButton featureCombo =
-            ( featureCombo == current, toMsg featureCombo, [ text (toString featureCombo) ] )
+            ( featureCombo == current, toMsg featureCombo, [ text (labelFor featureCombo) ] )
     in
         ViewHelpers.radioButtonsVertical name (List.map featureComboButton featureCombos)
