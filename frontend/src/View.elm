@@ -192,19 +192,19 @@ attributionView attribution =
                                 [ Grid.row []
                                     [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
                                         [ h3 [] [ text "punctuation per character" ]
-                                        , Visualization.plotPunctuation Visualization.example
+                                        , Visualization.plotPunctuation statistics
                                         ]
                                     ]
                                 , Grid.row []
                                     [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
                                         [ h3 [] [ text "line endings per line" ]
-                                        , Visualization.plotLineEndings Visualization.example
+                                        , Visualization.plotLineEndings statistics
                                         ]
                                     ]
                                 , Grid.row []
                                     [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
                                         [ h3 [] [ text "some averages" ]
-                                        , Visualization.plotAverages Visualization.example
+                                        , Visualization.plotAverages statistics
                                         ]
                                     ]
                                 ]
