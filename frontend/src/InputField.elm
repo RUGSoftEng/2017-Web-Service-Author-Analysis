@@ -30,8 +30,8 @@ type alias File =
 
 
 type State
-    = Paste { text : String, files : Dict String File }
-    | Upload { text : String, files : Dict String File }
+    = Paste { text : String, files : List ( String, File ) }
+    | Upload { text : String, files : List ( String, File ) }
 
 
 type Msg
@@ -40,7 +40,7 @@ type Msg
     | SetUpload
     | AddFile File
     | SendListenForFiles
-    | RemoveFile String
+    | RemoveFile Int
     | ChangeText String
 
 
@@ -65,7 +65,7 @@ inputModeToFiles state =
             [ { name = "", content = text } ]
 
         Upload { files } ->
-            Dict.values files
+            List.map Tuple.second files
 
 
 encodeState : State -> Encode.Value
@@ -83,8 +83,8 @@ encodeFirstFile state =
             Encode.string text
 
         Upload { files } ->
-            case Dict.values files of
-                { content } :: _ ->
+            case files of
+                ( _, { content } ) :: _ ->
                     Encode.string content
 
                 [] ->
@@ -94,7 +94,7 @@ encodeFirstFile state =
 
 init : State
 init =
-    Paste { text = "", files = Dict.empty }
+    Paste { text = "", files = [] }
 
 
 update : Msg -> State -> ( State, Cmd Msg, Maybe OutMsg )
@@ -135,16 +135,29 @@ update msg model =
                     update NoOp model
 
                 AddFile file ->
-                    ( Upload { text = text, files = Dict.insert file.name file files }, Cmd.none, Nothing )
+                    ( Upload { text = text, files = ( file.name, file ) :: files }, Cmd.none, Nothing )
 
                 SendListenForFiles ->
                     ( model, Cmd.none, Just ListenForFiles )
 
-                RemoveFile name ->
-                    ( Upload { text = text, files = Dict.remove name files }, Cmd.none, Nothing )
+                RemoveFile index ->
+                    ( Upload { text = text, files = removeAtIndex index files }, Cmd.none, Nothing )
 
                 ChangeText _ ->
                     update NoOp model
+
+
+removeAtIndex : Int -> List a -> List a
+removeAtIndex n items =
+    case items of
+        [] ->
+            []
+
+        x :: xs ->
+            if n == 0 then
+                xs
+            else
+                x :: removeAtIndex (n - 1) xs
 
 
 type alias Config =
@@ -176,7 +189,7 @@ view model config =
                         , on "change" (Decode.succeed SendListenForFiles)
                         , id config.fileInputId
                         , multiple config.multiple
-                        , disabled (not config.multiple && not (Dict.isEmpty data.files))
+                        , disabled (not config.multiple && not (List.isEmpty data.files))
                         ]
                         []
                     ]
@@ -202,26 +215,61 @@ switchButtons model name =
 
 
 {-|
-Dict String File
+An example of type tetris: We have a `List (String, File)` and want `Html msg` through uploadFileView.
 
-Dict.vlaues : Dict comparable value -> List value
+We first list possible subpaths
 
-List.map : (a -> b) -> List a -> List b
+    files : List (String, File)
+    toMsg : Int -> msg
+    uploadFileView : msg -> File -> ListGroup.Item msg
+    ListGroup.ul : List (ListGroup.Item msg) -> Html msg
 
-ListGroup.ul : List (Item Msg) -> Html Msg
+    toMsg expects an index, and we have a list of files, so indexedMap may come in handy
+
+    List.indexedMap : (\Int -> a -> b) -> List a -> List b
+
+
+The first step we can take is to go from a tuple (String, File) to just File
+
+    List.map : (a -> b) -> List a -> List b
+
+    -- substituting `files : List (String, File)`
+
+    List.map : ((String, File) -> b) -> List (String, File) -> List b
+
+    -- substituting `Tuple.second : (a, b) -> b`
+
+    List.map : ((String, File) -> File) -> List (String, File) -> List File
+
+    -- thus
+
+    List.map Tuple.second files
+
+Here, we need a slightly more complicated function in the stead of `Tuple.second`, but the idea is the same
+
+>   Note, see the similarity with modus ponens
+>       A              Int
+>       A => B         Int -> msg
+>
+>       B              msg
+>
+>   This is no accident, see also (https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence)
+
+For correct display, the next step is reversing the list. Finally, we
+can use ListGroup.ul to convert our `List (ListGroup.Item msg)` into `Html msg`
 -}
-uploadListView : (String -> msg) -> Dict String File -> Html msg
+uploadListView : (Int -> msg) -> List ( String, File ) -> Html msg
 uploadListView toMsg files =
     files
-        |> Dict.values
-        |> List.map (uploadFileView toMsg)
+        |> List.indexedMap (\index ( _, value ) -> uploadFileView (toMsg index) value)
+        |> List.reverse
         |> ListGroup.ul
 
 
-uploadFileView : (String -> msg) -> File -> ListGroup.Item msg
+uploadFileView : msg -> File -> ListGroup.Item msg
 uploadFileView toMsg file =
     ListGroup.li
         [ ListGroup.attrs [ class "justify-content-between" ] ]
         [ text file.name
-        , label [ onClick (toMsg file.name) ] [ xIcon xOptions ]
+        , label [ onClick toMsg ] [ xIcon xOptions ]
         ]
