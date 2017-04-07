@@ -44,3 +44,19 @@ div[id^="file-upload-"] {
     margin: 0;
     height: 30px;
 }
+
+/* trickery to make a span act like a file input, hiding the actual file input */
+
+.file-upload-button { 
+    position:relative;
+}
+
+.file-upload-button input[type="file"]{
+    -webkit-appearance:none; 
+    position:absolute;
+    top:0; left:0;
+    opacity:0; 
+    width: 100%;
+    height: 100%;
+}
+

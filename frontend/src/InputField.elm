@@ -205,8 +205,9 @@ view model config =
         Upload data ->
             div []
                 [ uploadListView data.accordionState RemoveFile data.files
-                , div [ class "form-group" ]
-                    [ input
+                , div [ class "form-group", class "file-upload-button", class "card-header" ]
+                    [ span [] [ text "Choose file" ]
+                    , input
                         [ type_ "file"
                         , on "change" (Decode.succeed SendListenForFiles)
                         , id config.fileInputId
