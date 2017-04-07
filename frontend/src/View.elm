@@ -208,6 +208,18 @@ attributionView attribution =
                                         , Visualization.plotAverages statistics
                                         ]
                                     ]
+                                , Grid.row []
+                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                                        [ h3 [] [ text "anagram similarity" ]
+                                        , Visualization.plotNgramsSim statistics
+                                        ]
+                                    ]
+                                , Grid.row []
+                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                                        [ h3 [] [ text "anagrams SPI" ]
+                                        , Visualization.plotNgramsSpi statistics
+                                        ]
+                                    ]
                                 ]
                             ]
                         ]

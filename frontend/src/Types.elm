@@ -11,7 +11,7 @@ for the types would lead to circular dependencies.
 
 import Bootstrap.Navbar as Navbar
 import Navigation
-import Json.Decode as Decode exposing (string, bool, int, float, dict)
+import Json.Decode as Decode exposing (Decoder, string, bool, int, float, dict)
 import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
 import Dict exposing (Dict)
@@ -218,6 +218,8 @@ decodeProfilingResponse =
 type alias Statistics =
     { known : FileStatistics
     , unknown : FileStatistics
+    , ngramsSim : Dict Int Float
+    , ngramsSpi : Dict Int Int
     }
 
 
@@ -225,6 +227,8 @@ decodeStatistics =
     Decode.succeed Statistics
         |> required "known" decodeFileStatistics
         |> required "unknown" decodeFileStatistics
+        |> required "ngrams-sim" (dictBoth (Decode.decodeString int) float)
+        |> required "ngrams-spi" (dictBoth (Decode.decodeString int) int)
 
 
 type alias FileStatistics =
@@ -240,36 +244,63 @@ type alias FileStatistics =
     }
 
 
-{-| Convert a dict's keys from string to char
-this conversion may fail, so we return a decoder
-(a decoder can fail or succeed, so represents the possibility of failure)
+{-| Convert an object into a dictionary with decoded keys AND values.
+the builtin dict decoder only allows you to decode values, defaulting keys to String
 -}
-keysToChar : Dict String a -> Decode.Decoder (Dict Char a)
-keysToChar dict =
-    Dict.foldr
-        (\key value accum ->
-            case String.uncons key of
-                Nothing ->
-                    Decode.fail "cannot decode empty string to char"
+dictBoth : (String -> Result String comparable) -> Decoder value -> Decoder (Dict comparable value)
+dictBoth keyDecoder valueDecoder =
+    let
+        decodeKeys kvpairs =
+            List.foldr decodeKey (Decode.succeed Dict.empty) kvpairs
 
-                Just ( char, "" ) ->
-                    Decode.map (Dict.insert char value) accum
+        decodeKey ( key, value ) accum =
+            case keyDecoder key of
+                Err e ->
+                    Decode.fail <| "decoding a key failed: " ++ e
 
-                Just _ ->
-                    Decode.fail <| "expected a single character, but got `" ++ key ++ "`"
-        )
-        (Decode.succeed Dict.empty)
-        dict
+                Ok newKey ->
+                    Decode.map (Dict.insert newKey value) accum
+    in
+        Decode.keyValuePairs valueDecoder
+            |> Decode.andThen decodeKeys
+
+
+char =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                case String.uncons str of
+                    Just ( c, rest ) ->
+                        if rest == "" then
+                            Decode.succeed c
+                        else
+                            Decode.fail <| "trying to decode a single Char, but got `" ++ str ++ "`"
+
+                    Nothing ->
+                        Decode.fail <| "decoding a char failed: no input"
+            )
 
 
 decodeFileStatistics =
-    decode FileStatistics
-        |> required "characters" float
-        |> required "lines" float
-        |> required "blocks" float
-        |> required "uppers" float
-        |> required "lowers" float
-        |> required "lineEndings" (dict float |> Decode.andThen keysToChar)
-        |> required "punctuation" (dict float |> Decode.andThen keysToChar)
-        |> required "sentences" float
-        |> required "words" float
+    let
+        stringToChar str =
+            case String.uncons str of
+                Just ( c, rest ) ->
+                    if rest == "" then
+                        Ok c
+                    else
+                        Err <| "trying to decode a single Char, but got `" ++ str ++ "`"
+
+                Nothing ->
+                    Err <| "decoding a char failed: no input"
+    in
+        decode FileStatistics
+            |> required "characters" float
+            |> required "lines" float
+            |> required "blocks" float
+            |> required "uppers" float
+            |> required "lowers" float
+            |> required "lineEndings" (dictBoth stringToChar float)
+            |> required "punctuation" (dictBoth stringToChar float)
+            |> required "sentences" float
+            |> required "words" float
