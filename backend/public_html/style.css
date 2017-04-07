@@ -24,3 +24,23 @@
     margin-top: 20px;
     margin-bottom: 20px;
 }
+
+div[id^="file-upload-"] { 
+    max-height: 30em !important;
+}
+.file-upload-card p.card-text { 
+    max-height: 28em !important;
+    white-space: pre-wrap;
+    text-align: left;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    }
+
+.file-upload-card .card-header a { 
+    line-height: 30px; 
+}
+.file-upload-card .card-header label { 
+    float: right;
+    margin: 0;
+    height: 30px;
+}

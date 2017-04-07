@@ -8,8 +8,9 @@ import Bootstrap.Navbar as Navbar
 import View
 import Update
 import Ports
-import Types exposing (Model, Msg(NavbarMsg, UrlChange, AddFile))
+import Types exposing (Model, Msg(NavbarMsg, UrlChange, AddFile, AttributionMsg), Author(..), AttributionMessage(AttributionInputField))
 import Navigation
+import InputField
 
 
 main : Program Never Model Msg
@@ -31,4 +32,15 @@ subscriptions model =
           -- this will change what item is highlighted
           Navbar.subscriptions model.navbarState NavbarMsg
         , Ports.addFile AddFile
+        , InputField.subscriptions model.attribution.knownAuthor
+            |> Sub.map
+                (AttributionInputField KnownAuthor
+                    >> AttributionMsg
+                )
+        , InputField.subscriptions model.attribution.unknownAuthor
+            |> Sub.map
+                (AttributionInputField UnknownAuthor
+                    >> AttributionMsg
+                    >> Debug.log "sent"
+                )
         ]

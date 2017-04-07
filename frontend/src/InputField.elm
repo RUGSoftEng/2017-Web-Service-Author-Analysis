@@ -1,4 +1,4 @@
-module InputField exposing (State, Msg, init, update, view, OutMsg(..), addFile, encodeState, File, encodeFirstFile)
+module InputField exposing (State, Msg, init, update, view, subscriptions, OutMsg(..), addFile, encodeState, File, encodeFirstFile)
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -16,6 +16,8 @@ See also the `AddFile` case of update and the `ListenForFiles` case in `updatePr
 import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
 import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
+import Bootstrap.Accordion as Accordion
+import Bootstrap.Card as Card
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.ListGroup as ListGroup
@@ -31,8 +33,8 @@ type alias File =
 
 
 type State
-    = Paste { text : String, files : List ( String, File ) }
-    | Upload { text : String, files : List ( String, File ) }
+    = Paste { text : String, files : List ( String, File ), accordionState : Accordion.State }
+    | Upload { text : String, files : List ( String, File ), accordionState : Accordion.State }
 
 
 type Msg
@@ -43,6 +45,7 @@ type Msg
     | SendListenForFiles
     | RemoveFile Int
     | ChangeText String
+    | AccordionMsg Accordion.State
 
 
 {-| Wrapper. This way we can expose this functionality
@@ -95,16 +98,22 @@ encodeFirstFile state =
 
 init : State
 init =
-    Paste { text = "", files = [] }
+    Paste { text = "", files = [], accordionState = Accordion.initialState }
 
 
 update : Msg -> State -> ( State, Cmd Msg, Maybe OutMsg )
 update msg model =
     case model of
-        Paste { text, files } ->
+        Paste ({ text, files } as state) ->
             case msg of
                 NoOp ->
                     ( model, Cmd.none, Nothing )
+
+                AccordionMsg accordionState ->
+                    ( Paste { state | accordionState = accordionState }
+                    , Cmd.none
+                    , Nothing
+                    )
 
                 AddFile _ ->
                     update NoOp model
@@ -119,30 +128,42 @@ update msg model =
                     update NoOp model
 
                 SetUpload ->
-                    ( Upload { text = text, files = files }, Cmd.none, Nothing )
+                    ( Upload state
+                    , Cmd.none
+                    , Nothing
+                    )
 
                 ChangeText newText ->
-                    ( Paste { text = newText, files = files }, Cmd.none, Nothing )
+                    ( Paste { state | text = newText }
+                    , Cmd.none
+                    , Nothing
+                    )
 
-        Upload { text, files } ->
+        Upload ({ text, files } as state) ->
             case msg of
                 NoOp ->
                     ( model, Cmd.none, Nothing )
 
+                AccordionMsg accordionState ->
+                    ( Upload { state | accordionState = Debug.log "new accordion state" accordionState }
+                    , Cmd.none
+                    , Nothing
+                    )
+
                 SetPaste ->
-                    ( Paste { text = text, files = files }, Cmd.none, Nothing )
+                    ( Paste state, Cmd.none, Nothing )
 
                 SetUpload ->
                     update NoOp model
 
                 AddFile file ->
-                    ( Upload { text = text, files = ( file.name, file ) :: files }, Cmd.none, Nothing )
+                    ( Upload { state | files = ( file.name, file ) :: files }, Cmd.none, Nothing )
 
                 SendListenForFiles ->
                     ( model, Cmd.none, Just ListenForFiles )
 
                 RemoveFile index ->
-                    ( Upload { text = text, files = removeAtIndex index files }, Cmd.none, Nothing )
+                    ( Upload { state | files = removeAtIndex index files }, Cmd.none, Nothing )
 
                 ChangeText _ ->
                     update NoOp model
@@ -183,7 +204,7 @@ view model config =
 
         Upload data ->
             div []
-                [ uploadListView RemoveFile data.files
+                [ uploadListView data.accordionState RemoveFile data.files
                 , div [ class "form-group" ]
                     [ input
                         [ type_ "file"
@@ -222,62 +243,40 @@ switchButtons model name =
             ]
 
 
-{-|
-An example of type tetris: We have a `List (String, File)` and want `Html msg` through uploadFileView.
+uploadListView : Accordion.State -> (Int -> Msg) -> List ( String, File ) -> Html Msg
+uploadListView accordionState toMsg files =
+    let
+        card index file =
+            Accordion.card
+                { id = "file-upload-" ++ file.name
+                , options = [ Card.attrs [ class "file-upload-card" ] ]
+                , header =
+                    (Accordion.header [] <| Accordion.toggle [] [ text file.name ])
+                        |> Accordion.appendHeader [ label [ onClick (toMsg index) ] [ xOptions |> Octicons.size "30" |> xIcon ] ]
+                , blocks =
+                    [ Accordion.block []
+                        [ Card.text [] [ text file.content ] ]
+                    ]
+                }
 
-We first list possible subpaths
-
-    files : List (String, File)
-    toMsg : Int -> msg
-    uploadFileView : msg -> File -> ListGroup.Item msg
-    ListGroup.ul : List (ListGroup.Item msg) -> Html msg
-
-    toMsg expects an index, and we have a list of files, so indexedMap may come in handy
-
-    List.indexedMap : (\Int -> a -> b) -> List a -> List b
-
-
-The first step we can take is to go from a tuple (String, File) to just File
-
-    List.map : (a -> b) -> List a -> List b
-
-    -- substituting `files : List (String, File)`
-
-    List.map : ((String, File) -> b) -> List (String, File) -> List b
-
-    -- substituting `Tuple.second : (a, b) -> b`
-
-    List.map : ((String, File) -> File) -> List (String, File) -> List File
-
-    -- thus
-
-    List.map Tuple.second files
-
-Here, we need a slightly more complicated function in the stead of `Tuple.second`, but the idea is the same
-
->   Note, see the similarity with modus ponens
->       A              Int
->       A => B         Int -> msg
->
->       B              msg
->
->   This is no accident, see also (https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence)
-
-For correct display, the next step is reversing the list. Finally, we
-can use ListGroup.ul to convert our `List (ListGroup.Item msg)` into `Html msg`
--}
-uploadListView : (Int -> msg) -> List ( String, File ) -> Html msg
-uploadListView toMsg files =
-    files
-        |> List.indexedMap (\index ( _, value ) -> uploadFileView (toMsg index) value)
-        |> List.reverse
-        |> ListGroup.ul
+        cards =
+            List.indexedMap (\index ( _, file ) -> card index file) files
+    in
+        Accordion.config AccordionMsg
+            |> Accordion.withAnimation
+            |> Accordion.cards cards
+            |> Accordion.view accordionState
 
 
-uploadFileView : msg -> File -> ListGroup.Item msg
-uploadFileView toMsg file =
-    ListGroup.li
-        [ ListGroup.attrs [ class "justify-content-between" ] ]
-        [ text file.name
-        , label [ onClick toMsg ] [ xIcon xOptions ]
-        ]
+subscriptions : State -> Sub Msg
+subscriptions model =
+    let
+        state =
+            case model of
+                Paste data ->
+                    data
+
+                Upload data ->
+                    data
+    in
+        Accordion.subscriptions state.accordionState AccordionMsg
