@@ -17,6 +17,7 @@ import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
 import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
 import Bootstrap.Button as Button
+import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.ListGroup as ListGroup
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -200,6 +201,7 @@ view model config =
 switchButtons : State -> String -> Html Msg
 switchButtons model name =
     let
+        -- determines which button is active
         pasteText =
             case model of
                 Paste _ ->
@@ -208,9 +210,15 @@ switchButtons model name =
                 Upload _ ->
                     False
     in
-        ViewHelpers.radioButtons name
-            [ ( pasteText, SetPaste, [ text "Paste Text" ] )
-            , ( not pasteText, SetUpload, [ text "Upload File" ] )
+        ButtonGroup.radioButtonGroup []
+            [ ButtonGroup.radioButton
+                pasteText
+                [ Button.primary, Button.onClick SetPaste ]
+                [ text "Paste Text" ]
+            , ButtonGroup.radioButton
+                (not pasteText)
+                [ Button.primary, Button.onClick SetUpload ]
+                [ text "Upload File" ]
             ]
 
 

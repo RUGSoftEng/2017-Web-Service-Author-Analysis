@@ -21,6 +21,7 @@ import Html.Attributes exposing (style, class, defaultValue, classList, attribut
 import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
+import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
@@ -322,9 +323,12 @@ languageSelector : String -> (Language -> msg) -> List Language -> Language -> H
 languageSelector name toMsg languages current =
     let
         languageButton language =
-            ( language == current, toMsg language, [ text (toString language) ] )
+            ButtonGroup.radioButton
+                (language == current)
+                [ Button.primary, Button.onClick (toMsg language) ]
+                [ text (toString language) ]
     in
-        ViewHelpers.radioButtonsVertical name (List.map languageButton languages)
+        ButtonGroup.radioButtonGroup [ ButtonGroup.vertical ] (List.map languageButton languages)
 
 
 featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
@@ -339,6 +343,9 @@ featureComboSelector name toMsg featureCombos current =
                     "deep"
 
         featureComboButton featureCombo =
-            ( featureCombo == current, toMsg featureCombo, [ text (labelFor featureCombo) ] )
+            ButtonGroup.radioButton
+                (featureCombo == current)
+                [ Button.primary, Button.onClick (toMsg featureCombo) ]
+                [ text (toString featureCombo) ]
     in
-        ViewHelpers.radioButtonsVertical name (List.map featureComboButton featureCombos)
+        ButtonGroup.radioButtonGroup [ ButtonGroup.vertical ] (List.map featureComboButton featureCombos)

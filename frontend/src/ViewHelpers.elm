@@ -20,33 +20,3 @@ jumbotron title subtitle =
             , p [] [ text subtitle ]
             ]
         ]
-
-
-{-| A group of mutually exclusive options
--}
-radioButtons : String -> List ( Bool, msg, List (Html msg) ) -> Html msg
-radioButtons groupName options =
-    let
-        viewRadioButton ( checked, onclick, children ) =
-            label
-                [ classList [ ( "btn", True ), ( "btn-primary", True ), ( "active", checked ) ]
-                , onWithOptions "click" { defaultOptions | preventDefault = True } (Decode.succeed onclick)
-                ]
-                (input [ attribute "autocomplete" "off", attribute "checked" "", name groupName, type_ "radio" ] [] :: children)
-    in
-        div [ class "btn-group", attribute "data-toggle" "buttons" ] (List.map viewRadioButton options)
-
-
-{-| A group of mutually exclusive options, displayed vertically
--}
-radioButtonsVertical : String -> List ( Bool, msg, List (Html msg) ) -> Html msg
-radioButtonsVertical groupName options =
-    let
-        viewRadioButton ( checked, onclick, children ) =
-            label
-                [ classList [ ( "btn", True ), ( "btn-primary", True ), ( "active", checked ) ]
-                , onWithOptions "click" { defaultOptions | preventDefault = True } (Decode.succeed onclick)
-                ]
-                (input [ attribute "autocomplete" "off", attribute "checked" "", name groupName, type_ "radio" ] [] :: children)
-    in
-        div [ class "btn-group-vertical", attribute "data-toggle" "buttons" ] (List.map viewRadioButton options)
