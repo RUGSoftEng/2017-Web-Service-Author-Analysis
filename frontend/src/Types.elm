@@ -93,6 +93,11 @@ type Language
     | NL
 
 
+{-| The feature combo to use
+
+The feature combo determines what characteristics of a text are
+used and how strongly they are weighted.
+-}
 type FeatureCombo
     = Combo1
     | Combo4
