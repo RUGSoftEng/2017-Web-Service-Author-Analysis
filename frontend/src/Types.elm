@@ -22,6 +22,7 @@ import RemoteData exposing (WebData)
 --
 
 import InputField
+import PlotSlideShow
 
 
 {-| Our model of the world
@@ -52,6 +53,7 @@ type AttributionMessage
     | PerformAttribution
     | ServerResponse (Result Http.Error AttributionResponse)
     | AttributionInputField Author InputField.Msg
+    | AttributionStatisticsMsg PlotSlideShow.Msg
 
 
 type Author
@@ -83,6 +85,7 @@ type alias AttributionState =
     , languages : List Language
     , featureCombo : FeatureCombo
     , featureCombos : List FeatureCombo
+    , plotState : PlotSlideShow.State
     }
 
 

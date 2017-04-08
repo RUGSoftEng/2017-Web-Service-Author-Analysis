@@ -1,10 +1,48 @@
 module Visualization exposing (..)
 
-import Html
-import Types exposing (..)
+{-| Describes how we want to draw our plots (and which ones to draw)
+
+Most of the heavy lifting is actually done by PlotSlideShow, which
+will keep track of which plot has focus and how the title and description
+are laid out around the plot.
+-}
+
+import Html exposing (text)
 import Json.Decode as Decode
 import Plot exposing (..)
 import Dict exposing (Dict)
+import Types exposing (Statistics, FileStatistics)
+import PlotSlideShow exposing (Plot)
+
+
+plots : Dict String (Plot Statistics msg)
+plots =
+    let
+        data =
+            [ { label = "punctuation"
+              , title = "punctuation per character"
+              , render = plotPunctuation
+              , description = text "The usage of punctuation is indicative of the author based on ... "
+              }
+            , { label = "line endings"
+              , title = "line endings per character"
+              , render = plotLineEndings
+              , description = text "The usage of line endings is indicative of the author based on ... "
+              }
+            , { label = "anagram SIM"
+              , title = "anagram similarity"
+              , render = plotNgramsSim
+              , description = text "anagram similarity measures ... "
+              }
+            , { label = "anagram SPI"
+              , title = "anagram SPI"
+              , render = plotNgramsSpi
+              , description = text "anagram spi measures ... "
+              }
+            ]
+    in
+        List.map (\datum -> ( datum.label, PlotSlideShow.plot datum )) data
+            |> Dict.fromList
 
 
 plotAverages : Statistics -> Html.Html msg
@@ -62,17 +100,3 @@ plotNgramsSpi { ngramsSpi } =
             |> Dict.toList
             |> List.map construct
             |> viewBars (groups (List.map (uncurry group)))
-
-
-example =
-    case Decode.decodeString decodeStatistics exampleStatisticsJson of
-        Err e ->
-            Debug.crash e
-
-        Ok v ->
-            v
-
-
-exampleStatisticsJson =
-    """{"ngrams-spi": {"1": 48.0, "2": 58.0, "3": 26.0, "4": 11.0, "5": 2.0}, "known": {"blocks": 17, "words": 405, "lowers": 1193, "lines": 52, "sentencesFull": 34, "blank_lines": 0, "punctuation": {":": 0, "?": 11, ".": 22, ";": 3, "'": 21, ",": 26, "-": 0, "!": 1}, "blockLines": 36, "lineEndings": {";": 0, "?": 9, ".": 8, " ": 0, ",": 1, "-": 0, "!": 0}, "characters": 1699, "blockChars": 1667, "sentences": 52, "uppers": 84}, "unknown": {"blocks": 13, "words": 445, "lowers": 1555, "lines": 74, "sentencesFull": 23, "blank_lines": 0, "punctuation": {":": 2, "?": 3, ";": 8, ".": 6, ",": 35, "'": 13, "-": 9, "!": 13}, "blockLines": 62, "lineEndings": {";": 8, "?": 3, ".": 6, " ": 0, ",": 18, "-": 2, "!": 13}, "characters": 3043, "blockChars": 3019, "sentences": 60, "uppers": 74}, "combined": null, "ngrams-sim": {"1": 72.60479167424606, "2": 173.75137512997733, "3": 419.69457521709506, "4": 601.1759227430915, "5": 3698.6489727722796}}
-"""

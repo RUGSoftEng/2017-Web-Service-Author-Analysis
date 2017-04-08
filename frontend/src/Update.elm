@@ -16,6 +16,8 @@ import Navigation
 import Dict exposing (Dict)
 import Types exposing (..)
 import InputField exposing (OutMsg(..))
+import Visualization
+import PlotSlideShow
 import Ports
 
 
@@ -49,6 +51,14 @@ initialState location =
             , languages = [ EN, NL ]
             , featureCombo = Combo4
             , featureCombos = [ Combo1, Combo4 ]
+            , plotState =
+                case Dict.keys Visualization.plots of
+                    [] ->
+                        -- TODO make this safe
+                        Debug.crash "No plots to be displayed"
+
+                    x :: xs ->
+                        PlotSlideShow.initialState x xs
             }
 
         defaultProfiling =
@@ -256,6 +266,11 @@ updateAttribution msg attribution =
 
         SetFeatureCombo newFeatureCombo ->
             ( { attribution | featureCombo = newFeatureCombo }
+            , Cmd.none
+            )
+
+        AttributionStatisticsMsg statisticsMsg ->
+            ( { attribution | plotState = PlotSlideShow.update statisticsMsg attribution.plotState }
             , Cmd.none
             )
 

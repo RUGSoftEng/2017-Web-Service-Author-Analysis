@@ -35,6 +35,7 @@ import ViewHelpers
 import InputField
 import RemoteData exposing (RemoteData(..))
 import Visualization
+import PlotSlideShow
 
 
 {-| How the model is displayed
@@ -169,6 +170,13 @@ attributionView attribution =
                         |> List.map (Html.map (AttributionInputField UnknownAuthor))
                     )
 
+        plotConfig : PlotSlideShow.Config Statistics AttributionMessage
+        plotConfig =
+            PlotSlideShow.config
+                { plots = Visualization.plots
+                , toMsg = AttributionStatisticsMsg
+                }
+
         result =
             case attribution.result of
                 Success { statistics, confidence } ->
@@ -189,40 +197,8 @@ attributionView attribution =
                             ]
                         ]
                     , Grid.row []
-                        [ Grid.col []
-                            [ Grid.container []
-                                [ Grid.row []
-                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                                        [ h3 [] [ text "punctuation per character" ]
-                                        , Visualization.plotPunctuation statistics
-                                        ]
-                                    ]
-                                , Grid.row []
-                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                                        [ h3 [] [ text "line endings per line" ]
-                                        , Visualization.plotLineEndings statistics
-                                        ]
-                                    ]
-                                , Grid.row []
-                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                                        [ h3 [] [ text "some averages" ]
-                                        , Visualization.plotAverages statistics
-                                        ]
-                                    ]
-                                , Grid.row []
-                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                                        [ h3 [] [ text "anagram similarity" ]
-                                        , Visualization.plotNgramsSim statistics
-                                        ]
-                                    ]
-                                , Grid.row []
-                                    [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                                        [ h3 [] [ text "anagrams SPI" ]
-                                        , Visualization.plotNgramsSpi statistics
-                                        ]
-                                    ]
-                                ]
-                            ]
+                        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                            [ PlotSlideShow.view plotConfig attribution.plotState statistics ]
                         ]
                     ]
 
