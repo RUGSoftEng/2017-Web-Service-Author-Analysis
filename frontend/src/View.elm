@@ -33,9 +33,7 @@ import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
-import RemoteData exposing (RemoteData(..))
-import Visualization
-import PlotSlideShow
+import Attribution.View as Attribution
 
 
 {-| How the model is displayed
@@ -61,7 +59,7 @@ view model =
                 homeView
 
             AttributionRoute ->
-                attributionView model.attribution
+                Attribution.view model.attribution
                     |> Html.map AttributionMsg
 
             ProfilingRoute ->
@@ -133,120 +131,6 @@ homeView =
         ]
 
 
-attributionView : AttributionState -> Html AttributionMessage
-attributionView attribution =
-    let
-        knownAuthorInput =
-            let
-                config =
-                    { label =
-                        "Known Author"
-                        -- the `name` attribute for radio buttons
-                    , radioButtonName =
-                        "attribution-known-author-buttons"
-                        -- the id for the <input> element where the files are stored
-                    , fileInputId =
-                        "attribution-known-author-file-input"
-                        -- allow multiple files to be selected
-                    , multiple = True
-                    }
-            in
-                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                    (InputField.view attribution.knownAuthor config
-                        |> List.map (Html.map (AttributionInputField KnownAuthor))
-                    )
-
-        unknownAuthorInput =
-            let
-                config =
-                    { label = "Unknown Author"
-                    , radioButtonName = "attribution-unknown-author-buttons"
-                    , fileInputId = "attribution-unknown-author-file-input"
-                    , multiple = False
-                    }
-            in
-                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                    (InputField.view attribution.unknownAuthor config
-                        |> List.map (Html.map (AttributionInputField UnknownAuthor))
-                    )
-
-        plotConfig : PlotSlideShow.Config Statistics AttributionMessage
-        plotConfig =
-            PlotSlideShow.config
-                { plots = Visualization.plots
-                , toMsg = AttributionStatisticsMsg
-                }
-
-        result =
-            case attribution.result of
-                Success { statistics, confidence } ->
-                    [ Grid.row []
-                        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                            [ h2 []
-                                [ hr [] []
-                                , text "Results"
-                                , hr [] []
-                                ]
-                            ]
-                        ]
-                    , Grid.row []
-                        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                            [ Progress.progress [ Progress.value (floor <| confidence * 100) ]
-                            , h4 [ style [ ( "margin-top", "20px" ) ] ] [ text <| "Same author confidence: " ++ toString (round <| confidence * 100) ++ "%" ]
-                            , hr [] []
-                            ]
-                        ]
-                    , Grid.row []
-                        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                            [ PlotSlideShow.view plotConfig attribution.plotState statistics ]
-                        ]
-                    ]
-
-                _ ->
-                    []
-
-        separator =
-            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
-                []
-    in
-        div []
-            [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
-            , Grid.container []
-                ([ Grid.row [ Row.topXs ]
-                    [ knownAuthorInput
-                    , separator
-                    , unknownAuthorInput
-                    ]
-                 , Grid.row []
-                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Compare!" ]
-                        ]
-                    ]
-                 , Grid.row []
-                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ h2 []
-                            [ hr [] []
-                            , text "Settings"
-                            , hr [] []
-                            ]
-                        ]
-                    ]
-                 , Grid.row []
-                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ h3 [] [ text "language" ]
-                        , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
-                        ]
-                    , Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ h3 [] [ text "feature combination" ]
-                        , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
-                        ]
-                    ]
-                 ]
-                    ++ result
-                )
-            ]
-
-
 profilingView : ProfilingState -> Html ProfilingMessage
 profilingView profiling =
     let
@@ -289,39 +173,3 @@ profilingView profiling =
                     ]
                 ]
             ]
-
-
-{-| Language selection
-
-this can't be in ViewHelpers because it creates circular dependencies (via Types.elm, which is needed for Language)
--}
-languageSelector : String -> (Language -> msg) -> List Language -> Language -> Html msg
-languageSelector name toMsg languages current =
-    let
-        languageButton language =
-            ButtonGroup.radioButton
-                (language == current)
-                [ Button.primary, Button.onClick (toMsg language) ]
-                [ text (toString language) ]
-    in
-        ButtonGroup.radioButtonGroup [ ButtonGroup.vertical ] (List.map languageButton languages)
-
-
-featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
-featureComboSelector name toMsg featureCombos current =
-    let
-        labelFor combo =
-            case combo of
-                Combo1 ->
-                    "shallow"
-
-                Combo4 ->
-                    "deep"
-
-        featureComboButton featureCombo =
-            ButtonGroup.radioButton
-                (featureCombo == current)
-                [ Button.primary, Button.onClick (toMsg featureCombo) ]
-                [ text (toString featureCombo) ]
-    in
-        ButtonGroup.radioButtonGroup [ ButtonGroup.vertical ] (List.map featureComboButton featureCombos)

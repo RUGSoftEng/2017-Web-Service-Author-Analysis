@@ -14,11 +14,16 @@ import UrlParser exposing (s, top)
 import RemoteData exposing (RemoteData(..))
 import Navigation
 import Dict exposing (Dict)
+
+
+--
+
 import Types exposing (..)
 import InputField exposing (OutMsg(..))
-import Visualization
 import PlotSlideShow
 import Ports
+import Attribution.Update as Attribution
+import Attribution.Types as Attribution exposing (Author(..))
 
 
 {-| Convert a Url into a Route - the page that should be displayed
@@ -43,24 +48,6 @@ initialState location =
         ( navbarState, navbarCmd ) =
             Navbar.initialState NavbarMsg
 
-        defaultAttribution =
-            { knownAuthor = InputField.init
-            , unknownAuthor = InputField.init
-            , result = NotAsked
-            , language = EN
-            , languages = [ EN, NL ]
-            , featureCombo = Combo4
-            , featureCombos = [ Combo1, Combo4 ]
-            , plotState =
-                case Dict.keys Visualization.plots of
-                    [] ->
-                        -- TODO make this safe
-                        Debug.crash "No plots to be displayed"
-
-                    x :: xs ->
-                        PlotSlideShow.initialState x xs
-            }
-
         defaultProfiling =
             { input = InputField.init
             , result = Just { gender = M, age = 20 }
@@ -73,7 +60,7 @@ initialState location =
         ( { route = defaultRoute
           , navbarState = navbarState
           , profiling = defaultProfiling
-          , attribution = defaultAttribution
+          , attribution = Attribution.initialState
           }
         , navbarCmd
         )
@@ -130,13 +117,13 @@ update msg model =
             case id of
                 "KnownAuthor" ->
                     InputField.addFile file
-                        |> AttributionInputField KnownAuthor
+                        |> Attribution.AttributionInputField KnownAuthor
                         |> AttributionMsg
                         |> flip update model
 
                 "UnknownAuthor" ->
                     InputField.addFile file
-                        |> AttributionInputField UnknownAuthor
+                        |> Attribution.AttributionInputField UnknownAuthor
                         |> AttributionMsg
                         |> flip update model
 
@@ -162,7 +149,7 @@ update msg model =
             -- performs a nested update on the attribution
             let
                 ( newAttribution, attributionCommands ) =
-                    updateAttribution msg model.attribution
+                    Attribution.update performAttribution msg model.attribution
             in
                 ( { model | attribution = newAttribution }
                 , Cmd.map AttributionMsg attributionCommands
@@ -206,88 +193,19 @@ updateProfiling msg profiling =
                 )
 
 
-updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
-updateAttribution msg attribution =
-    case msg of
-        PerformAttribution ->
-            let
-                newresult =
-                    Loading
-            in
-                ( { attribution | result = newresult }, performAttribution attribution )
-
-        ServerResponse response ->
-            ( { attribution | result = RemoteData.fromResult response }, Cmd.none )
-
-        AttributionInputField KnownAuthor msg ->
-            let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg attribution.knownAuthor
-
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
-            in
-                ( { attribution | knownAuthor = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map (AttributionInputField KnownAuthor) inputCommands
-                    ]
-                )
-
-        AttributionInputField UnknownAuthor msg ->
-            let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg attribution.unknownAuthor
-
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
-            in
-                ( { attribution | unknownAuthor = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map (AttributionInputField UnknownAuthor) inputCommands
-                    ]
-                )
-
-        SetLanguage newLanguage ->
-            ( { attribution | language = newLanguage }
-            , Cmd.none
-            )
-
-        SetFeatureCombo newFeatureCombo ->
-            ( { attribution | featureCombo = newFeatureCombo }
-            , Cmd.none
-            )
-
-        AttributionStatisticsMsg statisticsMsg ->
-            ( { attribution | plotState = PlotSlideShow.update statisticsMsg attribution.plotState }
-            , Cmd.none
-            )
-
-
 {-| describes the action of sending the attribution state to the server and receiving a response
 -}
-performAttribution : AttributionState -> Cmd AttributionMessage
+performAttribution : Attribution.Model -> Cmd Attribution.Msg
 performAttribution attribution =
     let
         body =
             Http.jsonBody (encodeAttributionRequest attribution)
 
-        result =
-            Loading
+        formatResponse { confidence, statistics } =
+            ( confidence, statistics )
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
-            |> Http.send ServerResponse
+            |> Http.send (RemoteData.fromResult >> RemoteData.map formatResponse >> Attribution.ServerResponse)
 
 
 webserverUrl : String

@@ -23,6 +23,8 @@ import RemoteData exposing (WebData)
 
 import InputField
 import PlotSlideShow
+import Attribution.Types as Attribution exposing (..)
+import Attribution.Plots
 
 
 {-| Our model of the world
@@ -31,7 +33,7 @@ type alias Model =
     { route : Route
     , navbarState : Navbar.State
     , profiling : ProfilingState
-    , attribution : AttributionState
+    , attribution : Attribution.Model
     }
 
 
@@ -41,24 +43,10 @@ type Msg
     = NoOp
     | NavbarMsg Navbar.State
     | ChangeRoute Route
-    | AttributionMsg AttributionMessage
+    | AttributionMsg Attribution.Msg
     | ProfilingMsg ProfilingMessage
     | UrlChange Navigation.Location
     | AddFile ( String, File )
-
-
-type AttributionMessage
-    = SetLanguage Language
-    | SetFeatureCombo FeatureCombo
-    | PerformAttribution
-    | ServerResponse (Result Http.Error AttributionResponse)
-    | AttributionInputField Author InputField.Msg
-    | AttributionStatisticsMsg PlotSlideShow.Msg
-
-
-type Author
-    = KnownAuthor
-    | UnknownAuthor
 
 
 type ProfilingMessage
@@ -75,35 +63,6 @@ type alias File =
 
 
 -- nested structures
-
-
-type alias AttributionState =
-    { knownAuthor : InputField.State
-    , unknownAuthor : InputField.State
-    , result : WebData AttributionResponse
-    , language : Language
-    , languages : List Language
-    , featureCombo : FeatureCombo
-    , featureCombos : List FeatureCombo
-    , plotState : PlotSlideShow.State
-    }
-
-
-{-| Supported languages
--}
-type Language
-    = EN
-    | NL
-
-
-{-| The feature combo to use
-
-The feature combo determines what characteristics of a text are
-used and how strongly they are weighted.
--}
-type FeatureCombo
-    = Combo1
-    | Combo4
 
 
 type alias ProfilingState =
@@ -140,7 +99,7 @@ Example JSON:
 -}
 type alias AttributionResponse =
     { confidence : Float
-    , statistics : Statistics
+    , statistics : Attribution.Plots.Statistics
     }
 
 
@@ -160,7 +119,7 @@ type Gender
     (,)
 
 
-encodeAttributionRequest : AttributionState -> Encode.Value
+encodeAttributionRequest : Attribution.Model -> Encode.Value
 encodeAttributionRequest attribution =
     let
         featureComboToInt combo =
@@ -184,7 +143,7 @@ decodeAttributionResponse : Decode.Decoder AttributionResponse
 decodeAttributionResponse =
     Decode.succeed AttributionResponse
         |> required "sameAuthorConfidence" float
-        |> required "statistics" decodeStatistics
+        |> required "statistics" Attribution.Plots.decodeStatistics
 
 
 encodeProfilingRequest : ProfilingState -> Encode.Value
@@ -216,94 +175,3 @@ decodeProfilingResponse =
                     )
             )
         |> required "age" int
-
-
-type alias Statistics =
-    { known : FileStatistics
-    , unknown : FileStatistics
-    , ngramsSim : Dict Int Float
-    , ngramsSpi : Dict Int Int
-    }
-
-
-decodeStatistics =
-    Decode.succeed Statistics
-        |> required "known" decodeFileStatistics
-        |> required "unknown" decodeFileStatistics
-        |> required "ngrams-sim" (dictBoth (Decode.decodeString int) float)
-        |> required "ngrams-spi" (dictBoth (Decode.decodeString int) int)
-
-
-type alias FileStatistics =
-    { characters : Float
-    , lines : Float
-    , blocks : Float
-    , uppers : Float
-    , lowers : Float
-    , punctuation : Dict Char Float
-    , lineEndings : Dict Char Float
-    , sentences : Float
-    , words : Float
-    }
-
-
-{-| Convert an object into a dictionary with decoded keys AND values.
-the builtin dict decoder only allows you to decode values, defaulting keys to String
--}
-dictBoth : (String -> Result String comparable) -> Decoder value -> Decoder (Dict comparable value)
-dictBoth keyDecoder valueDecoder =
-    let
-        decodeKeys kvpairs =
-            List.foldr decodeKey (Decode.succeed Dict.empty) kvpairs
-
-        decodeKey ( key, value ) accum =
-            case keyDecoder key of
-                Err e ->
-                    Decode.fail <| "decoding a key failed: " ++ e
-
-                Ok newKey ->
-                    Decode.map (Dict.insert newKey value) accum
-    in
-        Decode.keyValuePairs valueDecoder
-            |> Decode.andThen decodeKeys
-
-
-char =
-    Decode.string
-        |> Decode.andThen
-            (\str ->
-                case String.uncons str of
-                    Just ( c, rest ) ->
-                        if rest == "" then
-                            Decode.succeed c
-                        else
-                            Decode.fail <| "trying to decode a single Char, but got `" ++ str ++ "`"
-
-                    Nothing ->
-                        Decode.fail <| "decoding a char failed: no input"
-            )
-
-
-decodeFileStatistics =
-    let
-        stringToChar str =
-            case String.uncons str of
-                Just ( c, rest ) ->
-                    if rest == "" then
-                        Ok c
-                    else
-                        Err <| "trying to decode a single Char, but got `" ++ str ++ "`"
-
-                Nothing ->
-                    Err <| "decoding a char failed: no input"
-    in
-        decode FileStatistics
-            |> required "characters" float
-            |> required "lines" float
-            |> required "blocks" float
-            |> required "uppers" float
-            |> required "lowers" float
-            |> required "lineEndings" (dictBoth stringToChar float)
-            |> required "punctuation" (dictBoth stringToChar float)
-            |> required "sentences" float
-            |> required "words" float
