@@ -32,16 +32,22 @@ import Attribution.Plots
 type alias Model =
     { route : Route
     , navbarState : Navbar.State
+    , footerbarState : Navbar.State
     , profiling : ProfilingState
     , attribution : Attribution.Model
     }
+
+
+type Bar
+    = HeaderBar
+    | FooterBar
 
 
 {-| All the actions our application can perform
 -}
 type Msg
     = NoOp
-    | NavbarMsg Navbar.State
+    | NavbarMsg Bar Navbar.State
     | ChangeRoute Route
     | AttributionMsg Attribution.Msg
     | ProfilingMsg ProfilingMessage

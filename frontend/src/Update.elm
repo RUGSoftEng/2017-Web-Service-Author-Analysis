@@ -46,7 +46,10 @@ initialState : Navigation.Location -> ( Model, Cmd Msg )
 initialState location =
     let
         ( navbarState, navbarCmd ) =
-            Navbar.initialState NavbarMsg
+            Navbar.initialState (NavbarMsg HeaderBar)
+
+        ( footerbarState, footerbarCmd ) =
+            Navbar.initialState (NavbarMsg FooterBar)
 
         defaultProfiling =
             { input = InputField.init
@@ -59,10 +62,14 @@ initialState location =
     in
         ( { route = defaultRoute
           , navbarState = navbarState
+          , footerbarState = footerbarState
           , profiling = defaultProfiling
           , attribution = Attribution.initialState
           }
-        , navbarCmd
+        , Cmd.batch
+            [ navbarCmd
+            , footerbarCmd
+            ]
         )
 
 
@@ -82,8 +89,11 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        NavbarMsg state ->
+        NavbarMsg HeaderBar state ->
             ( { model | navbarState = state }, Cmd.none )
+
+        NavbarMsg FooterBar state ->
+            ( { model | footerbarState = state }, Cmd.none )
 
         ChangeRoute newRoute ->
             if newRoute == model.route then
@@ -117,13 +127,13 @@ update msg model =
             case id of
                 "KnownAuthor" ->
                     InputField.addFile file
-                        |> Attribution.AttributionInputField KnownAuthor
+                        |> Attribution.InputFieldMsg KnownAuthor
                         |> AttributionMsg
                         |> flip update model
 
                 "UnknownAuthor" ->
                     InputField.addFile file
-                        |> Attribution.AttributionInputField UnknownAuthor
+                        |> Attribution.InputFieldMsg UnknownAuthor
                         |> AttributionMsg
                         |> flip update model
 
@@ -148,8 +158,13 @@ update msg model =
         AttributionMsg msg ->
             -- performs a nested update on the attribution
             let
+                config =
+                    { performAttribution = performAttribution
+                    , readFiles = Ports.readFiles
+                    }
+
                 ( newAttribution, attributionCommands ) =
-                    Attribution.update performAttribution msg model.attribution
+                    Attribution.update config msg model.attribution
             in
                 ( { model | attribution = newAttribution }
                 , Cmd.map AttributionMsg attributionCommands
@@ -203,9 +218,16 @@ performAttribution attribution =
 
         formatResponse { confidence, statistics } =
             ( confidence, statistics )
+
+        toMsg : Result Http.Error AttributionResponse -> Attribution.Msg
+        toMsg response =
+            response
+                |> RemoteData.fromResult
+                |> RemoteData.map formatResponse
+                |> Attribution.ServerResponse
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
-            |> Http.send (RemoteData.fromResult >> RemoteData.map formatResponse >> Attribution.ServerResponse)
+            |> Http.send toMsg
 
 
 webserverUrl : String

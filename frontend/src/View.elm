@@ -80,7 +80,7 @@ navbar ({ navbarState } as model) =
                 { defaultOptions | stopPropagation = True, preventDefault = True }
                 (Decode.succeed msg)
     in
-        Navbar.config NavbarMsg
+        Navbar.config (NavbarMsg HeaderBar)
             |> Navbar.inverse
             |> Navbar.withAnimation
             -- The brand needs the href attribute to be specified.
@@ -96,12 +96,10 @@ navbar ({ navbarState } as model) =
 
 
 {-| The bar at the bottom, this is a modified navigation bar
-
-TODO separate this bar from the top one
 -}
 footerbar : Model -> Html Msg
-footerbar ({ navbarState } as model) =
-    Navbar.config NavbarMsg
+footerbar ({ footerbarState } as model) =
+    Navbar.config (NavbarMsg FooterBar)
         |> Navbar.inverse
         |> Navbar.fixBottom
         |> Navbar.customItems
@@ -118,10 +116,7 @@ footerbar ({ navbarState } as model) =
                         []
                     ]
             ]
-        -- this is a little hacky, we reuse the state for
-        -- the top and bottom bar.
-        |>
-            Navbar.view navbarState
+        |> Navbar.view footerbarState
 
 
 homeView : Html msg

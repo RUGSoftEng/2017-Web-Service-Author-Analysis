@@ -16,13 +16,8 @@ type Msg
     | SetFeatureCombo FeatureCombo
     | PerformAttribution
     | ServerResponse (WebData ( Float, Plots.Statistics ))
-    | AttributionInputField Author InputField.Msg
-    | AttributionStatisticsMsg PlotSlideShow.Msg
-
-
-type Author
-    = KnownAuthor
-    | UnknownAuthor
+    | InputFieldMsg Author InputField.Msg
+    | PlotSlideShowMsg PlotSlideShow.Msg
 
 
 type alias Model =
@@ -37,6 +32,11 @@ type alias Model =
     }
 
 
+type Author
+    = KnownAuthor
+    | UnknownAuthor
+
+
 {-| Supported languages
 -}
 type Language
@@ -47,7 +47,7 @@ type Language
 {-| The feature combo to use
 
 The feature combo determines what characteristics of a text are
-used and how strongly they are weighted.
+used and how imporant they are to for making a prediction.
 -}
 type FeatureCombo
     = Combo1

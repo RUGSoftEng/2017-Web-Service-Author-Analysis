@@ -66,22 +66,32 @@ plots =
             |> Dict.fromList
 
 
-plotAverages : Statistics -> Html.Html msg
-plotAverages { known, unknown } =
-    let
-        data =
-            [ ( "sentence length", [ known.sentences / known.lines, unknown.sentences / unknown.lines ] )
-            , ( "words per line", [ known.words / known.lines, unknown.words, unknown.lines ] )
-              -- , ( "lines per paragraph", [ known.blockLines / known.blocks, unknown.blockLines / unknown.blocks ] )
-              -- , ("uppercase per lowercase", [ known.uppers / known.lowers, unknown.uppers / unknown.lowers ]
-            ]
-    in
-        viewBars (groups (List.map (\( label, value ) -> group label value))) data
+{-| Construct a plot for punctuation
 
+This module uses the excellent elm-plot package http://package.elm-lang.org/packages/terezka/elm-plot/latest
 
+First we must turn the two punctuation dictionaries into something that elm-plot understands.
+This is what construct does. Construct also scales the values, so all bar size's are withing one order of magnitude of one another.
+
+List.map2 "zips together" two lists, for example
+
+    List.map2 (+) [ 1,2 ] [ 13, 14 ] == [11, 16 ]
+
+Finally, uncurry
+
+    uncurry : (a -> b -> c) -> ((a, b) -> c)
+    uncurry f (x, y) = f x y
+
+    (uncurry (++)) ("foo", "bar") == "foobar"
+
+allows us to use a normal function that takes two arguments, and apply it to a tuple containing two values.
+
+Plot.viewBars takes care of all the rest.
+-}
 plotPunctuation : Statistics -> Html.Html msg
 plotPunctuation { known, unknown } =
     let
+        construct : ( Char, Float ) -> ( Char, Float ) -> ( String, List Float )
         construct ( label, v1 ) ( _, v2 ) =
             ( String.fromChar label, [ v1 / known.characters, v2 / known.characters ] )
     in
@@ -93,10 +103,23 @@ plotLineEndings : Statistics -> Html.Html msg
 plotLineEndings { known, unknown } =
     let
         construct ( label, v1 ) ( _, v2 ) =
-            ( String.fromChar label, [ v1 / known.lines, v2 / known.lines ] )
+            ( String.fromChar label, [ v1 / known.lines, v2 / unknown.lines ] )
     in
         List.map2 construct (Dict.toList known.lineEndings) (Dict.toList unknown.lineEndings)
             |> viewBars (groups (List.map (uncurry group)))
+
+
+plotAverages : Statistics -> Html.Html msg
+plotAverages { known, unknown } =
+    let
+        data =
+            [ ( "sentence length", [ known.sentences / known.lines, unknown.sentences / unknown.lines ] )
+            , ( "words per line", [ known.words / known.lines, unknown.words, unknown.lines ] )
+              -- , ( "lines per paragraph", [ known.lines / known.blocks, unknown.lines / unknown.blocks ] )
+              -- , ( "uppercase per lowercase", [ known.uppers / known.lowers, unknown.uppers / unknown.lowers ] )
+            ]
+    in
+        viewBars (groups (List.map (\( label, value ) -> group label value))) data
 
 
 plotNgramsSim : Statistics -> Html.Html msg

@@ -8,7 +8,7 @@ import Bootstrap.Navbar as Navbar
 import View
 import Update
 import Ports
-import Types exposing (Model, Msg(NavbarMsg, UrlChange, AddFile, AttributionMsg))
+import Types exposing (Model, Msg(NavbarMsg, UrlChange, AddFile, AttributionMsg), Bar(..))
 import Navigation
 import InputField
 import Attribution.Update as Attribution
@@ -31,7 +31,8 @@ subscriptions model =
     Sub.batch
         [ -- fires when an item in the navbar is clicked
           -- this will change what item is highlighted
-          Navbar.subscriptions model.navbarState NavbarMsg
+          Navbar.subscriptions model.navbarState (NavbarMsg HeaderBar)
+        , Navbar.subscriptions model.footerbarState (NavbarMsg FooterBar)
         , Ports.addFile AddFile
         , Sub.map AttributionMsg (Attribution.subscriptions model.attribution)
         ]
