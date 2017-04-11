@@ -19,8 +19,9 @@ Instructions on how to set up a development environment.
 
 ### Setup GLAD
 
-* Place the `glad` directory in the `backend/resources` directory (So it becomes `backend/resources/glad`)
-* Follow [Zahra's instructions](https://gist.github.com/zahrafitrianti/c507cd27a8355b022ce00730c53f0358)
+* Install the `glad` directory in the `backend/resources` directory (So it becomes `backend/resources/glad`). 
+    Installation instructions for GLAD are [here](https://github.com/sixhobbits/rug-authorship-web#installation). 
+    You can either rename the directory rug-authorship-web to glad, or create a symbolic link to the same effect.  
 * Now you should have a `glad-copy.py` file in the `backend/resources/glad` directory.
   
 ### Running the webserver

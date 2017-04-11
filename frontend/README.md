@@ -3,7 +3,7 @@
 
 ## Installing dependencies 
 
-Assuming a recent version of `npm` (the same tool you use for the backend dependencies). 
+Assuming a recent version of `npm` (the same tool used for the backend dependencies). 
 
 ```sh
 npm install -g elm # the elm compiler. You can also download an installer from https://guide.elm-lang.org/install.html
@@ -14,32 +14,28 @@ elm-package install # downloads all needed elm packages
 
 The elm guide contains a section on [configuring your editor](https://guide.elm-lang.org/install.html). If you are unsure what editor to use, [Atom](https://atom.io/) is probably the best choice (it has the best tooling), although [Sublime Text](https://www.sublimetext.com/) will do fine too. 
 
-If you want to modify the elm code, pleas install and use [elm-format](https://github.com/avh4/elm-format#installation-). 
+### elm-format
+
+If you want to modify the elm code, please install and use [elm-format](https://github.com/avh4/elm-format#installation-). 
+
+On Nix systems, the elm-format executable has to be somewhere on your path. You can either move or symlink it to `usr/bin`
+
+On windows systems, the elm-format.exe executable has to be in your PATH. The easiest way is to find out where elm is installed with `where elm-make` and 
+copy elm-format.exe into the same folder. 
+
+Finally, you need to configure your editor to find and use elm-format. 
 
 ## Running the app 
 
 ### with the nodejs server (recommended)
 
-make sure the webserver is running (see `backend/README.md`), then browse to [localhost:8080](http://localhost:8080/) to view
+Make sure the webserver is running (see `backend/README.md`), then browse to [localhost:8080](http://localhost:8080/) to view
 the application. 
 
-### Elm-reactor (development only) 
-In a new terminal window run (in the `/frontend` directory)
+At this time, the frontend does not reload (i.e. automatically compile and refresh the page) when an elm file changes. You have to manually 
+stop the server and start it again. 
 
-```
-elm-reactor
-```
-
-this should display 
-
-```
-Listening on http://localhost:8000
-```
-
-You can now browse to `http://localhost:8000/src/Main.elm` in your webbrowser to see the app.
-When you change the elm code, a refresh (f5) of the browser page will recompile and show the new version. 
-
-## Architecture overview 
+## Crash Course Elm: Architecture overview 
 
 An elm app consists of 2 types and 3 functions
 
@@ -83,7 +79,8 @@ An elm app consists of 2 types and 3 functions
             ] 
     ```
 
-* `subscriptions` handles input from the outside, for example the time or mouse movement. Not important for our application.
+* `subscriptions` handles input from the outside, for example the time or mouse movement. In our application we use subscriptions 
+for some Bootstrap components that have animations.  
 
 ### Resources 
 
