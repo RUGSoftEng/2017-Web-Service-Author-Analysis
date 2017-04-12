@@ -1,3 +1,19 @@
+html {
+  height: 100%;
+}
+
+body {
+  position: relative;
+  min-height: 100%;
+}
+
+.fixed-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
 /* Give buttons a red (instead of the default blue) color */
 .btn-primary.active {
     background-color: #DC002D;
@@ -15,7 +31,7 @@
     }
 
 #maincontainer { 
-    margin-bottom: 50px; /* size of the bottom navbar */
+    padding-bottom: 50px; /* size of the bottom navbar */
 }
 
 #compare-button { 
