@@ -72,7 +72,7 @@ type alias File =
 
 
 type alias ProfilingState =
-    { input : InputField.State
+    { input : InputField.Model
     , result : Maybe ProfilingResponse
     }
 
@@ -137,7 +137,7 @@ encodeAttributionRequest attribution =
                     4
     in
         Encode.object
-            [ "knownAuthorTexts" => InputField.encodeState attribution.knownAuthor
+            [ "knownAuthorTexts" => InputField.encodeModel attribution.knownAuthor
             , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
             , "language" => Encode.string (toString attribution.language)
             , "genre" => Encode.int 0

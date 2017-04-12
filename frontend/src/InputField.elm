@@ -1,4 +1,4 @@
-module InputField exposing (State, Msg, init, update, view, subscriptions, OutMsg(..), addFile, encodeState, File, encodeFirstFile)
+module InputField exposing (Model, Msg, init, update, view, subscriptions, addFile, encodeModel, File, encodeFirstFile, UpdateConfig, ViewConfig)
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -32,9 +32,9 @@ type alias File =
     { name : String, content : String }
 
 
-type State
-    = Paste { text : String, files : List ( String, File ), accordionState : Accordion.State }
-    | Upload { text : String, files : List ( String, File ), accordionState : Accordion.State }
+type Model
+    = Paste { text : String, files : List ( String, File ), accordionModel : Accordion.State }
+    | Upload { text : String, files : List ( String, File ), accordionModel : Accordion.State }
 
 
 type Msg
@@ -48,125 +48,82 @@ type Msg
     | AccordionMsg Accordion.State
 
 
-{-| Wrapper. This way we can expose this functionality
-without exposing Msg constructors
+init : Model
+init =
+    Paste { text = "", files = [], accordionModel = Accordion.initialState }
 
-exposing the constructors of a type is seen as an anti-pattern
--}
+
 addFile : File -> Msg
 addFile =
     AddFile
 
 
-type OutMsg
-    = ListenForFiles
+type alias UpdateConfig =
+    { readFiles : Cmd Msg }
 
 
-inputModeToFiles : State -> List File
-inputModeToFiles state =
-    case state of
-        Paste { text } ->
-            [ { name = "", content = text } ]
-
-        Upload { files } ->
-            List.map Tuple.second files
-
-
-encodeState : State -> Encode.Value
-encodeState mode =
-    mode
-        |> inputModeToFiles
-        |> List.map (.content >> Encode.string)
-        |> Encode.list
-
-
-encodeFirstFile : State -> Encode.Value
-encodeFirstFile state =
-    case state of
-        Paste { text } ->
-            Encode.string text
-
-        Upload { files } ->
-            case files of
-                ( _, { content } ) :: _ ->
-                    Encode.string content
-
-                [] ->
-                    -- TODO make this fail graciously
-                    Debug.crash "no file to encode"
-
-
-init : State
-init =
-    Paste { text = "", files = [], accordionState = Accordion.initialState }
-
-
-update : Msg -> State -> ( State, Cmd Msg, Maybe OutMsg )
-update msg model =
+update : UpdateConfig -> Msg -> Model -> ( Model, Cmd Msg )
+update config msg model =
     case model of
         Paste ({ text, files } as state) ->
             case msg of
                 NoOp ->
-                    ( model, Cmd.none, Nothing )
+                    ( model, Cmd.none )
 
-                AccordionMsg accordionState ->
-                    ( Paste { state | accordionState = accordionState }
+                AccordionMsg accordionModel ->
+                    ( Paste { state | accordionModel = accordionModel }
                     , Cmd.none
-                    , Nothing
                     )
 
                 AddFile _ ->
-                    update NoOp model
+                    update config NoOp model
 
                 SendListenForFiles ->
-                    update NoOp model
+                    update config NoOp model
 
                 RemoveFile _ ->
-                    update NoOp model
+                    update config NoOp model
 
                 SetPaste ->
-                    update NoOp model
+                    update config NoOp model
 
                 SetUpload ->
                     ( Upload state
                     , Cmd.none
-                    , Nothing
                     )
 
                 ChangeText newText ->
                     ( Paste { state | text = newText }
                     , Cmd.none
-                    , Nothing
                     )
 
         Upload ({ text, files } as state) ->
             case msg of
                 NoOp ->
-                    ( model, Cmd.none, Nothing )
+                    ( model, Cmd.none )
 
-                AccordionMsg accordionState ->
-                    ( Upload { state | accordionState = Debug.log "new accordion state" accordionState }
+                AccordionMsg accordionModel ->
+                    ( Upload { state | accordionModel = Debug.log "new accordion state" accordionModel }
                     , Cmd.none
-                    , Nothing
                     )
 
                 SetPaste ->
-                    ( Paste state, Cmd.none, Nothing )
+                    ( Paste state, Cmd.none )
 
                 SetUpload ->
-                    update NoOp model
+                    update config NoOp model
 
                 AddFile file ->
-                    ( Upload { state | files = ( file.name, file ) :: files }, Cmd.none, Nothing )
+                    ( Upload { state | files = ( file.name, file ) :: files }, Cmd.none )
 
                 SendListenForFiles ->
-                    ( model, Cmd.none, Just ListenForFiles )
+                    ( model, config.readFiles )
 
                 RemoveFile index ->
-                    ( Upload { state | files = removeAtIndex index files }, Cmd.none, Nothing )
+                    ( Upload { state | files = removeAtIndex index files }, Cmd.none )
 
                 ChangeText _ ->
-                    update NoOp model
+                    update config NoOp model
 
 
 removeAtIndex : Int -> List a -> List a
@@ -182,7 +139,7 @@ removeAtIndex n items =
                 x :: removeAtIndex (n - 1) xs
 
 
-type alias Config =
+type alias ViewConfig =
     { label : String
     , fileInputId : String
     , radioButtonName : String
@@ -190,8 +147,8 @@ type alias Config =
     }
 
 
-view : State -> Config -> List (Html Msg)
-view model config =
+view : ViewConfig -> Model -> List (Html Msg)
+view config model =
     [ h2 [] [ text config.label ]
     , switchButtons model config.radioButtonName
     , case model of
@@ -204,7 +161,7 @@ view model config =
 
         Upload data ->
             div []
-                [ uploadListView data.accordionState RemoveFile data.files
+                [ uploadListView data.accordionModel RemoveFile data.files
                 , div [ class "form-group", class "file-upload-button", class "card-header" ]
                     [ span [] [ text "Choose file" ]
                     , input
@@ -220,7 +177,7 @@ view model config =
     ]
 
 
-switchButtons : State -> String -> Html Msg
+switchButtons : Model -> String -> Html Msg
 switchButtons model name =
     let
         -- determines which button is active
@@ -245,7 +202,7 @@ switchButtons model name =
 
 
 uploadListView : Accordion.State -> (Int -> Msg) -> List ( String, File ) -> Html Msg
-uploadListView accordionState toMsg files =
+uploadListView accordionModel toMsg files =
     let
         card index file =
             Accordion.card
@@ -266,10 +223,10 @@ uploadListView accordionState toMsg files =
         Accordion.config AccordionMsg
             |> Accordion.withAnimation
             |> Accordion.cards cards
-            |> Accordion.view accordionState
+            |> Accordion.view accordionModel
 
 
-subscriptions : State -> Sub Msg
+subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         state =
@@ -280,4 +237,38 @@ subscriptions model =
                 Upload data ->
                     data
     in
-        Accordion.subscriptions state.accordionState AccordionMsg
+        Accordion.subscriptions state.accordionModel AccordionMsg
+
+
+inputModeToFiles : Model -> List File
+inputModeToFiles state =
+    case state of
+        Paste { text } ->
+            [ { name = "", content = text } ]
+
+        Upload { files } ->
+            List.map Tuple.second files
+
+
+encodeModel : Model -> Encode.Value
+encodeModel mode =
+    mode
+        |> inputModeToFiles
+        |> List.map (.content >> Encode.string)
+        |> Encode.list
+
+
+encodeFirstFile : Model -> Encode.Value
+encodeFirstFile state =
+    case state of
+        Paste { text } ->
+            Encode.string text
+
+        Upload { files } ->
+            case files of
+                ( _, { content } ) :: _ ->
+                    Encode.string content
+
+                [] ->
+                    -- TODO make this fail graciously
+                    Debug.crash "no file to encode"

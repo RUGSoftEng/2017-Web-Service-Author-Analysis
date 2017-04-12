@@ -19,7 +19,7 @@ import Dict exposing (Dict)
 --
 
 import Types exposing (..)
-import InputField exposing (OutMsg(..))
+import InputField
 import PlotSlideShow
 import Ports
 import Attribution.Update as Attribution
@@ -189,22 +189,15 @@ updateProfiling msg profiling =
 
         ProfilingInputField msg ->
             let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg profiling.input
+                updateConfig : InputField.UpdateConfig
+                updateConfig =
+                    { readFiles = Ports.readFiles ( "profiling-file-input", "Profiling" ) }
 
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            Ports.readFiles ( "profiling-file-input", "Profiling" )
+                ( newInput, inputCommands ) =
+                    InputField.update updateConfig msg profiling.input
             in
                 ( { profiling | input = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map ProfilingInputField inputCommands
-                    ]
+                , Cmd.map ProfilingInputField inputCommands
                 )
 
 

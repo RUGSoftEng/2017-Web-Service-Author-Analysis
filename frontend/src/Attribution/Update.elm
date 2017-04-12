@@ -17,8 +17,9 @@ import RemoteData exposing (RemoteData(..))
 
 import Attribution.Types exposing (..)
 import Attribution.Plots as Plots
-import InputField exposing (OutMsg(..))
+import InputField
 import PlotSlideShow
+import Ports
 
 
 {-| Initial state of the Attribution page
@@ -78,9 +79,9 @@ initialState =
 Both of these handle communication with the outside world. It's nicer
 to bundle everything that does communication, keeping the separate pages ignorant.
 -}
-type alias Config =
+type alias Config msg =
     { performAttribution : Model -> Cmd Msg
-    , readFiles : ( String, String ) -> Cmd Msg
+    , readFiles : ( String, String ) -> Cmd msg
     }
 
 
@@ -106,7 +107,7 @@ type alias Config =
 
 The other three messages are simple setters of data.
 -}
-update : Config -> Msg -> Model -> ( Model, Cmd Msg )
+update : Config InputField.Msg -> Msg -> Model -> ( Model, Cmd Msg )
 update config msg attribution =
     case msg of
         PerformAttribution ->
@@ -117,42 +118,30 @@ update config msg attribution =
 
         InputFieldMsg KnownAuthor msg ->
             let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg attribution.knownAuthor
+                updateConfig : InputField.UpdateConfig
+                updateConfig =
+                    { readFiles = config.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+                    }
 
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            config.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+                ( newInput, inputCommands ) =
+                    InputField.update updateConfig msg attribution.knownAuthor
             in
                 ( { attribution | knownAuthor = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map (InputFieldMsg KnownAuthor) inputCommands
-                    ]
+                , Cmd.map (InputFieldMsg KnownAuthor) inputCommands
                 )
 
         InputFieldMsg UnknownAuthor msg ->
             let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg attribution.unknownAuthor
+                updateConfig : InputField.UpdateConfig
+                updateConfig =
+                    { readFiles = Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+                    }
 
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            config.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+                ( newInput, inputCommands ) =
+                    InputField.update updateConfig msg attribution.unknownAuthor
             in
                 ( { attribution | unknownAuthor = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map (InputFieldMsg UnknownAuthor) inputCommands
-                    ]
+                , Cmd.map (InputFieldMsg UnknownAuthor) inputCommands
                 )
 
         PlotSlideShowMsg statisticsMsg ->

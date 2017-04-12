@@ -131,6 +131,7 @@ profilingView profiling =
     let
         profilingInput =
             let
+                config : InputField.ViewConfig
                 config =
                     { label = "Text"
                     , radioButtonName = "profiling-mode-buttons"
@@ -139,7 +140,7 @@ profilingView profiling =
                     }
             in
                 Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                    (InputField.view profiling.input config
+                    (InputField.view config profiling.input
                         |> List.map (Html.map ProfilingInputField)
                     )
 

@@ -21,8 +21,8 @@ type Msg
 
 
 type alias Model =
-    { knownAuthor : InputField.State
-    , unknownAuthor : InputField.State
+    { knownAuthor : InputField.Model
+    , unknownAuthor : InputField.Model
     , result : WebData ( Float, Plots.Statistics )
     , language : Language
     , languages : List Language

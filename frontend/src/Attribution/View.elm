@@ -45,7 +45,7 @@ view attribution =
         ]
 
 
-knownAuthorInput : InputField.State -> Grid.Column Msg
+knownAuthorInput : InputField.Model -> Grid.Column Msg
 knownAuthorInput knownAuthor =
     let
         {- config for an InputField
@@ -55,6 +55,7 @@ knownAuthorInput knownAuthor =
            * fileInputId: id for the <input> element where files for this InputField are stored
            * multiple: can multiple files be uploaded at once
         -}
+        config : InputField.ViewConfig
         config =
             { label = "Known Author"
             , radioButtonName = "attribution-known-author-buttons"
@@ -63,14 +64,15 @@ knownAuthorInput knownAuthor =
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-            (InputField.view knownAuthor config
+            (InputField.view config knownAuthor
                 |> List.map (Html.map (InputFieldMsg KnownAuthor))
             )
 
 
-unknownAuthorInput : InputField.State -> Grid.Column Msg
+unknownAuthorInput : InputField.Model -> Grid.Column Msg
 unknownAuthorInput unknownAuthor =
     let
+        config : InputField.ViewConfig
         config =
             { label = "Unknown Author"
             , radioButtonName = "attribution-unknown-author-buttons"
@@ -79,7 +81,7 @@ unknownAuthorInput unknownAuthor =
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-            (InputField.view unknownAuthor config
+            (InputField.view config unknownAuthor
                 |> List.map (Html.map (InputFieldMsg UnknownAuthor))
             )
 
