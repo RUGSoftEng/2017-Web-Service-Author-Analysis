@@ -21,16 +21,19 @@ import Html.Attributes exposing (style, class, defaultValue, classList, attribut
 import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
+import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
 import Bootstrap.ListGroup as ListGroup
+import Bootstrap.Progress as Progress
 import Json.Decode as Decode
 import Dict exposing (Dict)
 import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
+import Attribution.View as Attribution
 
 
 {-| How the model is displayed
@@ -49,14 +52,14 @@ can be part of any piece of html, no matter its message type.
 -}
 view : Model -> Html Msg
 view model =
-    div []
+    div [ id "maincontainer" ]
         [ navbar model
         , case model.route of
             Home ->
                 homeView
 
             AttributionRoute ->
-                attributionView model.attribution
+                Attribution.view model.attribution
                     |> Html.map AttributionMsg
 
             ProfilingRoute ->
@@ -77,7 +80,7 @@ navbar ({ navbarState } as model) =
                 { defaultOptions | stopPropagation = True, preventDefault = True }
                 (Decode.succeed msg)
     in
-        Navbar.config NavbarMsg
+        Navbar.config (NavbarMsg HeaderBar)
             |> Navbar.inverse
             |> Navbar.withAnimation
             -- The brand needs the href attribute to be specified.
@@ -93,12 +96,10 @@ navbar ({ navbarState } as model) =
 
 
 {-| The bar at the bottom, this is a modified navigation bar
-
-TODO separate this bar from the top one
 -}
 footerbar : Model -> Html Msg
-footerbar ({ navbarState } as model) =
-    Navbar.config NavbarMsg
+footerbar ({ footerbarState } as model) =
+    Navbar.config (NavbarMsg FooterBar)
         |> Navbar.inverse
         |> Navbar.fixBottom
         |> Navbar.customItems
@@ -115,84 +116,14 @@ footerbar ({ navbarState } as model) =
                         []
                     ]
             ]
-        -- this is a little hacky, we reuse the state for
-        -- the top and bottom bar.
-        |>
-            Navbar.view navbarState
+        |> Navbar.view footerbarState
 
 
 homeView : Html msg
 homeView =
-    text "home"
-
-
-attributionView : AttributionState -> Html AttributionMessage
-attributionView attribution =
-    let
-        knownAuthorInput =
-            let
-                config =
-                    { label =
-                        "Known Author"
-                        -- the `name` attribute for radio buttons
-                    , radioButtonName =
-                        "attribution-known-author-buttons"
-                        -- the id for the <input> element where the files are stored
-                    , fileInputId =
-                        "attribution-known-author-file-input"
-                        -- allow multiple files to be selected
-                    , multiple = True
-                    }
-            in
-                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                    (InputField.view attribution.knownAuthor config
-                        |> List.map (Html.map (AttributionInputField KnownAuthor))
-                    )
-
-        unknownAuthorInput =
-            let
-                config =
-                    { label = "Unknown Author"
-                    , radioButtonName = "attribution-unknown-author-buttons"
-                    , fileInputId = "attribution-unknown-author-file-input"
-                    , multiple = False
-                    }
-            in
-                Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                    (InputField.view attribution.unknownAuthor config
-                        |> List.map (Html.map (AttributionInputField UnknownAuthor))
-                    )
-
-        result =
-            Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                [ h2 [] [ text "result: " ]
-                , case attribution.result of
-                    Nothing ->
-                        text "No result yet"
-
-                    Just a ->
-                        text (toString a)
-                ]
-
-        separator =
-            Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ]
-                [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution ] ] [ text "compare with" ]
-                , languageSelector "attribution-language" SetLanguage attribution.languages attribution.language
-                , featureComboSelector "attribution-feature-combo" SetFeatureCombo attribution.featureCombos attribution.featureCombo
-                ]
-    in
-        div []
-            [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
-            , Grid.container []
-                [ Grid.row [ Row.topXs ]
-                    [ result ]
-                , Grid.row [ Row.topXs ]
-                    [ knownAuthorInput
-                    , separator
-                    , unknownAuthorInput
-                    ]
-                ]
-            ]
+    div []
+        [ text "home"
+        ]
 
 
 profilingView : ProfilingState -> Html ProfilingMessage
@@ -200,6 +131,7 @@ profilingView profiling =
     let
         profilingInput =
             let
+                config : InputField.ViewConfig
                 config =
                     { label = "Text"
                     , radioButtonName = "profiling-mode-buttons"
@@ -208,7 +140,7 @@ profilingView profiling =
                     }
             in
                 Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
-                    (InputField.view profiling.input config
+                    (InputField.view config profiling.input
                         |> List.map (Html.map ProfilingInputField)
                     )
 
@@ -236,32 +168,4 @@ profilingView profiling =
                     , result
                     ]
                 ]
-            ]
-
-
-{-| Language selection
-
-this can't be in ViewHelpers because it creates circular dependencies (via Types.elm, which is needed for Language)
--}
-languageSelector : String -> (Language -> msg) -> List Language -> Language -> Html msg
-languageSelector name toMsg languages current =
-    let
-        languageButton language =
-            ( language == current, toMsg language, [ text (toString language) ] )
-    in
-        div []
-            [ text "Language:"
-            , ViewHelpers.radioButtons name (List.map languageButton languages)
-            ]
-
-
-featureComboSelector : String -> (FeatureCombo -> msg) -> List FeatureCombo -> FeatureCombo -> Html msg
-featureComboSelector name toMsg featureCombos current =
-    let
-        featureComboButton featureCombo =
-            ( featureCombo == current, toMsg featureCombo, [ text (toString featureCombo) ] )
-    in
-        div []
-            [ text "Feature Combo:"
-            , ViewHelpers.radioButtons name (List.map featureComboButton featureCombos)
             ]

@@ -11,11 +11,19 @@ and routing - what page to display based on the url.
 import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
+import RemoteData exposing (RemoteData(..))
 import Navigation
 import Dict exposing (Dict)
+
+
+--
+
 import Types exposing (..)
-import InputField exposing (OutMsg(..))
+import InputField
+import PlotSlideShow
 import Ports
+import Attribution.Update as Attribution
+import Attribution.Types as Attribution exposing (Author(..))
 
 
 {-| Convert a Url into a Route - the page that should be displayed
@@ -38,17 +46,10 @@ initialState : Navigation.Location -> ( Model, Cmd Msg )
 initialState location =
     let
         ( navbarState, navbarCmd ) =
-            Navbar.initialState NavbarMsg
+            Navbar.initialState (NavbarMsg HeaderBar)
 
-        defaultAttribution =
-            { knownAuthor = InputField.init
-            , unknownAuthor = InputField.init
-            , result = Nothing
-            , language = EN
-            , languages = [ EN, NL ]
-            , featureCombo = Combo4
-            , featureCombos = [ Combo1, Combo4 ]
-            }
+        ( footerbarState, footerbarCmd ) =
+            Navbar.initialState (NavbarMsg FooterBar)
 
         defaultProfiling =
             { input = InputField.init
@@ -61,10 +62,14 @@ initialState location =
     in
         ( { route = defaultRoute
           , navbarState = navbarState
+          , footerbarState = footerbarState
           , profiling = defaultProfiling
-          , attribution = defaultAttribution
+          , attribution = Attribution.initialState
           }
-        , navbarCmd
+        , Cmd.batch
+            [ navbarCmd
+            , footerbarCmd
+            ]
         )
 
 
@@ -84,8 +89,11 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        NavbarMsg state ->
+        NavbarMsg HeaderBar state ->
             ( { model | navbarState = state }, Cmd.none )
+
+        NavbarMsg FooterBar state ->
+            ( { model | footerbarState = state }, Cmd.none )
 
         ChangeRoute newRoute ->
             if newRoute == model.route then
@@ -119,13 +127,13 @@ update msg model =
             case id of
                 "KnownAuthor" ->
                     InputField.addFile file
-                        |> AttributionInputField KnownAuthor
+                        |> Attribution.InputFieldMsg KnownAuthor
                         |> AttributionMsg
                         |> flip update model
 
                 "UnknownAuthor" ->
                     InputField.addFile file
-                        |> AttributionInputField UnknownAuthor
+                        |> Attribution.InputFieldMsg UnknownAuthor
                         |> AttributionMsg
                         |> flip update model
 
@@ -150,8 +158,13 @@ update msg model =
         AttributionMsg msg ->
             -- performs a nested update on the attribution
             let
+                config =
+                    { performAttribution = performAttribution
+                    , readFiles = Ports.readFiles
+                    }
+
                 ( newAttribution, attributionCommands ) =
-                    updateAttribution msg model.attribution
+                    Attribution.update config msg model.attribution
             in
                 ( { model | attribution = newAttribution }
                 , Cmd.map AttributionMsg attributionCommands
@@ -176,102 +189,38 @@ updateProfiling msg profiling =
 
         ProfilingInputField msg ->
             let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg profiling.input
+                updateConfig : InputField.UpdateConfig
+                updateConfig =
+                    { readFiles = Ports.readFiles ( "profiling-file-input", "Profiling" ) }
 
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            Ports.readFiles ( "profiling-file-input", "Profiling" )
+                ( newInput, inputCommands ) =
+                    InputField.update updateConfig msg profiling.input
             in
                 ( { profiling | input = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map ProfilingInputField inputCommands
-                    ]
+                , Cmd.map ProfilingInputField inputCommands
                 )
-
-
-updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
-updateAttribution msg attribution =
-    case msg of
-        PerformAttribution ->
-            ( attribution, performAttribution attribution )
-
-        ServerResponse response ->
-            case response of
-                Err error ->
-                    ( attribution, Cmd.none )
-
-                Ok fromServer ->
-                    ( { attribution | result = Just fromServer }
-                    , Cmd.none
-                    )
-
-        AttributionInputField KnownAuthor msg ->
-            let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg attribution.knownAuthor
-
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
-            in
-                ( { attribution | knownAuthor = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map (AttributionInputField KnownAuthor) inputCommands
-                    ]
-                )
-
-        AttributionInputField UnknownAuthor msg ->
-            let
-                ( newInput, inputCommands, inputOutMsg ) =
-                    InputField.update msg attribution.unknownAuthor
-
-                outCmd =
-                    case inputOutMsg of
-                        Nothing ->
-                            Cmd.none
-
-                        Just ListenForFiles ->
-                            Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
-            in
-                ( { attribution | unknownAuthor = newInput }
-                , Cmd.batch
-                    [ outCmd
-                    , Cmd.map (AttributionInputField UnknownAuthor) inputCommands
-                    ]
-                )
-
-        SetLanguage newLanguage ->
-            ( { attribution | language = newLanguage }
-            , Cmd.none
-            )
-
-        SetFeatureCombo newFeatureCombo ->
-            ( { attribution | featureCombo = newFeatureCombo }
-            , Cmd.none
-            )
 
 
 {-| describes the action of sending the attribution state to the server and receiving a response
 -}
-performAttribution : AttributionState -> Cmd AttributionMessage
+performAttribution : Attribution.Model -> Cmd Attribution.Msg
 performAttribution attribution =
     let
         body =
             Http.jsonBody (encodeAttributionRequest attribution)
+
+        formatResponse { confidence, statistics } =
+            ( confidence, statistics )
+
+        toMsg : Result Http.Error AttributionResponse -> Attribution.Msg
+        toMsg response =
+            response
+                |> RemoteData.fromResult
+                |> RemoteData.map formatResponse
+                |> Attribution.ServerResponse
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
-            |> Http.send ServerResponse
+            |> Http.send toMsg
 
 
 webserverUrl : String

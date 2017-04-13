@@ -19,6 +19,7 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
   // TODO: Wrap this with a task class
   private programFinishedCallback( callback: ( out: any ) => void, error, stdout, stderr ) {
     if ( error ) {
+      console.log( error );
       callback( 'An error occurred' );
       return;
     }
@@ -44,13 +45,19 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
     }
   }
   
+  private cleanInput( s: string ): string {
+    return s.replace( '"', '\\"' )
+            .replace( '\n', '\\n' )
+            .replace( '\r', '\\r' )
+  }
+  
   // Override
   protected doHandleRequest( request: FromClientAttribution, callback: ( out: any ) => void ): void {
     // NOTE: Only one known author text is used at the moment
     // Add multiple once GLAD input supports this
     const args = [ 'glad-copy.py',
-                   '--inputknown', request.knownAuthorTexts[0],
-                   '--inputunknown', request.unknownAuthorText,
+                   '--inputknown', this.cleanInput( request.knownAuthorTexts[0] ),
+                   '--inputunknown', this.cleanInput( request.unknownAuthorText ),
                    '--combo', request.featureSet.toString(),
                    '-m', `models/combo${request.featureSet}` ];
     const options = { cwd: 'resources/glad' };
