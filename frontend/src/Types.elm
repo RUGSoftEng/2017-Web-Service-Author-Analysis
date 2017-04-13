@@ -11,16 +11,20 @@ for the types would lead to circular dependencies.
 
 import Bootstrap.Navbar as Navbar
 import Navigation
-import Json.Decode as Decode exposing (string, bool, int, float)
+import Json.Decode as Decode exposing (Decoder, string, bool, int, float, dict)
 import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
 import Dict exposing (Dict)
 import Http
+import RemoteData exposing (WebData)
 
 
 --
 
 import InputField
+import PlotSlideShow
+import Attribution.Types as Attribution exposing (..)
+import Attribution.Plots
 
 
 {-| Our model of the world
@@ -28,34 +32,27 @@ import InputField
 type alias Model =
     { route : Route
     , navbarState : Navbar.State
+    , footerbarState : Navbar.State
     , profiling : ProfilingState
-    , attribution : AttributionState
+    , attribution : Attribution.Model
     }
+
+
+type Bar
+    = HeaderBar
+    | FooterBar
 
 
 {-| All the actions our application can perform
 -}
 type Msg
     = NoOp
-    | NavbarMsg Navbar.State
+    | NavbarMsg Bar Navbar.State
     | ChangeRoute Route
-    | AttributionMsg AttributionMessage
+    | AttributionMsg Attribution.Msg
     | ProfilingMsg ProfilingMessage
     | UrlChange Navigation.Location
     | AddFile ( String, File )
-
-
-type AttributionMessage
-    = SetLanguage Language
-    | SetFeatureCombo FeatureCombo
-    | PerformAttribution
-    | ServerResponse (Result Http.Error AttributionResponse)
-    | AttributionInputField Author InputField.Msg
-
-
-type Author
-    = KnownAuthor
-    | UnknownAuthor
 
 
 type ProfilingMessage
@@ -74,31 +71,8 @@ type alias File =
 -- nested structures
 
 
-type alias AttributionState =
-    { knownAuthor : InputField.State
-    , unknownAuthor : InputField.State
-    , result : Maybe AttributionResponse
-    , language : Language
-    , languages : List Language
-    , featureCombo : FeatureCombo
-    , featureCombos : List FeatureCombo
-    }
-
-
-{-| Supported languages
--}
-type Language
-    = EN
-    | NL
-
-
-type FeatureCombo
-    = Combo1
-    | Combo4
-
-
 type alias ProfilingState =
-    { input : InputField.State
+    { input : InputField.Model
     , result : Maybe ProfilingResponse
     }
 
@@ -130,7 +104,9 @@ Example JSON:
 
 -}
 type alias AttributionResponse =
-    { confidence : Float }
+    { confidence : Float
+    , statistics : Attribution.Plots.Statistics
+    }
 
 
 type alias ProfilingResponse =
@@ -149,7 +125,7 @@ type Gender
     (,)
 
 
-encodeAttributionRequest : AttributionState -> Encode.Value
+encodeAttributionRequest : Attribution.Model -> Encode.Value
 encodeAttributionRequest attribution =
     let
         featureComboToInt combo =
@@ -161,7 +137,7 @@ encodeAttributionRequest attribution =
                     4
     in
         Encode.object
-            [ "knownAuthorTexts" => InputField.encodeState attribution.knownAuthor
+            [ "knownAuthorTexts" => InputField.encodeModel attribution.knownAuthor
             , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
             , "language" => Encode.string (toString attribution.language)
             , "genre" => Encode.int 0
@@ -173,6 +149,7 @@ decodeAttributionResponse : Decode.Decoder AttributionResponse
 decodeAttributionResponse =
     Decode.succeed AttributionResponse
         |> required "sameAuthorConfidence" float
+        |> required "statistics" Attribution.Plots.decodeStatistics
 
 
 encodeProfilingRequest : ProfilingState -> Encode.Value
