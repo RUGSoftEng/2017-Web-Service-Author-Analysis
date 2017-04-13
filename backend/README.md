@@ -8,7 +8,7 @@ This server will also handle requests for non-static content. (E.g. AJAX request
 ### Prerequisites
 
 * [Node.js](https://nodejs.org/) (v6.10.0) - Node.js runs all webserver code
-* GLAD
+* [GLAD](https://github.com/sixhobbits/rug-authorship-web#installation)
 
 ### Setup Node & Npm
 Instructions on how to set up a development environment.
@@ -19,8 +19,9 @@ Instructions on how to set up a development environment.
 
 ### Setup GLAD
 
-* Place the `glad` directory in the `backend/resources` directory (So it becomes `backend/resources/glad`)
-* Follow [GLAD instructions](https://github.com/sixhobbits/rug-authorship-web)
+* Install the `glad` directory in the `backend/resources` directory (So it becomes `backend/resources/glad`). 
+    Installation instructions for GLAD are [here](https://github.com/sixhobbits/rug-authorship-web#installation). 
+    You can either rename the directory rug-authorship-web to glad, or create a symbolic link to the same effect.
 * Now you should have a `glad-copy.py` file in the `backend/resources/glad` directory.
   
 ### Running the webserver
