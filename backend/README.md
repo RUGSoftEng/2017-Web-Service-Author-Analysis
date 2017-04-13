@@ -8,7 +8,7 @@ This server will also handle requests for non-static content. (E.g. AJAX request
 ### Prerequisites
 
 * [Node.js](https://nodejs.org/) (v6.10.0) - Node.js runs all webserver code
-* GLAD
+* [GLAD](https://github.com/sixhobbits/rug-authorship-web#installation)
 
 ### Setup Node & Npm
 Instructions on how to set up a development environment.
@@ -25,13 +25,19 @@ Instructions on how to set up a development environment.
 * Now you should have a `glad-copy.py` file in the `backend/resources/glad` directory.
   
 ### Running the webserver
+On some systems it is necessary to activate the GLAD Anaconda environment before running the webserver.
+Note that this environment was previously created during GLAD setup. This environment can be activated using:
+
+* `activate glad` - If you are using Microsoft Windows
+* `source activate glad` - If you are using a *nix based system
+
 In terminal, in the `backend` folder, run one of the following:
 
 * `npm run build:windows` - If you are using Microsoft Windows
 * `npm run build:linux` - If you are using a *nix based system
 
 This starts the webserver (on port 8080), and will restart the webserver whenever a change is made.
-The web application can be accessed by going to [http://localhost/](http://localhost/).
+The web application can be accessed by going to [http://localhost:8080/](http://localhost:8080/).
 
 ## Directory structure
 
