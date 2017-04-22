@@ -145,6 +145,10 @@ viewResult plotState result =
                 ]
             ]
 
+        Failure err ->
+            [ text (toString err)
+            ]
+
         _ ->
             []
 

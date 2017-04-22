@@ -20,7 +20,7 @@ type alias Statistics =
     , unknown : FileStatistics
     , ngramsSim : Dict Int Float
     , ngramsSpi : Dict Int Int
-    , similarity : Dict Int Float
+    , similarity : Dict String Float
     }
 
 
@@ -170,7 +170,7 @@ decodeStatistics =
         |> required "unknown" decodeFileStatistics
         |> required "ngrams-sim" (dictBoth (Decode.decodeString int) float)
         |> required "ngrams-spi" (dictBoth (Decode.decodeString int) int)
-        |> required "similarity" (dictBoth (Decode.decodeString int) float)
+        |> required "similarities" (Decode.dict float)
 
 
 decodeFileStatistics =
