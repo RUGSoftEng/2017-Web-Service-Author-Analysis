@@ -159,11 +159,10 @@ plotSimilarities { similarity } =
         rename : String -> String
         rename str =
             str
-                |> Regex.replace Regex.All (Regex.regex "\"") (\_ -> "")
                 |> Regex.replace Regex.All (Regex.regex "_") (\_ -> " ")
 
         construct ( key, value ) =
-            ( rename (toString key), [ value ] )
+            ( rename key, [ value ] )
     in
         similarity
             |> Dict.toList
