@@ -20,6 +20,7 @@ type alias Statistics =
     , unknown : FileStatistics
     , ngramsSim : Dict Int Float
     , ngramsSpi : Dict Int Int
+    , similarity : Dict Int Float
     }
 
 
@@ -59,6 +60,11 @@ plots =
               , title = "anagram SPI"
               , render = plotNgramsSpi
               , description = text "anagram spi measures ... "
+              }
+            , { label = "similarities"
+              , title = "similarities"
+              , render = plotSimilarities
+              , description = text "similarities about punctuation, line_endings, line_length, letter_case, and text_block"
               }
             ]
     in
@@ -146,12 +152,25 @@ plotNgramsSpi { ngramsSpi } =
             |> viewBars (groups (List.map (uncurry group)))
 
 
+plotSimilarities : Statistics -> Html.Html msg
+plotSimilarities { similarity } =
+    let
+        construct ( key, value ) =
+            ( toString key, [ value ] )
+    in
+        similarity
+            |> Dict.toList
+            |> List.map construct
+            |> viewBars (groups (List.map (uncurry group)))
+
+
 decodeStatistics =
     Decode.succeed Statistics
         |> required "known" decodeFileStatistics
         |> required "unknown" decodeFileStatistics
         |> required "ngrams-sim" (dictBoth (Decode.decodeString int) float)
         |> required "ngrams-spi" (dictBoth (Decode.decodeString int) int)
+        |> required "similarity" (dictBoth (Decode.decodeString int) float)
 
 
 decodeFileStatistics =
