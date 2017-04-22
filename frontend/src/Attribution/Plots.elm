@@ -13,6 +13,7 @@ import Json.Decode.Pipeline as Decode exposing (decode, required)
 import Plot exposing (..)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
+import Regex exposing (Regex, regex)
 
 
 type alias Statistics =
@@ -155,8 +156,14 @@ plotNgramsSpi { ngramsSpi } =
 plotSimilarities : Statistics -> Html.Html msg
 plotSimilarities { similarity } =
     let
+        rename : String -> String
+        rename str =
+            str
+                |> Regex.replace Regex.All (Regex.regex "\"") (\_ -> "")
+                |> Regex.replace Regex.All (Regex.regex "_") (\_ -> " ")
+
         construct ( key, value ) =
-            ( toString key, [ value ] )
+            ( rename (toString key), [ value ] )
     in
         similarity
             |> Dict.toList
