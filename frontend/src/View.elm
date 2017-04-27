@@ -36,6 +36,7 @@ import InputField
 import Attribution.View as Attribution
 
 
+
 {-| How the model is displayed
 
 html in elm:
@@ -124,6 +125,7 @@ homeView =
     div []
         [ text "home"
         ]
+
 
 
 profilingView : ProfilingState -> Html ProfilingMessage

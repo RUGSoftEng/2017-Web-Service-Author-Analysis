@@ -16,7 +16,6 @@ import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
 import Dict exposing (Dict)
 import Http
-import RemoteData exposing (WebData)
 
 
 --
@@ -69,6 +68,30 @@ type alias File =
 
 
 -- nested structures
+
+
+
+type alias AttributionState =
+    { knownAuthor : InputField.State
+    , unknownAuthor : InputField.State
+    , result : Maybe AttributionResponse
+    , language : Language
+    , languages : List Language
+    , featureCombo : FeatureCombo
+    , featureCombos : List FeatureCombo
+    }
+
+
+{-| Supported languages
+-}
+type Language
+    = EN
+    | NL
+
+
+type FeatureCombo
+    = Combo1
+    | Combo4
 
 
 type alias ProfilingState =

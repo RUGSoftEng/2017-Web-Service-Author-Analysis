@@ -11,7 +11,6 @@ and routing - what page to display based on the url.
 import Http
 import Bootstrap.Navbar as Navbar
 import UrlParser exposing (s, top)
-import RemoteData exposing (RemoteData(..))
 import Navigation
 import Dict exposing (Dict)
 
@@ -46,10 +45,12 @@ initialState : Navigation.Location -> ( Model, Cmd Msg )
 initialState location =
     let
         ( navbarState, navbarCmd ) =
+
             Navbar.initialState (NavbarMsg HeaderBar)
 
         ( footerbarState, footerbarCmd ) =
             Navbar.initialState (NavbarMsg FooterBar)
+
 
         defaultProfiling =
             { input = InputField.init
@@ -201,6 +202,74 @@ updateProfiling msg profiling =
                 )
 
 
+
+updateAttribution : AttributionMessage -> AttributionState -> ( AttributionState, Cmd AttributionMessage )
+updateAttribution msg attribution =
+    case msg of
+        PerformAttribution ->
+            ( attribution, performAttribution attribution )
+
+        ServerResponse response ->
+            case response of
+                Err error ->
+                    ( attribution, Cmd.none )
+
+                Ok fromServer ->
+                    ( { attribution | result = Just fromServer }
+                    , Cmd.none
+                    )
+
+        AttributionInputField KnownAuthor msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg attribution.knownAuthor
+
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
+
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+            in
+                ( { attribution | knownAuthor = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map (AttributionInputField KnownAuthor) inputCommands
+                    ]
+                )
+
+        AttributionInputField UnknownAuthor msg ->
+            let
+                ( newInput, inputCommands, inputOutMsg ) =
+                    InputField.update msg attribution.unknownAuthor
+
+                outCmd =
+                    case inputOutMsg of
+                        Nothing ->
+                            Cmd.none
+
+                        Just ListenForFiles ->
+                            Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+            in
+                ( { attribution | unknownAuthor = newInput }
+                , Cmd.batch
+                    [ outCmd
+                    , Cmd.map (AttributionInputField UnknownAuthor) inputCommands
+                    ]
+                )
+
+        SetLanguage newLanguage ->
+            ( { attribution | language = newLanguage }
+            , Cmd.none
+            )
+
+        SetFeatureCombo newFeatureCombo ->
+            ( { attribution | featureCombo = newFeatureCombo }
+            , Cmd.none
+            )
+
+
 {-| describes the action of sending the attribution state to the server and receiving a response
 -}
 performAttribution : Attribution.Model -> Cmd Attribution.Msg
@@ -218,6 +287,7 @@ performAttribution attribution =
                 |> RemoteData.fromResult
                 |> RemoteData.map formatResponse
                 |> Attribution.ServerResponse
+
     in
         Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
             |> Http.send toMsg
