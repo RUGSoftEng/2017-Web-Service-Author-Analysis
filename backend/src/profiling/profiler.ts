@@ -8,31 +8,19 @@
  */
 
 import * as child_process from 'child_process'; //require('child_process').execFile;
+import { BackendWrapper } from '../backend_wrapper';
 const execFile = child_process.execFile;
  
-import { FromClientProfiling, ToClientProfiling } from './network_interface';
+import { FromClientProfiling, ToClientProfiling, FromClientProfiling_isValid } from './network_interface';
 
-export class Profiler {
-  constructor( ) { }
-  
-  public handleRequest( request: FromClientProfiling, callback: ( out: any ) => void ) {
-    if ( !this.isValid_FromClient( request ) ) {
-      callback( 'Invalid input' );
-      return;
-    }
-    
-    let out: ToClientProfiling = { gender: 'M', age: 10 };
-    callback( out );
+export class Profiler extends BackendWrapper< FromClientProfiling > {
+  constructor( ) {
+    super( FromClientProfiling_isValid );
   }
   
-  /**
-   * True if the request is a valid 'FromClientAttribution' interface
-   */
-  private isValid_FromClient( request: FromClientProfiling ): boolean {
-    // TODO: More in-depth validity testing
-    return ( typeof request.text === 'string' &&
-             typeof request.language === 'string' &&
-             typeof request.genre === 'number' &&
-             typeof request.featureSet === 'number' );
+  // Override
+  protected doHandleRequest( request: FromClientProfiling, callback: ( out: any ) => void ): void {
+    let out: ToClientProfiling = { gender: 'M', age: 10 };
+    callback( out );
   }
 }

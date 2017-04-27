@@ -16,6 +16,17 @@ export interface FromClientProfiling {
 }
 
 /**
+ * True if the request is a valid 'FromClientAttribution' interface
+ */
+export function FromClientProfiling_isValid( request: any ): boolean {
+  // TODO: More in-depth validity testing
+  return ( typeof request.text === 'string' &&
+           typeof request.language === 'string' &&
+           typeof request.genre === 'number' &&
+           typeof request.featureSet === 'number' );
+}
+
+/**
  * The message responding to an Authorship verification, in case of success
  *
  * Also known as: FromClientProfiling

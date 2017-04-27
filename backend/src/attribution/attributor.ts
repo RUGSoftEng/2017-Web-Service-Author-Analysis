@@ -5,29 +5,39 @@
  */
 
 import * as child_process from 'child_process'; //require('child_process').execFile;
+import { BackendWrapper } from '../backend_wrapper';
 const execFile = child_process.execFile;
  
-import { FromClientAttribution, ToClientAttribution } from './network_interface';
+import { FromClientAttribution, ToClientAttribution, FromClientAttribution_isValid } from './network_interface';
 
-export class Attributor {
-  constructor( ) { }
+export class Attributor extends BackendWrapper<FromClientAttribution> {
+  constructor( ) {
+    super( FromClientAttribution_isValid );
+  }
   
   // Callback that gets called once the Python program has finished
   // TODO: Wrap this with a task class
   private programFinishedCallback( callback: ( out: any ) => void, error, stdout, stderr ) {
     if ( error ) {
+      console.log( error );
       callback( 'An error occurred' );
       return;
     }
     
-    // Hackerish extraction of Python output
+    // GLAD outputs 2 lines.
+    // Line 0 contains the JSON statistics
+    // Line 1 contains the probability
+    let lines: string[] = stdout.split( '\n' );
+    
+    // Hackerish extraction of probability
     // Clean this up after input/output rules are better established
     try {
-      var arr = /.*((0|1)\.(\d*)).*((0|1)\.(\d*)).*/g.exec( stdout );
+      var arr = /.*((0|1)\.(\d*)).*((0|1)\.(\d*)).*/g.exec( lines[1] );
       let probability = parseFloat( arr[4] );
       
       let output: ToClientAttribution = {
-        sameAuthorConfidence: probability
+        sameAuthorConfidence: probability,
+        statistics: JSON.parse( lines[0] )
       };
       callback( output );
     } catch ( ex ) {
@@ -35,32 +45,23 @@ export class Attributor {
     }
   }
   
-  public handleRequest( request: FromClientAttribution, callback: ( out: any ) => void ) {
-    if ( !this.isValid_FromClient( request ) ) {
-      callback( 'Invalid input' );
-      return;
-    }
-    
+  private cleanInput( s: string ): string {
+    return s.replace( '"', '\\"' )
+            .replace( '\n', '\\n' )
+            .replace( '\r', '\\r' )
+  }
+  
+  // Override
+  protected doHandleRequest( request: FromClientAttribution, callback: ( out: any ) => void ): void {
     // NOTE: Only one known author text is used at the moment
     // Add multiple once GLAD input supports this
     const args = [ 'glad-copy.py',
-                   '--inputknown', request.knownAuthorTexts[0],
-                   '--inputunknown', request.unknownAuthorText,
-                   '-m', 'models/default' ];
+                   '--inputknown', this.cleanInput( request.knownAuthorTexts[0] ),
+                   '--inputunknown', this.cleanInput( request.unknownAuthorText ),
+                   '--combo', request.featureSet.toString(),
+                   '-m', `models/combo${request.featureSet}` ];
     const options = { cwd: 'resources/glad' };
     
     execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
-  }
-  
-  /**
-   * True if the request is a valid 'FromClientAttribution' interface
-   */
-  private isValid_FromClient( request: FromClientAttribution ): boolean {
-    // TODO: More in-depth validity testing
-    return ( request.knownAuthorTexts instanceof Array &&
-             typeof request.unknownAuthorText === 'string' &&
-             typeof request.language === 'string' &&
-             typeof request.genre === 'number' &&
-             typeof request.featureSet === 'number' );
   }
 }

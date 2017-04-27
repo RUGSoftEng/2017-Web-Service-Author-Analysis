@@ -1,15 +1,104 @@
+html {
+  height: 100%;
+}
+
+body {
+  position: relative;
+  min-height: 100%;
+}
+
+.fixed-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
 /* Give buttons a red (instead of the default blue) color */
 .btn-primary.active {
     background-color: #DC002D;
     border-color: #DC002D;
+    background-image: url( 'images/selected.png' );
+    background-position: 4pt 0;
+    background-repeat: no-repeat;
+    background-size: auto 100%;
     }
 
 .btn-primary {
     background-color: #A90023;
     border-color: #A90023;
+  padding-left: 40pt;
+  padding-right: 40pt;
     }
 
 .btn-primary:hover {
     background-color: #DC002D;
     border-color: #DC002D;
     }
+    
+.btn-group.btn-group-vertical {
+  margin-top: 5pt;
+  margin-bottom: 30pt;
+}
+    
+.btn-group.btn-group-vertical > .btn.btn-primary {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+    
+.btn-group.btn-group-vertical > .btn.btn-primary:first-child {
+  border-top-right-radius: .25rem;
+  border-top-left-radius: .25rem;
+}
+    
+.btn-group.btn-group-vertical > .btn.btn-primary:last-child {
+  border-bottom-right-radius: .25rem;
+  border-bottom-left-radius: .25rem;
+}
+
+#maincontainer { 
+    padding-bottom: 50px; /* size of the bottom navbar */
+}
+
+#compare-button { 
+    width: 250px;
+    height: 50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+div[id^="file-upload-"] { 
+    max-height: 30em !important;
+}
+.file-upload-card p.card-text { 
+    max-height: 28em !important;
+    white-space: pre-wrap;
+    text-align: left;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    }
+
+.file-upload-card .card-header a { 
+    line-height: 30px; 
+}
+.file-upload-card .card-header label { 
+    float: right;
+    margin: 0;
+    height: 30px;
+}
+
+/* trickery to make a span act like a file input, hiding the actual file input */
+
+.file-upload-button { 
+    position:relative;
+}
+
+.file-upload-button input[type="file"]{
+    -webkit-appearance:none; 
+    position:absolute;
+    top:0; left:0;
+    opacity:0; 
+    width: 100%;
+    height: 100%;
+}
+
