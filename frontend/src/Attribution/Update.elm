@@ -62,6 +62,8 @@ initialState =
     , languages = [ EN, NL ]
     , featureCombo = Combo4
     , featureCombos = [ Combo1, Combo4 ]
+    , genre = Genre1
+    , genres = [ Genre1, Genre2, Genre3 ]
     , result = NotAsked
     , plotState =
         case Dict.keys Plots.plots of
@@ -156,6 +158,11 @@ update config msg attribution =
 
         SetFeatureCombo newFeatureCombo ->
             ( { attribution | featureCombo = newFeatureCombo }
+            , Cmd.none
+            )
+
+        SetGenre newGenre ->
+            ( { attribution | genre = newGenre }
             , Cmd.none
             )
 

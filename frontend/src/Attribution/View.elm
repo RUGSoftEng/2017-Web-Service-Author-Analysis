@@ -113,6 +113,13 @@ settings attribution =
                 attribution.featureCombos
                 attribution.featureCombo
             ]
+        , Grid.col [ Col.attrs [ class "text-center" ] ]
+            [ h3 [] [ text "genre" ]
+            , ViewHelpers.genreSelector "attribution-genre"
+                SetGenre
+                attribution.genres
+                attribution.genre
+            ]
         ]
     ]
 

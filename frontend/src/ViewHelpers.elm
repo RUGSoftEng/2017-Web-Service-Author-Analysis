@@ -50,3 +50,15 @@ featureComboSelector name toMsg toLabel featureCombos current =
                 [ text (toLabel featureCombo) ]
     in
         ButtonGroup.radioButtonGroup [ ButtonGroup.vertical ] (List.map featureComboButton featureCombos)
+
+
+genreSelector : String -> (genre -> msg) -> List genre -> genre -> Html msg
+genreSelector name toMsg genres current =
+    let
+        genreButton genre =
+            ButtonGroup.radioButton
+                (genre == current)
+                [ Button.primary, Button.onClick (toMsg genre) ]
+                [ text (toString genre) ]
+    in
+        ButtonGroup.radioButtonGroup [ ButtonGroup.vertical ] (List.map genreButton genres)
