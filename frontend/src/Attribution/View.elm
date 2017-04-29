@@ -26,7 +26,7 @@ import Attribution.Plots as Plots
 view : Model -> Html Msg
 view attribution =
     div []
-        [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
+        [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author. Once the user click the button, two texts from Known and Unknown authors will be loaded, and the result will show below as plots."
         , Grid.container []
             ([ Grid.row [ Row.topXs ]
                 [ knownAuthorInput attribution.knownAuthor
