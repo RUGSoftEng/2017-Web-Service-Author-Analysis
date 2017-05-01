@@ -135,12 +135,23 @@ encodeAttributionRequest attribution =
 
                 Combo4 ->
                     4
+
+        genreToInt genre =
+            case genre of
+                Genre1 ->
+                    0
+
+                Genre2 ->
+                    0
+
+                Genre3 ->
+                    0
     in
         Encode.object
             [ "knownAuthorTexts" => InputField.encodeModel attribution.knownAuthor
             , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
             , "language" => Encode.string (toString attribution.language)
-            , "genre" => Encode.int 0
+            , "genre" => Encode.int (genreToInt attribution.genre)
             , "featureSet" => Encode.int (featureComboToInt attribution.featureCombo)
             ]
 

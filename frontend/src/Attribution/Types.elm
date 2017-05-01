@@ -1,4 +1,4 @@
-module Attribution.Types exposing (Model, Msg(..), Author(..), FeatureCombo(..), Language(..))
+module Attribution.Types exposing (Model, Msg(..), Author(..), FeatureCombo(..), Language(..), Genre(..))
 
 import Http
 import RemoteData exposing (WebData)
@@ -14,6 +14,7 @@ import Attribution.Plots as Plots
 type Msg
     = SetLanguage Language
     | SetFeatureCombo FeatureCombo
+    | SetGenre Genre
     | PerformAttribution
     | ServerResponse (WebData ( Float, Plots.Statistics ))
     | InputFieldMsg Author InputField.Msg
@@ -28,6 +29,8 @@ type alias Model =
     , languages : List Language
     , featureCombo : FeatureCombo
     , featureCombos : List FeatureCombo
+    , genre : Genre
+    , genres : List Genre
     , plotState : PlotSlideShow.State
     }
 
@@ -52,3 +55,9 @@ used and how imporant they are to for making a prediction.
 type FeatureCombo
     = Combo1
     | Combo4
+
+
+type Genre
+    = Genre1
+    | Genre2
+    | Genre3
