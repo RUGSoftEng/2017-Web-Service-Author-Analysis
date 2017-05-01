@@ -39,6 +39,7 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
         sameAuthorConfidence: probability,
         statistics: JSON.parse( lines[0] )
       };
+      
       callback( output );
     } catch ( ex ) {
       callback( 'An error occurred' );
@@ -59,7 +60,7 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
                    '--inputknown', this.cleanInput( request.knownAuthorTexts[0] ),
                    '--inputunknown', this.cleanInput( request.unknownAuthorText ),
                    '--combo', request.featureSet.toString(),
-                   '-m', `models/combo${request.featureSet}` ];
+                   '-m', `models/model_${request.language}_${request.featureSet}` ];
     const options = { cwd: 'resources/glad' };
     
     execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
