@@ -3,15 +3,299 @@ html {
 }
 
 body {
+  background-color: white;
+  margin: 0;
+  padding: 0;
   position: relative;
   min-height: 100%;
 }
 
-.fixed-bottom {
+header {
+  height: 75px;
+  background-color: white;
+  box-shadow: 0px 5px 11px 0px rgba(50, 50, 50, 0.08);
+  position: fixed;
+  top: 0;
+  left:0;
+  right: 0;
+  z-index: 10;
+}
+
+.content {
+  line-height: 1.5;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+footer {
+  background-color: #272727;
+  height: 50px;
+  padding: 5px;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
+  padding: 0;
+}
+
+
+.container {
+  width: 1000px;
+  background-color: white;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+header > .container {
+  width: 960px;
+  padding: 20px; 
+  padding-top: 22px;
+  height: 33px;
+}
+
+header > .container > nav {
+  padding: initial; 
+}
+
+header > .container a {
+  font-family: "Helvetica Neue", Helvetica;
+  font-size: 16px;
+  line-height: 35px;
+  text-decoration: none;
+  color: black;
+}
+
+header > .container .pull-right {  
+  margin-right: 30px;
+}
+
+header > .container a:hover {
+  color: #DC002D;
+}
+
+.content > .container {
+  width: 940px;
+  padding: 30px;
+  padding-top: 40px;
+  font-family: Helvetica;
+}
+
+.content > .container span.explanation {
+  width: 80%;
+  display: inline-block;
+  margin-bottom: 40px;
+}
+
+.content > .container .boxes {
+  display: table;
+  table-layout: fixed;
+  border-spacing: 10px 0px;
+  border-collapse: separate;
+  width: 100%;
+}
+
+.content > .container .boxes .box {
+  display: table-cell;
+}
+
+.box textarea {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 170px;
+  height: 170px;
+}
+
+.box span {
+  display: inline-block;
+  text-align: justify;
+  margin-bottom: 20px;
+  height: 70px;
+}
+
+.buttons {
+  text-align: center;
+  padding-bottom: 15px;
+}
+
+button {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  padding-left: 40px;
+  padding-right: 40px;
+  border: none;
+}
+
+.buttons button:hover {
+  background-color: #C80029;
+}
+
+.buttons button {
+  background-color: #A90023;
+  color: #EEE;
+}
+
+.buttons button.left {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.buttons button.right {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.buttons button.selected {
+  background-color: #Dc002D;
+  background-image: url( 'images/selected.png' );
+  background-position: 7px 0px;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+}
+
+.box.submission {
+  text-align: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.box.submission button {
+  background-color: #C80029;
+  border-radius: 4px;
+  color: #EEE;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.box.submission button:hover {
+  background-color: #DC002D;
+}
+
+.boxes.settings {
+  margin-top: 20px;
+}
+
+.boxes.settings .box span {
+  height: 30px;
+}
+
+.boxes.settings ul {
+  margin: 0;
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.boxes.settings ul li {
+  margin: 20px;
+}
+
+.boxes.settings ul li label input[type=radio] {
+  margin-right: 15px;
+}
+
+.boxes.settings ul li label:hover {
+  color: #DC002D;
+  cursor: pointer;
+}
+
+h1 {
+  font-family: 'Montserrat', Helvetica, sans-serif;
+  font-weight: 700;
+  line-height: 35px;
+  font-size: 20px;
+  position: relative;
+  margin-bottom: 30px;
+}
+
+h1::after {
+  position: absolute;
+  margin: auto;
+  z-index: 0;
+  content: "";
+  width: 8%;
+  height: 2px;
+  background: #DC002D;
+  bottom: -5px;
+  left: 0;
+}
+
+h2 {
+  color: #DC002D;
+  font-size: 100%;
+  font-weight: normal;
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+footer > .container {
+  width: 980px;
+  background-color: #272727;
+  padding: 10px;
+  color: #666;
+  box-sizing: border-box;
+  font-family: Helvetica;
+  padding: 0;
+}
+
+footer > .container img {
+  max-height: 30px;
+  display: block;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+/* Give buttons a red (instead of the default blue) color */
+.btn-primary.active {
+    background-color: #DC002D;
+    border-color: #DC002D;
+    background-image: url( 'images/selected.png' );
+    background-position: 4pt 0;
+    background-repeat: no-repeat;
+    background-size: auto 100%;
+    }
+
+.btn-primary {
+    background-color: #A90023;
+    border-color: #A90023;
+  padding-left: 40pt;
+  padding-right: 40pt;
+    }
+
+.btn-primary:hover {
+    background-color: #DC002D;
+    border-color: #DC002D;
+    }
+    
+.btn-group.btn-group-vertical {
+  margin-top: 5pt;
+  margin-bottom: 30pt;
+}
+    
+.btn-group.btn-group-vertical > .btn.btn-primary {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+    
+.btn-group.btn-group-vertical > .btn.btn-primary:first-child {
+  border-top-right-radius: .25rem;
+  border-top-left-radius: .25rem;
+}
+    
+.btn-group.btn-group-vertical > .btn.btn-primary:last-child {
+  border-bottom-right-radius: .25rem;
+  border-bottom-left-radius: .25rem;
+}
+
+#maincontainer { 
+    padding-bottom: 50px; /* size of the bottom navbar */
+}
+
+#compare-button { 
+    width: 250px;
+    height: 50px;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 /* Give buttons a red (instead of the default blue) color */

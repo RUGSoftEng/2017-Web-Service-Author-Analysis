@@ -53,7 +53,7 @@ can be part of any piece of html, no matter its message type.
 view : Model -> Html Msg
 view model =
     div [ id "maincontainer" ]
-        [ navbar model
+        [ header [] [ navbar model ]
         , case model.route of
             Home ->
                 homeView
@@ -80,43 +80,46 @@ navbar ({ navbarState } as model) =
                 { defaultOptions | stopPropagation = True, preventDefault = True }
                 (Decode.succeed msg)
     in
-        Navbar.config (NavbarMsg HeaderBar)
-            |> Navbar.inverse
-            |> Navbar.withAnimation
-            -- The brand needs the href attribute to be specified.
-            -- the href is the url (address) that the browser will navigate to when an item is clicked.
-            -- Instead of letting the browser reload, we intercept and stop the signal and do our own routing
-            |>
-                Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis | " ]
-            |> Navbar.items
-                [ Navbar.itemLink [ href "/attribution", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
-                , Navbar.itemLink [ href "/profiling", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
-                ]
-            |> Navbar.view navbarState
+        div [ class "container" ]
+            [ Navbar.config (NavbarMsg HeaderBar)
+                |> Navbar.withAnimation
+                -- The brand needs the href attribute to be specified.
+                -- the href is the url (address) that the browser will navigate to when an item is clicked.
+                -- Instead of letting the browser reload, we intercept and stop the signal and do our own routing
+                |>
+                    Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis " ]
+                |> Navbar.customItems
+                    [ Navbar.customItem <| div [ class "pull-right", href "/attribution", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
+                    , Navbar.customItem <| div [ class "pull-right", href "/profiling", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
+                    ]
+                |> Navbar.lightCustomClass ""
+                |> Navbar.view navbarState
+            ]
 
 
 {-| The bar at the bottom, this is a modified navigation bar
 -}
 footerbar : Model -> Html Msg
 footerbar ({ footerbarState } as model) =
-    Navbar.config (NavbarMsg FooterBar)
-        |> Navbar.inverse
-        |> Navbar.fixBottom
-        |> Navbar.customItems
-            [ Navbar.customItem <|
-                div
-                    [ href "#"
-                    , class "pull-right"
-                    ]
-                    [ img
-                        [ src "https://nestor.rug.nl/branding/themes/student-portal-2016/rugimg/rug_logo_en.png"
-                        , class "d-inline-block align-top"
-                        , style [ "height" => "30px" ]
+    div [ class "container" ]
+        [ Navbar.config (NavbarMsg FooterBar)
+            |> Navbar.customItems
+                [ Navbar.customItem <|
+                    div
+                        [ href "#"
+                        , class "pull-right"
                         ]
-                        []
-                    ]
-            ]
-        |> Navbar.view footerbarState
+                        [ img
+                            [ src "https://nestor.rug.nl/branding/themes/student-portal-2016/rugimg/rug_logo_en.png"
+                            , class "d-inline-block align-top"
+                            , style [ "height" => "30px" ]
+                            ]
+                            []
+                        ]
+                ]
+            |> Navbar.lightCustomClass ""
+            |> Navbar.view footerbarState
+        ]
 
 
 homeView : Html msg
@@ -136,6 +139,7 @@ profilingView profiling =
                     { label = "Text"
                     , radioButtonName = "profiling-mode-buttons"
                     , fileInputId = "profiling-file-input"
+                    , info = ""
                     , multiple = False
                     }
             in

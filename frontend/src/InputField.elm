@@ -143,6 +143,7 @@ type alias ViewConfig =
     { label : String
     , fileInputId : String
     , radioButtonName : String
+    , info : String
     , multiple : Bool
     }
 
@@ -150,6 +151,7 @@ type alias ViewConfig =
 view : ViewConfig -> Model -> List (Html Msg)
 view config model =
     [ h2 [] [ text config.label ]
+    , span [] [ text config.info ]
     , switchButtons model config.radioButtonName
     , case model of
         Paste data ->

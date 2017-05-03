@@ -1,7 +1,7 @@
 module Attribution.View exposing (view)
 
 import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
+import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
 import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
 import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
@@ -25,23 +25,52 @@ import Attribution.Plots as Plots
 
 view : Model -> Html Msg
 view attribution =
-    div []
-        [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
-        , Grid.container []
-            ([ Grid.row [ Row.topXs ]
+    editor attribution
+
+
+
+{-
+   div []
+       [ Grid.container []
+           ([ Grid.row [ Row.topXs ]
+               [ knownAuthorInput attribution.knownAuthor
+               , Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ] []
+               , unknownAuthorInput attribution.unknownAuthor
+               ]
+            ]
+               ++ settings attribution
+               ++ viewResult attribution.plotState attribution.result
+           )
+       ]
+
+-}
+
+
+editor attribution =
+    div [ class "content" ]
+        [ Grid.container []
+            [ Grid.row [ Row.topXs ]
+                [ Grid.col []
+                    [ h1 [] [ text "Attribution" ]
+                    , span [ class "explanation" ]
+                        [ text "The Authorship Attribution System will, given one or more texts of which it is known that they are written by the same author, "
+                        , text "predict whether a new, "
+                        , i [] [ text "unknown" ]
+                        , text " text is also written by the same person."
+                        ]
+                    ]
+                ]
+            , Grid.row [ Row.attrs [ class "boxes" ] ]
                 [ knownAuthorInput attribution.knownAuthor
-                , Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ] []
                 , unknownAuthorInput attribution.unknownAuthor
                 ]
-             , Grid.row []
+            , Grid.row []
                 [ Grid.col [ Col.attrs [ class "text-center" ] ]
                     [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Compare!" ]
                     ]
                 ]
-             ]
-                ++ settings attribution
-                ++ viewResult attribution.plotState attribution.result
-            )
+            , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings attribution)
+            ]
         ]
 
 
@@ -60,10 +89,11 @@ knownAuthorInput knownAuthor =
             { label = "Known Author"
             , radioButtonName = "attribution-known-author-buttons"
             , fileInputId = "attribution-known-author-file-input"
+            , info = "Place here the texts of which the author is known. The text can either be pasted directly, or one or more files can be uploaded."
             , multiple = True
             }
     in
-        Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+        Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
             (InputField.view config knownAuthor
                 |> List.map (Html.map (InputFieldMsg KnownAuthor))
             )
@@ -77,44 +107,74 @@ unknownAuthorInput unknownAuthor =
             { label = "Unknown Author"
             , radioButtonName = "attribution-unknown-author-buttons"
             , fileInputId = "attribution-unknown-author-file-input"
+            , info = "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
             , multiple = False
             }
     in
-        Grid.col [ Col.md5, Col.attrs [ class "center-block text-center" ] ]
+        Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
             (InputField.view config unknownAuthor
                 |> List.map (Html.map (InputFieldMsg UnknownAuthor))
             )
 
 
-settings : Model -> List (Html Msg)
+settings : Model -> List (Grid.Column Msg)
 settings attribution =
-    [ Grid.row []
-        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h2 []
-                [ hr [] []
-                , text "Settings"
-                , hr [] []
+    let
+        languageRadio language =
+            li []
+                [ label []
+                    [ input
+                        [ type_ "radio"
+                        , checked (language == attribution.language)
+                        , onClick (SetLanguage language)
+                        ]
+                        []
+                    , text (toString language)
+                    ]
                 ]
+
+        featureSetRadio set =
+            li []
+                [ label []
+                    [ input
+                        [ type_ "radio"
+                        , checked (set == attribution.featureCombo)
+                        , onClick (SetFeatureCombo set)
+                        ]
+                        []
+                    , text (toString set)
+                    ]
+                ]
+
+        genreRadio genre =
+            li []
+                [ label []
+                    [ input
+                        [ type_ "radio"
+                        , checked False
+                          -- , onClick (SetLanguage language)
+                        ]
+                        []
+                    , text genre
+                    ]
+                ]
+    in
+        [ Grid.col [ Col.attrs [ class "text-center box" ] ]
+            [ h2 [] [ text "Language" ]
+            , span [] [ text "Select the language in which all texts are written" ]
+            , ul [] (List.map languageRadio attribution.languages)
+            ]
+        , Grid.col [ Col.attrs [ class "text-center box" ] ]
+            [ h2 [] [ text "Genre" ]
+            , span [] [ text "Select the genre of the text" ]
+            , ul [] (List.map genreRadio [ "Novel", "Tweet", "E-mail" ])
+            ]
+        , Grid.col [ Col.attrs [ class "text-center box" ] ]
+            [ h2 [] [ text "Feature Set" ]
+            , span [] [ text "Select the feature combination." ]
+            , ul [] (List.map featureSetRadio attribution.featureCombos)
             ]
         ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h3 [] [ text "language" ]
-            , ViewHelpers.languageSelector "attribution-language"
-                SetLanguage
-                attribution.languages
-                attribution.language
-            ]
-        , Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h3 [] [ text "feature combination" ]
-            , ViewHelpers.featureComboSelector "attribution-feature-combo"
-                SetFeatureCombo
-                featureComboToLabel
-                attribution.featureCombos
-                attribution.featureCombo
-            ]
-        ]
-    ]
 
 
 {-| Displays the confidence (as a progress bar) and the PlotSlideShow if there is data to be displayed
