@@ -89,8 +89,8 @@ navbar ({ navbarState } as model) =
                 |>
                     Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis " ]
                 |> Navbar.customItems
-                    [ Navbar.customItem <| div [ class "pull-right", href "/attribution", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
-                    , Navbar.customItem <| div [ class "pull-right", href "/profiling", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
+                    [ Navbar.customItem <| a [ class "pull-right", href "/attribution", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
+                    , Navbar.customItem <| a [ class "pull-right", href "/profiling", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
                     ]
                 |> Navbar.lightCustomClass ""
                 |> Navbar.view navbarState
