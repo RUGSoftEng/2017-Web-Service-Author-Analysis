@@ -69,6 +69,12 @@ editor attribution =
                     [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Compare!" ]
                     ]
                 ]
+            , Grid.row []
+                [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                    [ Button.button [ Button.secondary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Load Example - same authors" ]
+                    , Button.button [ Button.secondary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Load Example - different authors" ]
+                    ]
+                ]
             , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings attribution)
             ]
         ]
