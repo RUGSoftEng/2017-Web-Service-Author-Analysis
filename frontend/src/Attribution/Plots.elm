@@ -10,7 +10,8 @@ are laid out around the plot.
 import Html exposing (text)
 import Json.Decode as Decode exposing (Decoder, string, int, float)
 import Json.Decode.Pipeline as Decode exposing (decode, required)
-import Plot exposing (..)
+import Plot exposing (group, viewBarsCustom, defaultBarsPlotCustomizations, BarGroup, MaxBarWidth(Percentage), Bars, normalAxis)
+import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
 import Regex exposing (Regex, regex)
@@ -73,6 +74,26 @@ plots =
             |> Dict.fromList
 
 
+customizations =
+    { defaultBarsPlotCustomizations | margin = { top = 20, right = 40, bottom = 40, left = 50 } }
+
+
+groups : (data -> List BarGroup) -> Bars data msg
+groups toGroups =
+    let
+        pinkFill =
+            "rgba(253, 185, 231, 0.5)"
+
+        blueFill =
+            "#e4eeff"
+    in
+        { axis = normalAxis
+        , toGroups = toGroups
+        , styles = [ [ fill pinkFill ], [ fill blueFill ] ]
+        , maxWidth = Percentage 75
+        }
+
+
 {-| Construct a plot for punctuation
 
 This module uses the excellent elm-plot package http://package.elm-lang.org/packages/terezka/elm-plot/latest
@@ -103,7 +124,7 @@ plotPunctuation { known, unknown } =
             ( String.fromChar label, [ v1 / known.characters, v2 / known.characters ] )
     in
         List.map2 construct (Dict.toList known.punctuation) (Dict.toList unknown.punctuation)
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotLineEndings : Statistics -> Html.Html msg
@@ -113,7 +134,7 @@ plotLineEndings { known, unknown } =
             ( String.fromChar label, [ v1 / known.lines, v2 / unknown.lines ] )
     in
         List.map2 construct (Dict.toList known.lineEndings) (Dict.toList unknown.lineEndings)
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotAverages : Statistics -> Html.Html msg
@@ -126,7 +147,7 @@ plotAverages { known, unknown } =
               -- , ( "uppercase per lowercase", [ known.uppers / known.lowers, unknown.uppers / unknown.lowers ] )
             ]
     in
-        viewBars (groups (List.map (\( label, value ) -> group label value))) data
+        viewBarsCustom customizations (groups (List.map (\( label, value ) -> group label value))) data
 
 
 plotNgramsSim : Statistics -> Html.Html msg
@@ -138,7 +159,7 @@ plotNgramsSim { ngramsSim } =
         ngramsSim
             |> Dict.toList
             |> List.map construct
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotNgramsSpi : Statistics -> Html.Html msg
@@ -150,7 +171,7 @@ plotNgramsSpi { ngramsSpi } =
         ngramsSpi
             |> Dict.toList
             |> List.map construct
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotSimilarities : Statistics -> Html.Html msg
@@ -167,7 +188,7 @@ plotSimilarities { similarity } =
         similarity
             |> Dict.toList
             |> List.map construct
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 decodeStatistics =
