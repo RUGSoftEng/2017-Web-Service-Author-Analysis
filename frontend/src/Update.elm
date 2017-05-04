@@ -21,6 +21,7 @@ import Dict exposing (Dict)
 import Types exposing (..)
 import InputField
 import PlotSlideShow
+import DisplayMode
 import Ports
 import Attribution.Update as Attribution
 import Attribution.Types as Attribution exposing (Author(..))
@@ -64,7 +65,7 @@ initialState location =
           , navbarState = navbarState
           , footerbarState = footerbarState
           , profiling = defaultProfiling
-          , attribution = Attribution.initialState
+          , attribution = DisplayMode.Editor Attribution.initialState
           }
         , Cmd.batch
             [ navbarCmd
@@ -164,7 +165,7 @@ update msg model =
                     }
 
                 ( newAttribution, attributionCommands ) =
-                    Attribution.update config msg model.attribution
+                    DisplayMode.update (Attribution.update config msg) model.attribution
             in
                 ( { model | attribution = newAttribution }
                 , Cmd.map AttributionMsg attributionCommands

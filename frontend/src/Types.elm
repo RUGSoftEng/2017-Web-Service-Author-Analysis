@@ -23,6 +23,7 @@ import RemoteData exposing (WebData)
 
 import InputField
 import PlotSlideShow
+import DisplayMode exposing (DisplayMode)
 import Attribution.Types as Attribution exposing (..)
 import Attribution.Plots
 
@@ -34,7 +35,7 @@ type alias Model =
     , navbarState : Navbar.State
     , footerbarState : Navbar.State
     , profiling : ProfilingState
-    , attribution : Attribution.Model
+    , attribution : DisplayMode Attribution.Model
     }
 
 

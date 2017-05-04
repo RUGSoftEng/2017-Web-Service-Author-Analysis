@@ -1,4 +1,4 @@
-module Attribution.View exposing (view)
+module Attribution.View exposing (editor, results)
 
 import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
@@ -23,35 +23,18 @@ import Attribution.Types exposing (..)
 import Attribution.Plots as Plots
 
 
-view : Model -> Html Msg
-view attribution =
-    editor attribution
+results : Model -> Html Msg
+results attribution =
+    div [] (viewResult attribution.plotState attribution.result)
 
 
-
-{-
-   div []
-       [ Grid.container []
-           ([ Grid.row [ Row.topXs ]
-               [ knownAuthorInput attribution.knownAuthor
-               , Grid.col [ Col.xs2, Col.attrs [ class "text-center" ] ] []
-               , unknownAuthorInput attribution.unknownAuthor
-               ]
-            ]
-               ++ settings attribution
-               ++ viewResult attribution.plotState attribution.result
-           )
-       ]
-
--}
-
-
+editor : Model -> Html Msg
 editor attribution =
     div [ class "content" ]
         [ Grid.container []
             [ Grid.row [ Row.topXs ]
                 [ Grid.col []
-                    [ h1 [] [ text "Attribution" ]
+                    [ h1 [] [ text "Go Attribution" ]
                     , span [ class "explanation" ]
                         [ text "The Authorship Attribution System will, given one or more texts of which it is known that they are written by the same author, "
                         , text "predict whether a new, "

@@ -33,6 +33,7 @@ import Types exposing (..)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 import ViewHelpers
 import InputField
+import DisplayMode exposing (DisplayMode(..))
 import Attribution.View as Attribution
 
 
@@ -59,8 +60,16 @@ view model =
                 homeView
 
             AttributionRoute ->
-                Attribution.view model.attribution
-                    |> Html.map AttributionMsg
+                Html.map AttributionMsg <|
+                    case model.attribution of
+                        Editor attribution ->
+                            Attribution.editor attribution
+
+                        Results attribution ->
+                            Attribution.results attribution
+
+                        Loading _ ->
+                            text ""
 
             ProfilingRoute ->
                 profilingView model.profiling
