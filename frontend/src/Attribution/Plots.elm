@@ -13,6 +13,7 @@ import Json.Decode.Pipeline as Decode exposing (decode, required)
 import Plot exposing (..)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
+import Regex exposing (Regex, regex)
 
 
 type alias Statistics =
@@ -20,6 +21,7 @@ type alias Statistics =
     , unknown : FileStatistics
     , ngramsSim : Dict Int Float
     , ngramsSpi : Dict Int Int
+    , similarity : Dict String Float
     }
 
 
@@ -59,6 +61,11 @@ plots =
               , title = "anagram SPI"
               , render = plotNgramsSpi
               , description = text "anagram spi measures ... "
+              }
+            , { label = "similarities"
+              , title = "similarities"
+              , render = plotSimilarities
+              , description = text "similarities about punctuation, line_endings, line_length, letter_case, and text_block"
               }
             ]
     in
@@ -146,12 +153,30 @@ plotNgramsSpi { ngramsSpi } =
             |> viewBars (groups (List.map (uncurry group)))
 
 
+plotSimilarities : Statistics -> Html.Html msg
+plotSimilarities { similarity } =
+    let
+        rename : String -> String
+        rename str =
+            str
+                |> Regex.replace Regex.All (Regex.regex "_") (\_ -> " ")
+
+        construct ( key, value ) =
+            ( rename key, [ value ] )
+    in
+        similarity
+            |> Dict.toList
+            |> List.map construct
+            |> viewBars (groups (List.map (uncurry group)))
+
+
 decodeStatistics =
     Decode.succeed Statistics
         |> required "known" decodeFileStatistics
         |> required "unknown" decodeFileStatistics
         |> required "ngrams-sim" (dictBoth (Decode.decodeString int) float)
         |> required "ngrams-spi" (dictBoth (Decode.decodeString int) int)
+        |> required "similarities" (Decode.dict float)
 
 
 decodeFileStatistics =
