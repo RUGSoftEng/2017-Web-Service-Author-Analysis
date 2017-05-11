@@ -24,7 +24,6 @@ import RemoteData exposing (WebData)
 import InputField
 import PlotSlideShow
 import DisplayMode exposing (DisplayMode)
-import Attribution.Types as Attribution exposing (..)
 import Attribution.Plots
 
 
@@ -35,22 +34,17 @@ type alias Model =
     , navbarState : Navbar.State
     , footerbarState : Navbar.State
     , profiling : ProfilingState
-    , attribution : DisplayMode Attribution.Model
+    , attribution : DisplayMode ()
     }
-
-
-type Bar
-    = HeaderBar
-    | FooterBar
 
 
 {-| All the actions our application can perform
 -}
 type Msg
     = NoOp
-    | NavbarMsg Bar Navbar.State
+    | NavbarMsg () Navbar.State
     | ChangeRoute Route
-    | AttributionMsg Attribution.Msg
+    | AttributionMsg ()
     | ProfilingMsg ProfilingMessage
     | UrlChange Navigation.Location
     | AddFile ( String, File )
@@ -98,18 +92,6 @@ type alias ProfilingRequest =
     { profilingText : String }
 
 
-{-| Response from the server
-
-Example JSON:
-{ "sameAuthor": true, "confidence": 0.67 }
-
--}
-type alias AttributionResponse =
-    { confidence : Float
-    , statistics : Attribution.Plots.Statistics
-    }
-
-
 type alias ProfilingResponse =
     { gender : Gender, age : Int }
 
@@ -124,61 +106,3 @@ type Gender
 (=>) : a -> b -> ( a, b )
 (=>) =
     (,)
-
-
-encodeAttributionRequest : Attribution.Model -> Encode.Value
-encodeAttributionRequest attribution =
-    let
-        featureComboToInt combo =
-            case combo of
-                Combo1 ->
-                    1
-
-                Combo4 ->
-                    4
-    in
-        Encode.object
-            [ "knownAuthorTexts" => InputField.encodeModel attribution.knownAuthor
-            , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
-            , "language" => Encode.string (toString attribution.language)
-            , "genre" => Encode.int 0
-            , "featureSet" => Encode.int (featureComboToInt attribution.featureCombo)
-            ]
-
-
-decodeAttributionResponse : Decode.Decoder AttributionResponse
-decodeAttributionResponse =
-    Decode.succeed AttributionResponse
-        |> required "sameAuthorConfidence" float
-        |> required "statistics" Attribution.Plots.decodeStatistics
-
-
-encodeProfilingRequest : ProfilingState -> Encode.Value
-encodeProfilingRequest profiling =
-    Encode.object
-        [ "text" => InputField.encodeFirstFile profiling.input
-        , "language" => Encode.string (toString EN)
-        , "genre " => Encode.int 0
-        , "featureSet" => Encode.int 0
-        ]
-
-
-decodeProfilingResponse : Decode.Decoder ProfilingResponse
-decodeProfilingResponse =
-    Decode.succeed ProfilingResponse
-        |> required "gender"
-            (string
-                |> Decode.andThen
-                    (\genderString ->
-                        case genderString of
-                            "M" ->
-                                Decode.succeed M
-
-                            "F" ->
-                                Decode.succeed F
-
-                            _ ->
-                                Decode.fail <| "cannot convert" ++ genderString ++ "to a gender"
-                    )
-            )
-        |> required "age" int

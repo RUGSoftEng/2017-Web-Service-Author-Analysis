@@ -220,15 +220,5 @@ performAttribution attribution =
                 |> RemoteData.map formatResponse
                 |> Attribution.ServerResponse
     in
-        Http.post (webserverUrl ++ authorRecognitionEndpoint) body decodeAttributionResponse
+        Requests.Attribution.post
             |> Http.send toMsg
-
-
-webserverUrl : String
-webserverUrl =
-    "http://localhost:8080"
-
-
-authorRecognitionEndpoint : String
-authorRecognitionEndpoint =
-    "/api/attribution"

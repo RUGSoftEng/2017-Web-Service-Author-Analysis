@@ -78,59 +78,6 @@ view model =
         ]
 
 
-{-| The navigation bar at the top
--}
-navbar : Model -> Html Msg
-navbar ({ navbarState } as model) =
-    let
-        onClickStopEvent : Msg -> Attribute Msg
-        onClickStopEvent msg =
-            onWithOptions "click"
-                { defaultOptions | stopPropagation = True, preventDefault = True }
-                (Decode.succeed msg)
-    in
-        div [ class "container" ]
-            [ Navbar.config (NavbarMsg HeaderBar)
-                |> Navbar.withAnimation
-                -- The brand needs the href attribute to be specified.
-                -- the href is the url (address) that the browser will navigate to when an item is clicked.
-                -- Instead of letting the browser reload, we intercept and stop the signal and do our own routing
-                |>
-                    Navbar.brand [ href "/", onClickStopEvent (ChangeRoute Home) ] [ text "Author Analysis " ]
-                |> Navbar.customItems
-                    [ Navbar.customItem <| a [ class "pull-right", href "/attribution", onClickStopEvent (ChangeRoute AttributionRoute) ] [ text "Attribution" ]
-                    , Navbar.customItem <| a [ class "pull-right", href "/profiling", onClickStopEvent (ChangeRoute ProfilingRoute) ] [ text "Profiling" ]
-                    ]
-                |> Navbar.lightCustomClass ""
-                |> Navbar.view navbarState
-            ]
-
-
-{-| The bar at the bottom, this is a modified navigation bar
--}
-footerbar : Model -> Html Msg
-footerbar ({ footerbarState } as model) =
-    div [ class "container" ]
-        [ Navbar.config (NavbarMsg FooterBar)
-            |> Navbar.customItems
-                [ Navbar.customItem <|
-                    div
-                        [ href "#"
-                        , class "pull-right"
-                        ]
-                        [ img
-                            [ src "https://nestor.rug.nl/branding/themes/student-portal-2016/rugimg/rug_logo_en.png"
-                            , class "d-inline-block align-top"
-                            , style [ "height" => "30px" ]
-                            ]
-                            []
-                        ]
-                ]
-            |> Navbar.lightCustomClass ""
-            |> Navbar.view footerbarState
-        ]
-
-
 homeView : Html msg
 homeView =
     div []

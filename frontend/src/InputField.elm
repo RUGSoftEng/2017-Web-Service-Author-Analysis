@@ -53,9 +53,14 @@ init =
     Paste { text = "", files = [], accordionModel = Accordion.initialState }
 
 
-addFile : File -> Msg
-addFile =
-    AddFile
+addFile : File -> Model -> Model
+addFile file model =
+    case model of
+        Paste _ ->
+            model
+
+        Upload state ->
+            Upload { state | files = ( file.name, file ) :: state.files }
 
 
 type alias UpdateConfig =
@@ -114,7 +119,7 @@ update config msg model =
                     update config NoOp model
 
                 AddFile file ->
-                    ( Upload { state | files = ( file.name, file ) :: files }, Cmd.none )
+                    ( addFile file model, Cmd.none )
 
                 SendListenForFiles ->
                     ( model, config.readFiles )

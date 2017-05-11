@@ -1,4 +1,11 @@
-module Attribution.View exposing (editor, results)
+module Pages.Attribution exposing (..)
+
+import Http
+import RemoteData exposing (WebData, RemoteData(..))
+import Dict
+
+
+--
 
 import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
@@ -11,25 +18,162 @@ import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
 import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Progress as Progress
-import RemoteData exposing (RemoteData(..), WebData)
 
 
 --
 
+import Data.Attribution.Input exposing (..)
+import Data.Attribution.Statistics exposing (Statistics)
+import Data.File exposing (File)
 import InputField
 import PlotSlideShow
-import ViewHelpers
-import Attribution.Types exposing (..)
 import Attribution.Plots as Plots
+import Ports
+import Route
 
 
-results : Model -> Html Msg
-results attribution =
-    div [] (viewResult attribution.plotState attribution.result)
+type alias Model =
+    Data.Attribution.Input.Input
 
 
-editor : Model -> Html Msg
-editor attribution =
+{-| Initial state of the Attribution page
+
+initializes two empty authors, sets defaults for language and combos + keeps
+track of the available options for these values.
+
+The result is a WebData, defined as
+
+type alias WebData value = RemoteData Http.Error value
+
+type RemoteData err value
+    = Success value
+    | Failure error
+    | NotAsked
+    | Loading
+
+We've not asked for the result (of attribution) initially.
+When requesting, the value is set to loading. The Http request can
+then either set it to Success or Failure. When requesting again, the
+value is set to `Loading` and so the cycle continues.
+
+More info, see http://blog.jenkster.com/2016/06/how-elm-slays-a-ui-antipattern.html
+
+Finally the plotState stores the ids (in this case labels) of the available plots.
+The used data structure cannot express "emptyness", but we cannot prove to the compiler that Plots.plots is not empty.
+
+So we have to be naughty and use the escape hatch `Debug.crash`. Debug.crash has value `String -> a`, which
+means it will always satisfy the type checker and compile. When evaluated, Debug.crash will
+bring the whole application down by throwing a javascript error.
+
+We can know that this will never happen, because the Plots.plots value is currently defined with
+at least one element.
+-}
+init : Model
+init =
+    { knownAuthor = InputField.init
+    , unknownAuthor = InputField.init
+    , language = EN
+    , languages = [ EN, NL ]
+    , featureCombo = Combo4
+    , featureCombos = [ Combo1, Combo4 ]
+    }
+
+
+{-| external functions that we'll inject into the Attribution page
+
+Both of these handle communication with the outside world. It's nicer
+to bundle everything that does communication, keeping the separate pages ignorant.
+-}
+type alias Config msg =
+    { readFiles : ( String, String ) -> Cmd msg
+    }
+
+
+type Msg
+    = SetLanguage Language
+    | SetFeatureCombo FeatureCombo
+    | InputFieldMsg Author InputField.Msg
+
+
+{-| Update the Attribution page
+* InputFieldMsg
+    Given a message for an InputField, update the correct input field with that message.
+    Then put everything back in the model and execute any commands that InputField.update may have returned.
+The other three messages are simple setters of data.
+-}
+update : Config InputField.Msg -> Msg -> Model -> ( Model, Cmd Msg )
+update config msg attribution =
+    case msg of
+        InputFieldMsg KnownAuthor msg ->
+            let
+                updateConfig : InputField.UpdateConfig
+                updateConfig =
+                    { readFiles = config.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+                    }
+
+                ( newInput, inputCommands ) =
+                    InputField.update updateConfig msg attribution.knownAuthor
+            in
+                ( { attribution | knownAuthor = newInput }
+                , Cmd.map (InputFieldMsg KnownAuthor) inputCommands
+                )
+
+        InputFieldMsg UnknownAuthor msg ->
+            let
+                updateConfig : InputField.UpdateConfig
+                updateConfig =
+                    { readFiles = Ports.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+                    }
+
+                ( newInput, inputCommands ) =
+                    InputField.update updateConfig msg attribution.unknownAuthor
+            in
+                ( { attribution | unknownAuthor = newInput }
+                , Cmd.map (InputFieldMsg UnknownAuthor) inputCommands
+                )
+
+        SetLanguage newLanguage ->
+            ( { attribution | language = newLanguage }
+            , Cmd.none
+            )
+
+        SetFeatureCombo newFeatureCombo ->
+            ( { attribution | featureCombo = newFeatureCombo }
+            , Cmd.none
+            )
+
+
+addFile : ( String, File ) -> Model -> Model
+addFile ( identifier, file ) attribution =
+    case identifier of
+        "KnownAuthor" ->
+            { attribution | knownAuthor = InputField.addFile file attribution.knownAuthor }
+
+        "UnknownAuthor" ->
+            { attribution | unknownAuthor = InputField.addFile file attribution.unknownAuthor }
+
+        _ ->
+            Debug.crash <| "File with invalid id `" ++ identifier ++ "` cannot be added"
+
+
+{-| Subscriptions for the animation of FileInput's cards, used for the file upload UI.
+-}
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ InputField.subscriptions model.knownAuthor
+            |> Sub.map (InputFieldMsg KnownAuthor)
+        , InputField.subscriptions model.unknownAuthor
+            |> Sub.map (InputFieldMsg UnknownAuthor)
+        ]
+
+
+
+-- View
+
+
+view : Model -> Html Msg
+view attribution =
     div [ class "content" ]
         [ Grid.container []
             [ Grid.row [ Row.topXs ]
@@ -49,13 +193,13 @@ editor attribution =
                 ]
             , Grid.row []
                 [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                    [ Button.button [ Button.primary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Compare!" ]
+                    [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Compare!" ]
                     ]
                 ]
             , Grid.row []
                 [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                    [ Button.button [ Button.secondary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Load Example - same authors" ]
-                    , Button.button [ Button.secondary, Button.attrs [ onClick PerformAttribution, id "compare-button" ] ] [ text "Load Example - different authors" ]
+                    [ Button.button [ Button.secondary, Button.attrs [ id "compare-button" ] ] [ text "Load Example - same authors" ]
+                    , Button.button [ Button.secondary, Button.attrs [ id "compare-button" ] ] [ text "Load Example - different authors" ]
                     ]
                 ]
             , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings attribution)
@@ -164,61 +308,3 @@ settings attribution =
             , ul [] (List.map featureSetRadio attribution.featureCombos)
             ]
         ]
-
-
-{-| Displays the confidence (as a progress bar) and the PlotSlideShow if there is data to be displayed
--}
-viewResult : PlotSlideShow.State -> WebData ( Float, Plots.Statistics ) -> List (Html Msg)
-viewResult plotState result =
-    case result of
-        Success ( confidence, statistics ) ->
-            [ Grid.row []
-                [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                    [ h2 []
-                        [ hr [] []
-                        , text "Results"
-                        , hr [] []
-                        ]
-                    ]
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                    [ Progress.progress [ Progress.value (floor <| confidence * 100) ]
-                    , h4 [ style [ ( "margin-top", "20px" ) ] ] [ text <| "Same author confidence: " ++ toString (round <| confidence * 100) ++ "%" ]
-                    , hr [] []
-                    ]
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                    [ PlotSlideShow.view plotConfig plotState statistics ]
-                ]
-            ]
-
-        Failure err ->
-            [ text (toString err)
-            ]
-
-        _ ->
-            []
-
-
-featureComboToLabel : FeatureCombo -> String
-featureComboToLabel combo =
-    case combo of
-        Combo1 ->
-            "shallow"
-
-        Combo4 ->
-            "deep"
-
-
-{-| Config for plots
-* plots: what plots to display
-* toMsg: how to wrap messages emitted by the PlotSlideShow
--}
-plotConfig : PlotSlideShow.Config Plots.Statistics Msg
-plotConfig =
-    PlotSlideShow.config
-        { plots = Plots.plots
-        , toMsg = PlotSlideShowMsg
-        }
