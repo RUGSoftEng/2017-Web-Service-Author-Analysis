@@ -192,7 +192,7 @@ view attribution =
                 , unknownAuthorInput attribution.unknownAuthor
                 ]
             , Grid.row []
-                [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
                     [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Compare!" ]
                     ]
                 ]

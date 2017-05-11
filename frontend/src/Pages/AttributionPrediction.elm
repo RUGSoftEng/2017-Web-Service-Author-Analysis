@@ -70,7 +70,7 @@ init input =
 
 
 view model =
-    div [] (viewResult model)
+    Grid.container [] (viewResult model)
 
 
 viewResult : Model -> List (Html (PlotSlideShow.Msg))

@@ -118,7 +118,7 @@ header > .container a:hover {
   padding-bottom: 15px;
 }
 
-button {
+button, a[role="button"] {
   padding-top: 7px;
   padding-bottom: 7px;
   padding-left: 40px;
@@ -159,7 +159,7 @@ button {
   padding-bottom: 40px;
 }
 
-.box.submission button {
+.box.submission a[role="button"] {
   background-color: #C80029;
   border-radius: 4px;
   color: #EEE;
@@ -167,7 +167,7 @@ button {
   padding-right: 30px;
 }
 
-.box.submission button:hover {
+.box.submission a[role="button"]:hover {
   background-color: #DC002D;
 }
 

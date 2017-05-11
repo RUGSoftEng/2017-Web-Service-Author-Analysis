@@ -1,7 +1,7 @@
 module Views.Page exposing (..)
 
 import Bootstrap.Navbar as Navbar
-import Html exposing (Html, div, a, text, img)
+import Html exposing (Html, div, a, text, img, header, footer)
 import Html.Attributes exposing (class, style, src, href)
 import Route
 
@@ -23,15 +23,17 @@ frame headerState footerState isLoading headerMsg footerMsg wrapper transition c
 -}
 viewHeader : Navbar.State -> Html Navbar.State
 viewHeader navbarState =
-    div [ class "container" ]
-        [ Navbar.config identity
-            |> Navbar.brand [ Route.href Route.Home ] [ text "Author Analysis " ]
-            |> Navbar.customItems
-                [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
-                , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
-                ]
-            |> Navbar.lightCustomClass ""
-            |> Navbar.view navbarState
+    header []
+        [ div [ class "container" ]
+            [ Navbar.config identity
+                |> Navbar.brand [ Route.href Route.Home ] [ text "Author Analysis " ]
+                |> Navbar.customItems
+                    [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
+                    , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
+                    ]
+                |> Navbar.lightCustomClass ""
+                |> Navbar.view navbarState
+            ]
         ]
 
 
@@ -39,22 +41,24 @@ viewHeader navbarState =
 -}
 viewFooter : Navbar.State -> Html Navbar.State
 viewFooter footerbarState =
-    div [ class "container" ]
-        [ Navbar.config identity
-            |> Navbar.customItems
-                [ Navbar.customItem <|
-                    div
-                        [ href "#"
-                        , class "pull-right"
-                        ]
-                        [ img
-                            [ src "https://nestor.rug.nl/branding/themes/student-portal-2016/rugimg/rug_logo_en.png"
-                            , class "d-inline-block align-top"
-                            , style [ "height" => "30px" ]
+    footer []
+        [ div [ class "container" ]
+            [ Navbar.config identity
+                |> Navbar.customItems
+                    [ Navbar.customItem <|
+                        div
+                            [ href "#"
+                            , class "pull-right"
                             ]
-                            []
-                        ]
-                ]
-            |> Navbar.lightCustomClass ""
-            |> Navbar.view footerbarState
+                            [ img
+                                [ src "https://nestor.rug.nl/branding/themes/student-portal-2016/rugimg/rug_logo_en.png"
+                                , class "d-inline-block align-top"
+                                , style [ "height" => "30px" ]
+                                ]
+                                []
+                            ]
+                    ]
+                |> Navbar.lightCustomClass ""
+                |> Navbar.view footerbarState
+            ]
         ]
