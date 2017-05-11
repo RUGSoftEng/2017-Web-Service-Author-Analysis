@@ -31,6 +31,7 @@ import Pages.Profiling as Profiling
 import Views.Page as Page
 import Data.File exposing (File)
 import Route exposing (Route)
+import I18n exposing (Translations)
 
 
 type alias PageLoadError =
@@ -72,7 +73,7 @@ getPage pagestate =
 
 
 type alias Model =
-    { pageState : PageState, headerState : Navbar.State, footerState : Navbar.State }
+    { pageState : PageState, headerState : Navbar.State, footerState : Navbar.State, translations : Translations }
 
 
 type NavigationBar
@@ -90,7 +91,7 @@ init location =
             Navbar.initialState (NavbarMsg FooterBar)
 
         ( model, routeCmd ) =
-            { pageState = Loaded initialPage, headerState = headerState, footerState = footerState }
+            { pageState = Loaded initialPage, headerState = headerState, footerState = footerState, translations = I18n.english }
                 |> setRoute (Route.fromLocation location)
     in
         ( model, Cmd.batch [ headerCmd, footerCmd, routeCmd ] )
@@ -105,14 +106,14 @@ view : Model -> Html Msg
 view model =
     case model.pageState of
         Loaded page ->
-            viewPage model.headerState model.footerState False page
+            viewPage model.headerState model.footerState model.translations False page
 
         TransitioningFrom page ->
-            viewPage model.headerState model.footerState False page
+            viewPage model.headerState model.footerState model.translations True page
 
 
-viewPage : Navbar.State -> Navbar.State -> Bool -> Page -> Html Msg
-viewPage headerState footerState isLoading page =
+viewPage : Navbar.State -> Navbar.State -> Translations -> Bool -> Page -> Html Msg
+viewPage headerState footerState translations isLoading page =
     let
         frame =
             Page.frame headerState footerState isLoading (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
@@ -126,7 +127,7 @@ viewPage headerState footerState isLoading page =
                 Html.text "We're blank" |> frame (always NoOp) Nothing
 
             Attribution subModel ->
-                Attribution.view subModel
+                Attribution.view translations.attribution subModel
                     |> frame AttributionMsg Nothing
 
             AttributionPrediction subModel ->
@@ -134,7 +135,7 @@ viewPage headerState footerState isLoading page =
                     |> frame AttributionPredictionMsg Nothing
 
             Profiling subModel ->
-                Profiling.view subModel
+                Profiling.view translations.profiling subModel
                     |> frame ProfilingMsg Nothing
 
             Home ->
