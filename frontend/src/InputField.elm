@@ -174,7 +174,7 @@ view config model =
         Upload data ->
             div []
                 [ uploadListView data.accordionModel RemoveFile data.files
-                , div [ class "form-group", class "file-upload-button", class "card-header" ]
+                , label [ class "form-group", class "file-upload-button", class "card-header" ]
                     [ span [] [ text "Choose file" ]
                     , input
                         [ type_ "file"

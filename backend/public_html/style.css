@@ -1,3 +1,7 @@
+* {
+  font-family: Helvetica;
+}
+
 html {
   height: 100%;
 }
@@ -23,7 +27,7 @@ header {
 
 .content {
   line-height: 1.5;
-  padding-top: 50px;
+  padding-top: 60px;
   padding-bottom: 50px;
 }
 
@@ -49,7 +53,7 @@ footer {
 header > .container {
   width: 960px;
   padding: 20px; 
-  padding-top: 22px;
+  padding-top: 16px;
   height: 33px;
 }
 
@@ -81,7 +85,7 @@ header > .container a:hover {
 }
 
 .content > .container span.explanation {
-  width: 80%;
+  width: 85%;
   display: inline-block;
   margin-bottom: 40px;
 }
@@ -104,6 +108,8 @@ header > .container a:hover {
   max-width: 100%;
   min-height: 170px;
   height: 170px;
+  font-size: 11pt;
+  font-family: monospace;
 }
 
 .box span {
@@ -113,9 +119,9 @@ header > .container a:hover {
   height: 70px;
 }
 
-.buttons {
+.btn-group {
   text-align: center;
-  padding-bottom: 15px;
+  padding-bottom: 10px;
 }
 
 button, a[role="button"] {
@@ -226,6 +232,7 @@ h2 {
   font-weight: normal;
   margin: 0;
   margin-bottom: 10px;
+  text-align: left;
 }
 
 footer > .container {
@@ -255,11 +262,19 @@ footer > .container img {
     background-size: auto 100%;
     }
 
+.btn {
+  font-size: 10pt;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
 .btn-primary {
     background-color: #A90023;
     border-color: #A90023;
-  padding-left: 40pt;
-  padding-right: 40pt;
+  padding-left: 27pt;
+  padding-right: 27pt;
     }
 
 .btn-primary:hover {
@@ -291,64 +306,15 @@ footer > .container img {
     padding-bottom: 50px; /* size of the bottom navbar */
 }
 
-#compare-button { 
+/*#compare-button { 
     width: 250px;
     height: 50px;
     margin-top: 20px;
     margin-bottom: 20px;
-}
+}*/
 
-/* Give buttons a red (instead of the default blue) color */
-.btn-primary.active {
-    background-color: #DC002D;
-    border-color: #DC002D;
-    background-image: url( 'images/selected.png' );
-    background-position: 4pt 0;
-    background-repeat: no-repeat;
-    background-size: auto 100%;
-    }
-
-.btn-primary {
-    background-color: #A90023;
-    border-color: #A90023;
-  padding-left: 40pt;
-  padding-right: 40pt;
-    }
-
-.btn-primary:hover {
-    background-color: #DC002D;
-    border-color: #DC002D;
-    }
-    
-.btn-group.btn-group-vertical {
-  margin-top: 5pt;
-  margin-bottom: 30pt;
-}
-    
-.btn-group.btn-group-vertical > .btn.btn-primary {
-  margin-bottom: 0;
-  margin-top: 0;
-}
-    
-.btn-group.btn-group-vertical > .btn.btn-primary:first-child {
-  border-top-right-radius: .25rem;
-  border-top-left-radius: .25rem;
-}
-    
-.btn-group.btn-group-vertical > .btn.btn-primary:last-child {
-  border-bottom-right-radius: .25rem;
-  border-bottom-left-radius: .25rem;
-}
-
-#maincontainer { 
-    padding-bottom: 50px; /* size of the bottom navbar */
-}
-
-#compare-button { 
-    width: 250px;
-    height: 50px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+ul {
+  text-align: left;
 }
 
 div[id^="file-upload-"] { 
@@ -373,16 +339,22 @@ div[id^="file-upload-"] {
 
 /* trickery to make a span act like a file input, hiding the actual file input */
 
-.file-upload-button { 
-    position:relative;
+.file-upload-button {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    height: 44px;
+    width: 100%;
 }
 
-.file-upload-button input[type="file"]{
+.file-upload-button > input[type="file"] {
+  display: none;
+}
+
+/*.file-upload-button input[type="file"]{
     -webkit-appearance:none; 
     position:absolute;
     top:0; left:0;
     opacity:0; 
     width: 100%;
-    height: 100%;
-}
+}*/
 

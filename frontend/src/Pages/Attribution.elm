@@ -202,7 +202,7 @@ view attribution =
         [ Grid.container []
             [ Grid.row [ Row.topXs ]
                 [ Grid.col []
-                    [ h1 [] [ text "Go Attribution" ]
+                    [ h1 [] [ text "Attribution" ]
                     , span [ class "explanation" ]
                         [ text "The Authorship Attribution System will, given one or more texts of which it is known that they are written by the same author, "
                         , text "predict whether a new, "
@@ -217,7 +217,7 @@ view attribution =
                 ]
             , Grid.row []
                 [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                    [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Compare!" ]
+                    [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Perform attribution!" ]
                     ]
                 ]
             , Grid.row []
@@ -243,7 +243,7 @@ knownAuthorInput knownAuthor =
         -}
         config : InputField.ViewConfig
         config =
-            { label = "Known Author"
+            { label = "Known author texts"
             , radioButtonName = "attribution-known-author-buttons"
             , fileInputId = "attribution-known-author-file-input"
             , info = "Place here the texts of which the author is known. The text can either be pasted directly, or one or more files can be uploaded."
@@ -261,7 +261,7 @@ unknownAuthorInput unknownAuthor =
     let
         config : InputField.ViewConfig
         config =
-            { label = "Unknown Author"
+            { label = "Unknown author texts"
             , radioButtonName = "attribution-unknown-author-buttons"
             , fileInputId = "attribution-unknown-author-file-input"
             , info = "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
@@ -316,17 +316,17 @@ settings attribution =
                     ]
                 ]
     in
-        [ Grid.col [ Col.attrs [ class "text-center box" ] ]
+        [ Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Language" ]
             , span [] [ text "Select the language in which all texts are written" ]
             , ul [] (List.map languageRadio attribution.languages)
             ]
-        , Grid.col [ Col.attrs [ class "text-center box" ] ]
+        , Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Genre" ]
             , span [] [ text "Select the genre of the text" ]
             , ul [] (List.map genreRadio [ "Novel", "Tweet", "E-mail" ])
             ]
-        , Grid.col [ Col.attrs [ class "text-center box" ] ]
+        , Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Feature Set" ]
             , span [] [ text "Select the feature combination." ]
             , ul [] (List.map featureSetRadio attribution.featureCombos)
