@@ -25,6 +25,7 @@ import Bootstrap.Progress as Progress
 import Data.Attribution.Input exposing (..)
 import Data.Attribution.Statistics exposing (Statistics)
 import Data.File exposing (File)
+import Data.Language as Language exposing (Language(..))
 import InputField
 import PlotSlideShow
 import Attribution.Plots as Plots

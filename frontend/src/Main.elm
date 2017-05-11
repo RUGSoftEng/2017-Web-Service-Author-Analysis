@@ -27,6 +27,7 @@ import Task exposing (Task)
 import Pages.Home as Home
 import Pages.Attribution as Attribution
 import Pages.AttributionPrediction as AttributionPrediction
+import Pages.Profiling as Profiling
 import Views.Page as Page
 import Data.File exposing (File)
 import Route exposing (Route)
@@ -50,7 +51,7 @@ type Page
     = Home
     | Attribution Attribution.Model
     | AttributionPrediction AttributionPrediction.Model
-    | Profiling ()
+    | Profiling Profiling.Model
     | Blank
     | NotFound
 
@@ -132,9 +133,9 @@ viewPage headerState footerState isLoading page =
                 AttributionPrediction.view subModel
                     |> frame AttributionPredictionMsg Nothing
 
-            Profiling _ ->
-                Html.text "Profiling"
-                    |> frame (always NoOp) Nothing
+            Profiling subModel ->
+                Profiling.view subModel
+                    |> frame ProfilingMsg Nothing
 
             Home ->
                 Home.view
@@ -175,6 +176,7 @@ type Msg
     | AttributionPredictionLoaded (Result PageLoadError AttributionPrediction.Model)
     | AttributionMsg Attribution.Msg
     | AttributionPredictionMsg AttributionPrediction.Msg
+    | ProfilingMsg Profiling.Msg
     | NavbarMsg NavigationBar Navbar.State
     | AddFile ( String, File )
     | NoOp
@@ -208,7 +210,9 @@ setRoute maybeRoute model =
                         )
 
             Just (Route.Profiling) ->
-                ( model, Cmd.none )
+                ( { model | pageState = Loaded (Profiling Profiling.init) }
+                , Cmd.none
+                )
 
             Just (Route.ProfilingPrediction) ->
                 ( model, Cmd.none )
@@ -263,6 +267,15 @@ updatePage page msg model =
             in
                 ( { model | pageState = Loaded (AttributionPrediction newSubModel) }
                 , Cmd.none
+                )
+
+        ( ProfilingMsg subMsg, Profiling subModel ) ->
+            let
+                ( newSubModel, subCmd ) =
+                    Profiling.update { readFiles = Ports.readFiles } subMsg subModel
+            in
+                ( { model | pageState = Loaded (Profiling newSubModel) }
+                , Cmd.map ProfilingMsg subCmd
                 )
 
         ( AttributionPredictionLoaded (Ok attributionPrediction), _ ) ->

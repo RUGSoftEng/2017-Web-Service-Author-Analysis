@@ -2,6 +2,7 @@ module Data.Attribution.Input exposing (..)
 
 import Json.Encode as Encode
 import InputField
+import Data.Language as Language exposing (Language)
 
 
 type alias Input =
@@ -17,13 +18,6 @@ type alias Input =
 type Author
     = KnownAuthor
     | UnknownAuthor
-
-
-{-| Supported languages
--}
-type Language
-    = EN
-    | NL
 
 
 {-| The feature combo to use
@@ -55,7 +49,7 @@ encoder attribution =
         Encode.object
             [ "knownAuthorTexts" => InputField.encodeModel attribution.knownAuthor
             , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
-            , "language" => Encode.string (toString attribution.language)
+            , "language" => Language.encoder attribution.language
             , "genre" => Encode.int 0
             , "featureSet" => Encode.int (featureComboToInt attribution.featureCombo)
             ]
