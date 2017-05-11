@@ -9,6 +9,8 @@ import Json.Encode as Encode
 type Language
     = EN
     | NL
+    | SP
+    | GR
 
 
 encoder language =

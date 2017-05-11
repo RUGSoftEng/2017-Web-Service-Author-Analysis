@@ -24,13 +24,16 @@ import Bootstrap.Progress as Progress
 
 import Data.Attribution.Input exposing (..)
 import Data.Attribution.Statistics exposing (Statistics)
+import Data.Attribution.Genre as Genre exposing (Genre)
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
+import Config.Attribution as Config
 import InputField
 import PlotSlideShow
 import Attribution.Plots as Plots
 import Ports
 import Route
+import I18n exposing (Translation)
 import Examples exposing (sameAuthor, differentAuthor)
 
 
@@ -74,8 +77,9 @@ init : Model
 init =
     { knownAuthor = InputField.init
     , unknownAuthor = InputField.init
-    , language = EN
-    , languages = [ EN, NL ]
+    , language = Config.defaultLanguage
+    , languages = Config.availableLanguages
+    , genre = Config.defaultGenre Config.defaultLanguage
     , featureCombo = Combo4
     , featureCombos = [ Combo1, Combo4 ]
     }
@@ -99,6 +103,7 @@ type Example
 type Msg
     = SetLanguage Language
     | SetFeatureCombo FeatureCombo
+    | SetGenre Genre
     | InputFieldMsg Author InputField.Msg
     | LoadExample Example
 
@@ -150,6 +155,11 @@ update config msg attribution =
             , Cmd.none
             )
 
+        SetGenre genre ->
+            ( { attribution | genre = genre }
+            , Cmd.none
+            )
+
         LoadExample SameAuthor ->
             ( { attribution
                 | knownAuthor = InputField.fromString sameAuthor.knownAuthor
@@ -196,6 +206,7 @@ subscriptions model =
 -- View
 
 
+<<<<<<< HEAD
 view : Model -> Html Msg
 view attribution =
     div [ class "content" ]
@@ -218,21 +229,44 @@ view attribution =
             , Grid.row []
                 [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
                     [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Perform attribution!" ]
+=======
+view : Translation -> Model -> Html Msg
+view translation attribution =
+    let
+        t key =
+            I18n.get translation key
+    in
+        div [ class "content" ]
+            [ Grid.container []
+                [ Grid.row [ Row.topXs ]
+                    [ Grid.col []
+                        [ h1 [] [ text "Go Attribution" ]
+                        , span [ class "explanation" ] [ text (t "explanation") ]
+                        ]
                     ]
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                    [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
-                    , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                , Grid.row [ Row.attrs [ class "boxes" ] ]
+                    [ knownAuthorInput t attribution.knownAuthor
+                    , unknownAuthorInput t attribution.unknownAuthor
+>>>>>>> 0c8e9ebf9d4fea9c41a3d2c135a7235dee2d612c
                     ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
+                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Compare!" ]
+                        ]
+                    ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
+                        , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                        ]
+                    ]
+                , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t attribution)
                 ]
-            , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings attribution)
             ]
-        ]
 
 
-knownAuthorInput : InputField.Model -> Grid.Column Msg
-knownAuthorInput knownAuthor =
+knownAuthorInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+knownAuthorInput t knownAuthor =
     let
         {- config for an InputField
 
@@ -243,10 +277,14 @@ knownAuthorInput knownAuthor =
         -}
         config : InputField.ViewConfig
         config =
+<<<<<<< HEAD
             { label = "Known author texts"
+=======
+            { label = t "known-author-label"
+>>>>>>> 0c8e9ebf9d4fea9c41a3d2c135a7235dee2d612c
             , radioButtonName = "attribution-known-author-buttons"
             , fileInputId = "attribution-known-author-file-input"
-            , info = "Place here the texts of which the author is known. The text can either be pasted directly, or one or more files can be uploaded."
+            , info = t "known-author-description"
             , multiple = True
             }
     in
@@ -256,15 +294,19 @@ knownAuthorInput knownAuthor =
             )
 
 
-unknownAuthorInput : InputField.Model -> Grid.Column Msg
-unknownAuthorInput unknownAuthor =
+unknownAuthorInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+unknownAuthorInput t unknownAuthor =
     let
         config : InputField.ViewConfig
         config =
+<<<<<<< HEAD
             { label = "Unknown author texts"
+=======
+            { label = t "unknown-author-label"
+>>>>>>> 0c8e9ebf9d4fea9c41a3d2c135a7235dee2d612c
             , radioButtonName = "attribution-unknown-author-buttons"
             , fileInputId = "attribution-unknown-author-file-input"
-            , info = "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
+            , info = t "unknown-author-description"
             , multiple = False
             }
     in
@@ -274,9 +316,12 @@ unknownAuthorInput unknownAuthor =
             )
 
 
-settings : Model -> List (Grid.Column Msg)
-settings attribution =
+settings : (String -> String) -> Model -> List (Grid.Column Msg)
+settings t attribution =
     let
+        genres =
+            Config.genres attribution.language
+
         languageRadio language =
             li []
                 [ label []
@@ -308,27 +353,27 @@ settings attribution =
                 [ label []
                     [ input
                         [ type_ "radio"
-                        , checked False
-                          -- , onClick (SetLanguage language)
+                        , checked (genre == attribution.genre)
+                        , onClick (SetGenre genre)
                         ]
                         []
-                    , text genre
+                    , text (Genre.genreToString genre)
                     ]
                 ]
     in
         [ Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Language" ]
-            , span [] [ text "Select the language in which all texts are written" ]
+            , span [] [ text (t "settings-language") ]
             , ul [] (List.map languageRadio attribution.languages)
             ]
         , Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Genre" ]
-            , span [] [ text "Select the genre of the text" ]
-            , ul [] (List.map genreRadio [ "Novel", "Tweet", "E-mail" ])
+            , span [] [ text (t "settings-genre") ]
+            , ul [] (List.map genreRadio genres)
             ]
         , Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Feature Set" ]
-            , span [] [ text "Select the feature combination." ]
+            , span [] [ text (t "settings-feature-set") ]
             , ul [] (List.map featureSetRadio attribution.featureCombos)
             ]
         ]

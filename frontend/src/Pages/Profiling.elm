@@ -25,6 +25,7 @@ import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
 import InputField
 import Route
+import I18n exposing (Translation)
 
 
 type alias Model =
@@ -114,15 +115,15 @@ subscriptions model =
 -- View
 
 
-view : Model -> Html Msg
-view profiling =
+view : Translation -> Model -> Html Msg
+view translation profiling =
     div [ class "content" ]
         [ Grid.container []
             [ Grid.row [ Row.topXs ]
                 [ Grid.col []
                     [ h1 [] [ text "Go Profiling" ]
                     , span [ class "explanation" ]
-                        [ text "The Author Profiling System will, given a text, try to predict its author's age and gender."
+                        [ text (I18n.get translation "profiling-explanation")
                         ]
                     ]
                 ]
@@ -142,7 +143,7 @@ view profiling =
                          ]
                      ]
               -}
-            , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings profiling)
+            , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings translation profiling)
             ]
         ]
 
@@ -172,8 +173,8 @@ textInput text =
             )
 
 
-settings : Model -> List (Grid.Column Msg)
-settings profiling =
+settings : Translation -> Model -> List (Grid.Column Msg)
+settings translation profiling =
     let
         languageRadio language =
             li []
@@ -190,7 +191,7 @@ settings profiling =
     in
         [ Grid.col [ Col.attrs [ class "text-center box" ] ]
             [ h2 [] [ text "Language" ]
-            , span [] [ text "Select the language in which all texts are written" ]
+            , span [] [ text (I18n.get translation "profiling-settings-language") ]
             , ul [] (List.map languageRadio profiling.languages)
             ]
         ]
