@@ -30,6 +30,7 @@ import PlotSlideShow
 import Attribution.Plots as Plots
 import Ports
 import Route
+import Examples exposing (sameAuthor, differentAuthor)
 
 
 type alias Model =
@@ -89,10 +90,16 @@ type alias Config msg =
     }
 
 
+type Example
+    = DifferentAuthor
+    | SameAuthor
+
+
 type Msg
     = SetLanguage Language
     | SetFeatureCombo FeatureCombo
     | InputFieldMsg Author InputField.Msg
+    | LoadExample Example
 
 
 {-| Update the Attribution page
@@ -139,6 +146,22 @@ update config msg attribution =
 
         SetFeatureCombo newFeatureCombo ->
             ( { attribution | featureCombo = newFeatureCombo }
+            , Cmd.none
+            )
+
+        LoadExample SameAuthor ->
+            ( { attribution
+                | knownAuthor = InputField.fromString sameAuthor.knownAuthor
+                , unknownAuthor = InputField.fromString sameAuthor.unknownAuthor
+              }
+            , Cmd.none
+            )
+
+        LoadExample DifferentAuthor ->
+            ( { attribution
+                | knownAuthor = InputField.fromString differentAuthor.knownAuthor
+                , unknownAuthor = InputField.fromString differentAuthor.unknownAuthor
+              }
             , Cmd.none
             )
 
@@ -198,8 +221,8 @@ view attribution =
                 ]
             , Grid.row []
                 [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                    [ Button.button [ Button.secondary, Button.attrs [ id "compare-button" ] ] [ text "Load Example - same authors" ]
-                    , Button.button [ Button.secondary, Button.attrs [ id "compare-button" ] ] [ text "Load Example - different authors" ]
+                    [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
+                    , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
                     ]
                 ]
             , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings attribution)

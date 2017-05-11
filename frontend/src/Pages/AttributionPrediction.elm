@@ -40,6 +40,7 @@ type alias Model =
     { confidence : Float
     , statistics : Statistics
     , plotState : PlotSlideShow.State
+    , source : Attribution.Input
     }
 
 
@@ -66,7 +67,7 @@ init input =
             Request.Attribution.get input
                 |> Http.toTask
     in
-        Task.map (\{ confidence, statistics } -> Model confidence statistics plotState) loadPrediction
+        Task.map (\{ confidence, statistics } -> Model confidence statistics plotState input) loadPrediction
 
 
 view model =

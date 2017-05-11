@@ -196,9 +196,16 @@ setRoute maybeRoute model =
                 )
 
             Just (Route.Attribution) ->
-                ( { model | pageState = Loaded (Attribution Attribution.init) }
-                , Cmd.none
-                )
+                case getPage model.pageState of
+                    AttributionPrediction { source } ->
+                        ( { model | pageState = Loaded (Attribution source) }
+                        , Cmd.none
+                        )
+
+                    _ ->
+                        ( { model | pageState = Loaded (Attribution Attribution.init) }
+                        , Cmd.none
+                        )
 
             Just (Route.Profiling) ->
                 ( model, Cmd.none )

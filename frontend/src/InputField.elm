@@ -1,4 +1,4 @@
-module InputField exposing (Model, Msg, init, update, view, subscriptions, addFile, encodeModel, File, encodeFirstFile, UpdateConfig, ViewConfig)
+module InputField exposing (Model, Msg, init, fromString, update, view, subscriptions, addFile, encodeModel, File, encodeFirstFile, UpdateConfig, ViewConfig)
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -51,6 +51,11 @@ type Msg
 init : Model
 init =
     Paste { text = "", files = [], accordionModel = Accordion.initialState }
+
+
+fromString : String -> Model
+fromString string =
+    Paste { text = string, files = [], accordionModel = Accordion.initialState }
 
 
 addFile : File -> Model -> Model
