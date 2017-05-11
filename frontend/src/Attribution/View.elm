@@ -26,7 +26,7 @@ import Attribution.Plots as Plots
 view : Model -> Html Msg
 view attribution =
     div []
-        [ ViewHelpers.jumbotron "Author Recognition" "Predict whether two texts are written by the same author"
+        [ ViewHelpers.jumbotron "Author Recognition" "The Authorship Attribution System will, given one or more texts of which it is known that they are written by the same author, predict whether a new, unknown text is also written by the same person"
         , Grid.container []
             ([ Grid.row [ Row.topXs ]
                 [ knownAuthorInput attribution.knownAuthor
