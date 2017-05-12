@@ -20,16 +20,10 @@ import Bootstrap.Accordion as Accordion
 import Bootstrap.Card as Card
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
-import Bootstrap.ListGroup as ListGroup
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Dict exposing (Dict)
+import Data.File exposing (File)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
-import ViewHelpers
-
-
-type alias File =
-    { name : String, content : String }
 
 
 type Model

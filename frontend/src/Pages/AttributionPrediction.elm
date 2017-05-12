@@ -1,6 +1,5 @@
 module Pages.AttributionPrediction exposing (..)
 
-import RemoteData exposing (WebData, RemoteData(..))
 import Dict
 import Http
 import Task exposing (Task)
@@ -10,26 +9,18 @@ import Task exposing (Task)
 
 import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
-import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
-import Bootstrap.Navbar as Navbar
-import Bootstrap.Button as Button
-import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Grid as Grid
-import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
-import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Progress as Progress
 
 
 --
 
+import Config.Attribution.Plots as Plots
 import Data.Attribution.Input as Attribution exposing (..)
 import Data.Attribution.Statistics exposing (Statistics)
 import Request.Attribution
-import InputField
 import PlotSlideShow
-import Attribution.Plots as Plots
-import Ports
 
 
 type alias Msg =
@@ -70,6 +61,7 @@ init input =
         Task.map (\{ confidence, statistics } -> Model confidence statistics plotState input) loadPrediction
 
 
+view : Model -> Html Msg
 view model =
     Grid.container [] (viewResult model)
 

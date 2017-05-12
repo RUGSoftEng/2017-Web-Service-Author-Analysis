@@ -1,10 +1,8 @@
 module Data.Profiling.Input exposing (..)
 
-import Json.Decode as Decode exposing (Decoder, string, bool, int, float, dict)
-import Json.Decode.Pipeline as Decode exposing (..)
 import Json.Encode as Encode
-import InputField
 import Data.Language as Language exposing (Language)
+import InputField
 
 
 type alias Input =

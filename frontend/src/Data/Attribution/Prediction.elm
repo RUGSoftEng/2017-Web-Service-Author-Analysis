@@ -2,7 +2,6 @@ module Data.Attribution.Prediction exposing (..)
 
 import Json.Decode as Decode exposing (Decoder, float)
 import Json.Decode.Pipeline exposing (required)
-import Attribution.Plots
 import Data.Attribution.Statistics as Statistics exposing (Statistics)
 
 

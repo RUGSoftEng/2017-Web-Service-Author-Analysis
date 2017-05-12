@@ -1,21 +1,12 @@
 module Pages.Profiling exposing (..)
 
-import Http
-
-
---
-
 import Html exposing (..)
 import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
 import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
-import Bootstrap.Navbar as Navbar
 import Bootstrap.Button as Button
-import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
-import Bootstrap.ListGroup as ListGroup
-import Bootstrap.Progress as Progress
 
 
 --
