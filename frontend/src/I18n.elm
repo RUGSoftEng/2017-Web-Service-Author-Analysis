@@ -26,9 +26,9 @@ english =
     { attribution =
         Dict.fromList
             [ "explanation" => "The Authorship Attribution System will, given one or more texts of which it is known that they are written by the same author, predict whether a new, unknown is also written by the same person."
-            , "known-author-label" => "Known Author"
+            , "known-author-label" => "Known author texts"
             , "known-author-description" => "Place here the texts of which the author is known. The text can either be pasted directly, or one or more files can be uploaded."
-            , "unknown-author-label" => "Unknown Author"
+            , "unknown-author-label" => "Unknown author text"
             , "unknown-author-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
             , "settings-language" => "Select the language in which all texts are written"
             , "settings-genre" => "Select the genre of the text"

@@ -201,7 +201,7 @@ view translation attribution =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Go Attribution" ]
+                        [ h1 [] [ text "Attribution" ]
                         , span [ class "explanation" ] [ text (t "explanation") ]
                         ]
                     ]
