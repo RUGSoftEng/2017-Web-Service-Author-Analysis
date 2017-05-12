@@ -206,30 +206,6 @@ subscriptions model =
 -- View
 
 
-<<<<<<< HEAD
-view : Model -> Html Msg
-view attribution =
-    div [ class "content" ]
-        [ Grid.container []
-            [ Grid.row [ Row.topXs ]
-                [ Grid.col []
-                    [ h1 [] [ text "Attribution" ]
-                    , span [ class "explanation" ]
-                        [ text "The Authorship Attribution System will, given one or more texts of which it is known that they are written by the same author, "
-                        , text "predict whether a new, "
-                        , i [] [ text "unknown" ]
-                        , text " text is also written by the same person."
-                        ]
-                    ]
-                ]
-            , Grid.row [ Row.attrs [ class "boxes" ] ]
-                [ knownAuthorInput attribution.knownAuthor
-                , unknownAuthorInput attribution.unknownAuthor
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                    [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Perform attribution!" ]
-=======
 view : Translation -> Model -> Html Msg
 view translation attribution =
     let
@@ -247,7 +223,6 @@ view translation attribution =
                 , Grid.row [ Row.attrs [ class "boxes" ] ]
                     [ knownAuthorInput t attribution.knownAuthor
                     , unknownAuthorInput t attribution.unknownAuthor
->>>>>>> 0c8e9ebf9d4fea9c41a3d2c135a7235dee2d612c
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
@@ -277,11 +252,7 @@ knownAuthorInput t knownAuthor =
         -}
         config : InputField.ViewConfig
         config =
-<<<<<<< HEAD
-            { label = "Known author texts"
-=======
             { label = t "known-author-label"
->>>>>>> 0c8e9ebf9d4fea9c41a3d2c135a7235dee2d612c
             , radioButtonName = "attribution-known-author-buttons"
             , fileInputId = "attribution-known-author-file-input"
             , info = t "known-author-description"
@@ -299,11 +270,7 @@ unknownAuthorInput t unknownAuthor =
     let
         config : InputField.ViewConfig
         config =
-<<<<<<< HEAD
-            { label = "Unknown author texts"
-=======
             { label = t "unknown-author-label"
->>>>>>> 0c8e9ebf9d4fea9c41a3d2c135a7235dee2d612c
             , radioButtonName = "attribution-unknown-author-buttons"
             , fileInputId = "attribution-unknown-author-file-input"
             , info = t "unknown-author-description"
