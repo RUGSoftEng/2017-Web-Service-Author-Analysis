@@ -1,6 +1,7 @@
 module Data.Profiling.Input exposing (..)
 
 import Json.Encode as Encode
+import Data.TextInput as TextInput
 import Data.Language as Language exposing (Language)
 import InputField
 
@@ -15,6 +16,6 @@ type alias Input =
 encoder : Input -> Encode.Value
 encoder { text, language } =
     Encode.object
-        [ ( "text", InputField.encodeModel text )
+        [ ( "text", TextInput.firstFileEncoder text.input )
         , ( "language", Language.encoder language )
         ]

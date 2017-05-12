@@ -1,4 +1,4 @@
-module InputField exposing (Model, Msg, init, fromString, update, view, subscriptions, addFile, encodeModel, File, encodeFirstFile, UpdateConfig, ViewConfig)
+module InputField exposing (Model, Msg, init, fromString, update, view, subscriptions, addFile, UpdateConfig, ViewConfig)
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -23,12 +23,8 @@ import Bootstrap.ButtonGroup as ButtonGroup
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Data.File exposing (File)
+import Data.TextInput as TextInput exposing (TextInput)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
-
-
-type Model
-    = Paste { text : String, files : List ( String, File ), accordionModel : Accordion.State }
-    | Upload { text : String, files : List ( String, File ), accordionModel : Accordion.State }
 
 
 type Msg
@@ -42,24 +38,25 @@ type Msg
     | AccordionMsg Accordion.State
 
 
+type alias Model =
+    { input : TextInput, accordionModel : Accordion.State }
+
+
 init : Model
 init =
-    Paste { text = "", files = [], accordionModel = Accordion.initialState }
+    { input = TextInput.empty
+    , accordionModel = Accordion.initialState
+    }
 
 
 fromString : String -> Model
 fromString string =
-    Paste { text = string, files = [], accordionModel = Accordion.initialState }
+    { input = TextInput.fromString string, accordionModel = Accordion.initialState }
 
 
 addFile : File -> Model -> Model
 addFile file model =
-    case model of
-        Paste _ ->
-            model
-
-        Upload state ->
-            Upload { state | files = ( file.name, file ) :: state.files }
+    { model | input = TextInput.addFile file model.input }
 
 
 type alias UpdateConfig =
@@ -68,79 +65,42 @@ type alias UpdateConfig =
 
 update : UpdateConfig -> Msg -> Model -> ( Model, Cmd Msg )
 update config msg model =
-    case model of
-        Paste ({ text, files } as state) ->
-            case msg of
-                NoOp ->
-                    ( model, Cmd.none )
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
 
-                AccordionMsg accordionModel ->
-                    ( Paste { state | accordionModel = accordionModel }
-                    , Cmd.none
-                    )
+        AccordionMsg accordionModel ->
+            ( { model | accordionModel = accordionModel }
+            , Cmd.none
+            )
 
-                AddFile _ ->
-                    update config NoOp model
+        AddFile file ->
+            ( { model | input = TextInput.addFile file model.input }
+            , Cmd.none
+            )
 
-                SendListenForFiles ->
-                    update config NoOp model
+        RemoveFile index ->
+            ( { model | input = TextInput.removeAtIndex index model.input }
+            , Cmd.none
+            )
 
-                RemoveFile _ ->
-                    update config NoOp model
+        ChangeText newText ->
+            ( { model | input = TextInput.setText newText model.input }
+            , Cmd.none
+            )
 
-                SetPaste ->
-                    update config NoOp model
+        SetPaste ->
+            ( { model | input = TextInput.toPaste model.input }
+            , Cmd.none
+            )
 
-                SetUpload ->
-                    ( Upload state
-                    , Cmd.none
-                    )
+        SetUpload ->
+            ( { model | input = TextInput.toUpload model.input }
+            , Cmd.none
+            )
 
-                ChangeText newText ->
-                    ( Paste { state | text = newText }
-                    , Cmd.none
-                    )
-
-        Upload ({ text, files } as state) ->
-            case msg of
-                NoOp ->
-                    ( model, Cmd.none )
-
-                AccordionMsg accordionModel ->
-                    ( Upload { state | accordionModel = Debug.log "new accordion state" accordionModel }
-                    , Cmd.none
-                    )
-
-                SetPaste ->
-                    ( Paste state, Cmd.none )
-
-                SetUpload ->
-                    update config NoOp model
-
-                AddFile file ->
-                    ( addFile file model, Cmd.none )
-
-                SendListenForFiles ->
-                    ( model, config.readFiles )
-
-                RemoveFile index ->
-                    ( Upload { state | files = removeAtIndex index files }, Cmd.none )
-
-                ChangeText _ ->
-                    update config NoOp model
-
-
-removeAtIndex : Int -> List a -> List a
-removeAtIndex n items =
-    case items of
-        [] ->
-            []
-
-        x :: xs ->
-            if n == 0 then
-                xs
-            else
-                x :: removeAtIndex (n - 1) xs
+        SendListenForFiles ->
+            ( model, config.readFiles )
 
 
 type alias ViewConfig =
@@ -157,54 +117,42 @@ view config model =
     [ h2 [] [ text config.label ]
     , span [] [ text config.info ]
     , switchButtons model config.radioButtonName
-    , case model of
-        Paste data ->
-            textarea
-                [ onInput ChangeText
-                , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                ]
-                [ text data.text ]
-
-        Upload data ->
-            div []
-                [ uploadListView data.accordionModel RemoveFile data.files
-                , label [ class "form-group", class "file-upload-button", class "card-header" ]
-                    [ span [] [ text "Choose file" ]
-                    , input
-                        [ type_ "file"
-                        , on "change" (Decode.succeed SendListenForFiles)
-                        , id config.fileInputId
-                        , multiple config.multiple
-                        , disabled (not config.multiple && not (List.isEmpty data.files))
-                        ]
-                        []
+    , if TextInput.isPaste model.input then
+        textarea
+            [ onInput ChangeText
+            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+            ]
+            [ text (TextInput.text model.input) ]
+      else
+        div []
+            [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
+            , label [ class "form-group", class "file-upload-button", class "card-header" ]
+                [ span [] [ text "Choose file" ]
+                , input
+                    [ type_ "file"
+                    , on "change" (Decode.succeed SendListenForFiles)
+                    , id config.fileInputId
+                    , multiple config.multiple
+                    , disabled (not config.multiple && not (TextInput.isEmpty model.input))
                     ]
+                    []
                 ]
+            ]
     ]
 
 
 switchButtons : Model -> String -> Html Msg
 switchButtons model name =
-    let
-        -- determines which button is active
-        pasteText =
-            case model of
-                Paste _ ->
-                    True
-
-                Upload _ ->
-                    False
-    in
-        ButtonGroup.radioButtonGroup []
-            [ ButtonGroup.radioButton
-                pasteText
-                [ Button.primary, Button.onClick SetPaste ]
-                [ text "Paste Text" ]
-            , ButtonGroup.radioButton
-                (not pasteText)
-                [ Button.primary, Button.onClick SetUpload ]
-                [ text "Upload File" ]
-            ]
+    ButtonGroup.radioButtonGroup []
+        [ ButtonGroup.radioButton
+            (TextInput.isPaste model.input)
+            [ Button.primary, Button.onClick SetPaste ]
+            [ text "Paste Text" ]
+        , ButtonGroup.radioButton
+            (not <| TextInput.isPaste model.input)
+            [ Button.primary, Button.onClick SetUpload ]
+            [ text "Upload File" ]
+        ]
 
 
 uploadListView : Accordion.State -> (Int -> Msg) -> List ( String, File ) -> Html Msg
@@ -233,48 +181,5 @@ uploadListView accordionModel toMsg files =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    let
-        state =
-            case model of
-                Paste data ->
-                    data
-
-                Upload data ->
-                    data
-    in
-        Accordion.subscriptions state.accordionModel AccordionMsg
-
-
-inputModeToFiles : Model -> List File
-inputModeToFiles state =
-    case state of
-        Paste { text } ->
-            [ { name = "", content = text } ]
-
-        Upload { files } ->
-            List.map Tuple.second files
-
-
-encodeModel : Model -> Encode.Value
-encodeModel mode =
-    mode
-        |> inputModeToFiles
-        |> List.map (.content >> Encode.string)
-        |> Encode.list
-
-
-encodeFirstFile : Model -> Encode.Value
-encodeFirstFile state =
-    case state of
-        Paste { text } ->
-            Encode.string text
-
-        Upload { files } ->
-            case files of
-                ( _, { content } ) :: _ ->
-                    Encode.string content
-
-                [] ->
-                    -- TODO make this fail graciously
-                    Debug.crash "no file to encode"
+subscriptions { accordionModel } =
+    Accordion.subscriptions accordionModel AccordionMsg

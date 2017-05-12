@@ -2,6 +2,7 @@ module Data.Attribution.Input exposing (..)
 
 import Json.Encode as Encode
 import InputField
+import Data.TextInput as TextInput exposing (TextInput)
 import Data.Language as Language exposing (Language)
 import Data.Attribution.Genre as Genre exposing (Genre)
 
@@ -49,8 +50,8 @@ encoder attribution =
                     4
     in
         Encode.object
-            [ "knownAuthorTexts" => InputField.encodeModel attribution.knownAuthor
-            , "unknownAuthorText" => InputField.encodeFirstFile attribution.unknownAuthor
+            [ "knownAuthorTexts" => TextInput.encoder attribution.knownAuthor.input
+            , "unknownAuthorText" => TextInput.firstFileEncoder attribution.unknownAuthor.input
             , "language" => Language.encoder attribution.language
             , "genre" => Genre.encoder attribution.genre
             , "featureSet" => Encode.int (featureComboToInt attribution.featureCombo)
