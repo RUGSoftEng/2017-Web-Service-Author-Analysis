@@ -38,6 +38,18 @@ type alias FileStatistics =
     }
 
 
+{-| term-description needed in plot description
+n-gram norm: An author profile is defined as the set of the k most frequent n-grams with their normalised frequencies,
+             as collected from training data. In order to deal with sparseness when n > 2, the (dis)similarity measure
+             that they use, and that we adopt, takes into account the difference between the relative frequency of a
+             given n-gram averaged over all known-unknown document pairs of one problem instance. We call this feature
+             group n-gram norm.
+
+n-gram: a contiguous sequence of n items from a given sequence of text.
+
+cosine similarity: a measure of similarity between two non-zero vectors of an inner product space that measures the
+                   cosine of the angle between them.
+-}
 plots : Dict String (Plot Statistics msg)
 plots =
     let
@@ -55,17 +67,17 @@ plots =
             , { label = "ngram SIM"
               , title = "anagram similarity"
               , render = plotNgramsSim
-              , description = text "ngram similarity with n ranging from 1 to 5 measures by n-gram norm(According to [9], an author profile is defined as the set of the k most frequent n-grams with their normalised frequencies, as collected from training data. In order to deal with sparseness when n > 2, the (dis)similarity measure that they use, and that we adopt, takes into account the difference between the relative frequency of a given n-gram averaged over all known-unknown document pairs of one problem instance. We call this feature group n-gram norm ?) and SPI"
+              , description = text "ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI"
               }
             , { label = "ngram SPI"
               , title = "anagram SPI"
               , render = plotNgramsSpi
-              , description = text "ngram spi is a simple n-gram with n ranging from 1 to 5 (a contiguous sequence of n items from a given sequence of text) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
+              , description = text "ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
               }
             , { label = "similarities"
               , title = "similarities"
               , render = plotSimilarities
-              , description = text "A cosine similarity(a measure of similarity between two non-zero vectors of an inner product space that measures the cosine of the angle between them) for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block"
+              , description = text "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block"
               }
             ]
     in
