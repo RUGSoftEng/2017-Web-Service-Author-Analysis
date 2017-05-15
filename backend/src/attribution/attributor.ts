@@ -6,6 +6,8 @@
 
 import * as child_process from 'child_process'; //require('child_process').execFile;
 import { BackendWrapper } from '../backend_wrapper';
+import * as fs from 'fs';
+import * as path from 'path';
 const execFile = child_process.execFile;
  
 import { FromClientAttribution, ToClientAttribution, FromClientAttribution_isValid } from './network_interface';
@@ -19,7 +21,7 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
   // TODO: Wrap this with a task class
   private programFinishedCallback( callback: ( out: any ) => void, error, stdout, stderr ) {
     if ( error ) {
-      console.log( error );
+      // console.log( error );
       callback( 'An error occurred' );
       return;
     }
@@ -54,15 +56,24 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
   
   // Override
   protected doHandleRequest( request: FromClientAttribution, callback: ( out: any ) => void ): void {
-    // NOTE: Only one known author text is used at the moment
-    // Add multiple once GLAD input supports this
-    const args = [ 'glad-copy.py',
-                   '--inputknown', this.cleanInput( request.knownAuthorTexts[0] ),
-                   '--inputunknown', this.cleanInput( request.unknownAuthorText ),
-                   '--combo', request.featureSet.toString(),
-                   '-m', `models/model_${request.language}_${request.featureSet}` ];
-    const options = { cwd: 'resources/glad' };
+    let modelFilePath = `models/model_${request.language}_${request.genre}_${request.featureSet}`;
     
-    execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
+    fs.stat( path.join( 'resources/glad', modelFilePath ), ( err, stat ) => {
+      if ( !err && stat.isDirectory( ) ) { 
+        // NOTE: Only one known author text is used at the moment
+        // Add multiple once GLAD input supports this
+        const args = [ 'glad-copy.py',
+                       '--inputknown', this.cleanInput( request.knownAuthorTexts[0] ),
+                       '--inputunknown', this.cleanInput( request.unknownAuthorText ),
+                       '--combo', request.featureSet.toString(),
+                       '-m', modelFilePath ];
+        const options = { cwd: 'resources/glad' };
+        
+        execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
+      } else {
+        console.log( 'An invalid request was performed: ', request.language, request.genre, request.featureSet );
+        callback( 'Invalid request' );
+      }
+    });
   }
 }
