@@ -7,13 +7,14 @@ will keep track of which plot has focus and how the title and description
 are laid out around the plot.
 -}
 
-import Html exposing (text)
 import Json.Decode as Decode exposing (Decoder, string, int, float)
 import Json.Decode.Pipeline as Decode exposing (decode, required)
 import Plot exposing (..)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
 import Regex exposing (Regex, regex)
+import Html exposing (..)
+import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
 
 
 type alias Statistics =
@@ -57,27 +58,27 @@ plots =
             [ { label = "punctuation"
               , title = "punctuation per character"
               , render = plotPunctuation
-              , description = text "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)"
+              , description = div [ class "text-left box" ] [ text "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)" ]
               }
             , { label = "line endings"
               , title = "line endings per character"
               , render = plotLineEndings
-              , description = text "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)"
+              , description = div [ class "text-left box" ] [ text "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)" ]
               }
             , { label = "ngram SIM"
               , title = "anagram similarity"
               , render = plotNgramsSim
-              , description = text "ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI"
+              , description = div [ class "text-left box" ] [ text "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI" ]
               }
             , { label = "ngram SPI"
               , title = "anagram SPI"
               , render = plotNgramsSpi
-              , description = text "ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
+              , description = div [ class "text-left box" ] [ text "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document" ]
               }
             , { label = "similarities"
               , title = "similarities"
               , render = plotSimilarities
-              , description = text "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block"
+              , description = div [ class "text-left box" ] [ text "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block" ]
               }
             ]
     in
