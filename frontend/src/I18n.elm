@@ -37,6 +37,8 @@ english =
     , profiling =
         Dict.fromList
             [ "profiling-explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
+            , "profiling-label" => "Profiling text"
+            , "profiling-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
             , "profiling-settings-language" => "Select the language in which the text is written"
             ]
     }

@@ -108,39 +108,43 @@ subscriptions model =
 
 view : Translation -> Model -> Html Msg
 view translation profiling =
-    div [ class "content" ]
-        [ Grid.container []
-            [ Grid.row [ Row.topXs ]
-                [ Grid.col []
-                    [ h1 [] [ text "Go Profiling" ]
-                    , span [ class "explanation" ]
-                        [ text (I18n.get translation "profiling-explanation")
+    let
+        t key =
+            I18n.get translation key
+    in
+        div [ class "content" ]
+            [ Grid.container []
+                [ Grid.row [ Row.topXs ]
+                    [ Grid.col []
+                        [ h1 [] [ text "Go Profiling" ]
+                        , span [ class "explanation" ]
+                            [ text (I18n.get translation "profiling-explanation")
+                            ]
                         ]
                     ]
-                ]
-            , Grid.row [ Row.attrs [ class "boxes" ] ]
-                [ textInput profiling.text
-                ]
-            , Grid.row []
-                [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                    [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ] ] [ text "Analyze!" ]
+                , Grid.row [ Row.attrs [ class "boxes" ] ]
+                    [ textInput t profiling.text
                     ]
-                ]
-              {-
-                 , Grid.row []
-                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                         [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
-                         , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
+                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ] ] [ text "Analyze!" ]
+                        ]
+                    ]
+                  {-
+                     , Grid.row []
+                         [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                             [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
+                             , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                             ]
                          ]
-                     ]
-              -}
-            , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings translation profiling)
+                  -}
+                , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings translation profiling)
+                ]
             ]
-        ]
 
 
-textInput : InputField.Model -> Grid.Column Msg
-textInput text =
+textInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+textInput t text =
     let
         {- config for an InputField
 
@@ -151,10 +155,10 @@ textInput text =
         -}
         config : InputField.ViewConfig
         config =
-            { label = "Text"
+            { label = t "profiling-label"
             , radioButtonName = "profiling-buttons"
             , fileInputId = "profiling-file-input"
-            , info = "Place here the text you want to analyze"
+            , info = t "profiling-description"
             , multiple = False
             }
     in
@@ -180,7 +184,7 @@ settings translation profiling =
                     ]
                 ]
     in
-        [ Grid.col [ Col.attrs [ class "text-center box" ] ]
+        [ Grid.col [ Col.attrs [ class "text-left box" ] ]
             [ h2 [] [ text "Language" ]
             , span [] [ text (I18n.get translation "profiling-settings-language") ]
             , ul [] (List.map languageRadio profiling.languages)
