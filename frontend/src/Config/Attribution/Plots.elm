@@ -7,7 +7,8 @@ will keep track of which plot has focus and how the title and description
 are laid out around the plot.
 -}
 
-import Html exposing (text)
+import Html exposing (text, div)
+import Html.Attributes exposing (class)
 import Plot exposing (group, viewBarsCustom, defaultBarsPlotCustomizations, BarGroup, MaxBarWidth(Percentage), Bars, normalAxis)
 import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
@@ -16,6 +17,18 @@ import Regex exposing (Regex, regex)
 import Data.Attribution.Statistics exposing (Statistics)
 
 
+{-| term-description needed in plot description
+n-gram norm: An author profile is defined as the set of the k most frequent n-grams with their normalised frequencies,
+             as collected from training data. In order to deal with sparseness when n > 2, the (dis)similarity measure
+             that they use, and that we adopt, takes into account the difference between the relative frequency of a
+             given n-gram averaged over all known-unknown document pairs of one problem instance. We call this feature
+             group n-gram norm.
+
+n-gram: a contiguous sequence of n items from a given sequence of text.
+
+cosine similarity: a measure of similarity between two non-zero vectors of an inner product space that measures the
+                   cosine of the angle between them.
+-}
 plots : Dict String (Plot Statistics msg)
 plots =
     let
@@ -23,27 +36,27 @@ plots =
             [ { label = "punctuation"
               , title = "punctuation per character"
               , render = plotPunctuation
-              , description = text "The usage of punctuation is indicative of the author based on ... "
+              , description = div [ class "text-left box" ] [ text "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)" ]
               }
             , { label = "line endings"
               , title = "line endings per character"
               , render = plotLineEndings
-              , description = text "The usage of line endings is indicative of the author based on ... "
+              , description = div [ class "text-left box" ] [ text "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)" ]
               }
-            , { label = "anagram SIM"
+            , { label = "ngram SIM"
               , title = "anagram similarity"
               , render = plotNgramsSim
-              , description = text "anagram similarity measures ... "
+              , description = div [ class "text-left box" ] [ text "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI" ]
               }
-            , { label = "anagram SPI"
+            , { label = "ngram SPI"
               , title = "anagram SPI"
               , render = plotNgramsSpi
-              , description = text "anagram spi measures ... "
+              , description = div [ class "text-left box" ] [ text "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document" ]
               }
             , { label = "similarities"
               , title = "similarities"
               , render = plotSimilarities
-              , description = text "similarities about punctuation, line_endings, line_length, letter_case, and text_block"
+              , description = div [ class "text-left box" ] [ text "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block" ]
               }
             ]
     in
