@@ -7,46 +7,14 @@ will keep track of which plot has focus and how the title and description
 are laid out around the plot.
 -}
 
-<<<<<<< HEAD:frontend/src/Config/Attribution/Plots.elm
-import Html exposing (text)
+import Html exposing (text, div)
+import Html.Attributes exposing (class)
 import Plot exposing (group, viewBarsCustom, defaultBarsPlotCustomizations, BarGroup, MaxBarWidth(Percentage), Bars, normalAxis)
 import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
 import Regex exposing (Regex, regex)
 import Data.Attribution.Statistics exposing (Statistics)
-=======
-import Json.Decode as Decode exposing (Decoder, string, int, float)
-import Json.Decode.Pipeline as Decode exposing (decode, required)
-import Plot exposing (..)
-import Dict exposing (Dict)
-import PlotSlideShow exposing (Plot)
-import Regex exposing (Regex, regex)
-import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder, checked)
-
-
-type alias Statistics =
-    { known : FileStatistics
-    , unknown : FileStatistics
-    , ngramsSim : Dict Int Float
-    , ngramsSpi : Dict Int Int
-    , similarity : Dict String Float
-    }
-
-
-type alias FileStatistics =
-    { characters : Float
-    , lines : Float
-    , blocks : Float
-    , uppers : Float
-    , lowers : Float
-    , punctuation : Dict Char Float
-    , lineEndings : Dict Char Float
-    , sentences : Float
-    , words : Float
-    }
->>>>>>> add_plot_description:frontend/src/Attribution/Plots.elm
 
 
 {-| term-description needed in plot description
