@@ -1,4 +1,4 @@
-module Attribution.Plots exposing (Statistics, FileStatistics, decodeStatistics, decodeFileStatistics, plots)
+module Config.Attribution.Plots exposing (plots)
 
 {-| Describes how we want to draw our plots (and which ones to draw)
 
@@ -8,34 +8,12 @@ are laid out around the plot.
 -}
 
 import Html exposing (text)
-import Json.Decode as Decode exposing (Decoder, string, int, float)
-import Json.Decode.Pipeline as Decode exposing (decode, required)
-import Plot exposing (..)
+import Plot exposing (group, viewBarsCustom, defaultBarsPlotCustomizations, BarGroup, MaxBarWidth(Percentage), Bars, normalAxis)
+import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
 import Regex exposing (Regex, regex)
-
-
-type alias Statistics =
-    { known : FileStatistics
-    , unknown : FileStatistics
-    , ngramsSim : Dict Int Float
-    , ngramsSpi : Dict Int Int
-    , similarity : Dict String Float
-    }
-
-
-type alias FileStatistics =
-    { characters : Float
-    , lines : Float
-    , blocks : Float
-    , uppers : Float
-    , lowers : Float
-    , punctuation : Dict Char Float
-    , lineEndings : Dict Char Float
-    , sentences : Float
-    , words : Float
-    }
+import Data.Attribution.Statistics exposing (Statistics)
 
 
 plots : Dict String (Plot Statistics msg)
@@ -73,6 +51,27 @@ plots =
             |> Dict.fromList
 
 
+customizations : Plot.PlotCustomizations msg
+customizations =
+    { defaultBarsPlotCustomizations | margin = { top = 20, right = 40, bottom = 40, left = 50 } }
+
+
+groups : (data -> List BarGroup) -> Bars data msg
+groups toGroups =
+    let
+        pinkFill =
+            "rgba(253, 185, 231, 0.5)"
+
+        blueFill =
+            "#e4eeff"
+    in
+        { axis = normalAxis
+        , toGroups = toGroups
+        , styles = [ [ fill pinkFill ], [ fill blueFill ] ]
+        , maxWidth = Percentage 75
+        }
+
+
 {-| Construct a plot for punctuation
 
 This module uses the excellent elm-plot package http://package.elm-lang.org/packages/terezka/elm-plot/latest
@@ -103,7 +102,7 @@ plotPunctuation { known, unknown } =
             ( String.fromChar label, [ v1 / known.characters, v2 / known.characters ] )
     in
         List.map2 construct (Dict.toList known.punctuation) (Dict.toList unknown.punctuation)
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotLineEndings : Statistics -> Html.Html msg
@@ -113,7 +112,7 @@ plotLineEndings { known, unknown } =
             ( String.fromChar label, [ v1 / known.lines, v2 / unknown.lines ] )
     in
         List.map2 construct (Dict.toList known.lineEndings) (Dict.toList unknown.lineEndings)
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotAverages : Statistics -> Html.Html msg
@@ -126,7 +125,7 @@ plotAverages { known, unknown } =
               -- , ( "uppercase per lowercase", [ known.uppers / known.lowers, unknown.uppers / unknown.lowers ] )
             ]
     in
-        viewBars (groups (List.map (\( label, value ) -> group label value))) data
+        viewBarsCustom customizations (groups (List.map (\( label, value ) -> group label value))) data
 
 
 plotNgramsSim : Statistics -> Html.Html msg
@@ -138,7 +137,7 @@ plotNgramsSim { ngramsSim } =
         ngramsSim
             |> Dict.toList
             |> List.map construct
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotNgramsSpi : Statistics -> Html.Html msg
@@ -150,7 +149,7 @@ plotNgramsSpi { ngramsSpi } =
         ngramsSpi
             |> Dict.toList
             |> List.map construct
-            |> viewBars (groups (List.map (uncurry group)))
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
 
 
 plotSimilarities : Statistics -> Html.Html msg
@@ -167,75 +166,4 @@ plotSimilarities { similarity } =
         similarity
             |> Dict.toList
             |> List.map construct
-            |> viewBars (groups (List.map (uncurry group)))
-
-
-decodeStatistics =
-    Decode.succeed Statistics
-        |> required "known" decodeFileStatistics
-        |> required "unknown" decodeFileStatistics
-        |> required "ngrams-sim" (dictBoth (Decode.decodeString int) float)
-        |> required "ngrams-spi" (dictBoth (Decode.decodeString int) int)
-        |> required "similarities" (Decode.dict float)
-
-
-decodeFileStatistics =
-    let
-        stringToChar str =
-            case String.uncons str of
-                Just ( c, rest ) ->
-                    if rest == "" then
-                        Ok c
-                    else
-                        Err <| "trying to decode a single Char, but got `" ++ str ++ "`"
-
-                Nothing ->
-                    Err <| "decoding a char failed: no input"
-    in
-        decode FileStatistics
-            |> required "characters" float
-            |> required "lines" float
-            |> required "blocks" float
-            |> required "uppers" float
-            |> required "lowers" float
-            |> required "lineEndings" (dictBoth stringToChar float)
-            |> required "punctuation" (dictBoth stringToChar float)
-            |> required "sentences" float
-            |> required "words" float
-
-
-{-| Convert an object into a dictionary with decoded keys AND values.
-the builtin dict decoder only allows you to decode values, defaulting keys to String
--}
-dictBoth : (String -> Result String comparable) -> Decoder value -> Decoder (Dict comparable value)
-dictBoth keyDecoder valueDecoder =
-    let
-        decodeKeys kvpairs =
-            List.foldr decodeKey (Decode.succeed Dict.empty) kvpairs
-
-        decodeKey ( key, value ) accum =
-            case keyDecoder key of
-                Err e ->
-                    Decode.fail <| "decoding a key failed: " ++ e
-
-                Ok newKey ->
-                    Decode.map (Dict.insert newKey value) accum
-    in
-        Decode.keyValuePairs valueDecoder
-            |> Decode.andThen decodeKeys
-
-
-char =
-    Decode.string
-        |> Decode.andThen
-            (\str ->
-                case String.uncons str of
-                    Just ( c, rest ) ->
-                        if rest == "" then
-                            Decode.succeed c
-                        else
-                            Decode.fail <| "trying to decode a single Char, but got `" ++ str ++ "`"
-
-                    Nothing ->
-                        Decode.fail <| "decoding a char failed: no input"
-            )
+            |> viewBarsCustom customizations (groups (List.map (uncurry group)))
