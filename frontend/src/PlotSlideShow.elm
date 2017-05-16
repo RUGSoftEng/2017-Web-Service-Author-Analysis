@@ -135,8 +135,8 @@ view (Config config) (State model) data =
                 Just (Plot { label, title, render, description }) ->
                     Grid.col [ Col.attrs [ class "center-block text-center" ] ]
                         [ h3 [] [ text title ]
-                        , render data
                         , description
+                        , render data
                         ]
     in
         Grid.container []

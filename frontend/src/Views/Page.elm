@@ -4,6 +4,7 @@ import Bootstrap.Navbar as Navbar
 import Html exposing (Html, div, a, text, img, header, footer)
 import Html.Attributes exposing (class, style, src, href)
 import Route
+import Views.Spinner exposing (spinner)
 
 
 (=>) =
@@ -13,7 +14,7 @@ import Route
 frame : Navbar.State -> Navbar.State -> Bool -> (Navbar.State -> msg) -> (Navbar.State -> msg) -> (submsg -> msg) -> Maybe (Html submsg) -> Html submsg -> Html msg
 frame headerState footerState isLoading headerMsg footerMsg wrapper transition content =
     div [ class "maincontainer" ]
-        [ viewHeader headerState |> Html.map headerMsg
+        [ viewHeader headerState isLoading |> Html.map headerMsg
         , content |> Html.map wrapper
         , viewFooter footerState |> Html.map footerMsg
         ]
@@ -21,14 +22,15 @@ frame headerState footerState isLoading headerMsg footerMsg wrapper transition c
 
 {-| The navigation bar at the top
 -}
-viewHeader : Navbar.State -> Html Navbar.State
-viewHeader navbarState =
+viewHeader : Navbar.State -> Bool -> Html Navbar.State
+viewHeader navbarState isLoading =
     header []
         [ div [ class "container" ]
             [ Navbar.config identity
                 |> Navbar.brand [ Route.href Route.Home ] [ text "Author Analysis " ]
                 |> Navbar.customItems
-                    [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
+                    [ Navbar.customItem <| viewIf isLoading spinner
+                    , Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
                     , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
                     ]
                 |> Navbar.lightCustomClass ""
@@ -62,3 +64,10 @@ viewFooter footerbarState =
                 |> Navbar.view footerbarState
             ]
         ]
+
+
+viewIf predicate html =
+    if predicate then
+        html
+    else
+        text ""

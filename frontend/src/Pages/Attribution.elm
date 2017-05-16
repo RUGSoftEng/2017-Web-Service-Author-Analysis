@@ -20,6 +20,7 @@ import InputField
 import Route
 import I18n exposing (Translation)
 import Examples exposing (sameAuthor, differentAuthor)
+import Views.Spinner exposing (spinner)
 
 
 type alias Model =
@@ -189,6 +190,29 @@ subscriptions model =
 
 
 -- View
+
+
+textCenter =
+    Col.attrs [ class "text-center" ]
+
+
+loading : Translation -> Model -> Html Msg
+loading translation attribution =
+    let
+        t key =
+            I18n.get translation key
+    in
+        div [ class "content" ]
+            [ Grid.container []
+                [ Grid.row [ Row.topXs ]
+                    [ Grid.col []
+                        [ h1 [] [ text "Attribution" ] ]
+                    ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ Button.button [ Button.primary ] [ text "Cancel" ] ] ]
+                ]
+            ]
 
 
 view : Translation -> Model -> Html Msg

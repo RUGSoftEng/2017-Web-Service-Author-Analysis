@@ -109,7 +109,11 @@ view model =
             viewPage model.headerState model.footerState model.translations False page
 
         TransitioningFrom page ->
-            viewPage model.headerState model.footerState model.translations True page
+            let
+                _ =
+                    Debug.log "is loading " page
+            in
+                viewPage model.headerState model.footerState model.translations True page
 
 
 viewPage : Navbar.State -> Navbar.State -> Translations -> Bool -> Page -> Html Msg
@@ -127,8 +131,16 @@ viewPage headerState footerState translations isLoading page =
                 Html.text "We're blank" |> frame (always NoOp) Nothing
 
             Attribution subModel ->
-                Attribution.view translations.attribution subModel
-                    |> frame AttributionMsg Nothing
+                let
+                    customFrame =
+                        Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+                in
+                    if isLoading then
+                        Attribution.loading translations.attribution subModel
+                            |> customFrame AttributionMsg Nothing
+                    else
+                        Attribution.view translations.attribution subModel
+                            |> customFrame AttributionMsg Nothing
 
             AttributionPrediction subModel ->
                 AttributionPrediction.view subModel
