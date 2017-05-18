@@ -19,6 +19,8 @@ import Ports
 
 import Navigation exposing (Location)
 import Task exposing (Task)
+import Process
+import Time
 
 
 -- import InputField
@@ -73,12 +75,23 @@ getPage pagestate =
 
 
 type alias Model =
-    { pageState : PageState, headerState : Navbar.State, footerState : Navbar.State, translations : Translations }
+    { pageState : PageState
+    , headerState : Navbar.State
+    , footerState : Navbar.State
+    , translations : Translations
+    , attributionRequest : RequestStatus
+    }
 
 
 type NavigationBar
     = HeaderBar
     | FooterBar
+
+
+type RequestStatus
+    = Idle
+    | InProgress
+    | Cancelled
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -91,7 +104,12 @@ init location =
             Navbar.initialState (NavbarMsg FooterBar)
 
         ( model, routeCmd ) =
-            { pageState = Loaded initialPage, headerState = headerState, footerState = footerState, translations = I18n.english }
+            { pageState = Loaded initialPage
+            , headerState = headerState
+            , footerState = footerState
+            , translations = I18n.english
+            , attributionRequest = Idle
+            }
                 |> setRoute (Route.fromLocation location)
     in
         ( model, Cmd.batch [ headerCmd, footerCmd, routeCmd ] )
@@ -195,6 +213,18 @@ type Msg
     | NoOp
 
 
+cancelRequest status =
+    case status of
+        Idle ->
+            Idle
+
+        InProgress ->
+            Cancelled
+
+        Cancelled ->
+            Cancelled
+
+
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
     let
@@ -217,6 +247,11 @@ setRoute maybeRoute model =
                         , Cmd.none
                         )
 
+                    Attribution subModel ->
+                        ( { model | attributionRequest = cancelRequest model.attributionRequest, pageState = Loaded (getPage model.pageState) }
+                        , Cmd.none
+                        )
+
                     _ ->
                         ( { model | pageState = Loaded (Attribution Attribution.init) }
                         , Cmd.none
@@ -233,7 +268,12 @@ setRoute maybeRoute model =
             Just (Route.AttributionPrediction) ->
                 case getPage model.pageState of
                     Attribution attribution ->
-                        transition AttributionPredictionLoaded (AttributionPrediction.init attribution)
+                        ( { model
+                            | pageState = TransitioningFrom (getPage model.pageState)
+                            , attributionRequest = InProgress
+                          }
+                        , Task.attempt AttributionPredictionLoaded (AttributionPrediction.init attribution)
+                        )
 
                     AttributionPrediction page ->
                         ( model, Cmd.none )
@@ -292,9 +332,14 @@ updatePage page msg model =
                 )
 
         ( AttributionPredictionLoaded (Ok attributionPrediction), _ ) ->
-            ( { model | pageState = Loaded (AttributionPrediction attributionPrediction) }
-            , Cmd.none
-            )
+            if model.attributionRequest == Cancelled then
+                ( { model | attributionRequest = Idle }
+                , Cmd.none
+                )
+            else
+                ( { model | pageState = Loaded (AttributionPrediction attributionPrediction) }
+                , Cmd.none
+                )
 
         _ ->
             ( model, Cmd.none )

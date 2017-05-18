@@ -210,7 +210,7 @@ loading translation attribution =
                     ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
-                , Grid.row [] [ Grid.col [ textCenter ] [ Button.button [ Button.primary ] [ text "Cancel" ] ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ Button.linkButton [ Button.attrs [ Route.href Route.Attribution ], Button.primary ] [ text "Cancel" ] ] ]
                 ]
             ]
 
