@@ -83,15 +83,38 @@ type alias Model =
     }
 
 
+{-| Type index for which navigation bar to update
+-}
 type NavigationBar
     = HeaderBar
     | FooterBar
 
 
+{-| To cancel a request, we have to know what it's status is.
+
+So, we have to manually set requests as InProgress when performed, and do some checking when receiving the result:
+when the request is cancelled, just do nothing
+
+Ideally we'd represent requests as subscriptions (using Http.progress), but then we can't use
+tasks anymore to represent page loading.
+-}
 type RequestStatus
     = Idle
     | InProgress
     | Cancelled
+
+
+cancelRequest : Status -> Status
+cancelRequest status =
+    case status of
+        Idle ->
+            Idle
+
+        InProgress ->
+            Cancelled
+
+        Cancelled ->
+            Cancelled
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -174,6 +197,10 @@ viewPage headerState footerState translations isLoading page =
 
 
 {-| Signals from the outside world that our app may want to respond to
+
+* Navbar.subscriptions: fire when an item in a navbar is clicked to highlight that item
+* Ports.addFile: a file is sent from javascript
+* pageSubscriptions: individual pages that have subscriptions
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -213,18 +240,6 @@ type Msg
     | NoOp
 
 
-cancelRequest status =
-    case status of
-        Idle ->
-            Idle
-
-        InProgress ->
-            Cancelled
-
-        Cancelled ->
-            Cancelled
-
-
 setRoute : Maybe Route -> Model -> ( Model, Cmd Msg )
 setRoute maybeRoute model =
     let
@@ -243,16 +258,23 @@ setRoute maybeRoute model =
             Just (Route.Attribution) ->
                 case getPage model.pageState of
                     AttributionPrediction { source } ->
+                        -- retrieve the source from a prediction, and load that
                         ( { model | pageState = Loaded (Attribution source) }
                         , Cmd.none
                         )
 
                     Attribution subModel ->
-                        ( { model | attributionRequest = cancelRequest model.attributionRequest, pageState = Loaded (getPage model.pageState) }
+                        -- navigating to the same page should cancel any ongoing request, and
+                        -- keep the current page loaded.
+                        ( { model
+                            | attributionRequest = cancelRequest model.attributionRequest
+                            , pageState = Loaded (getPage model.pageState)
+                          }
                         , Cmd.none
                         )
 
                     _ ->
+                        -- otherwise, load an empty attribution page
                         ( { model | pageState = Loaded (Attribution Attribution.init) }
                         , Cmd.none
                         )
@@ -268,6 +290,7 @@ setRoute maybeRoute model =
             Just (Route.AttributionPrediction) ->
                 case getPage model.pageState of
                     Attribution attribution ->
+                        -- predict from attribution
                         ( { model
                             | pageState = TransitioningFrom (getPage model.pageState)
                             , attributionRequest = InProgress
@@ -276,9 +299,11 @@ setRoute maybeRoute model =
                         )
 
                     AttributionPrediction page ->
+                        -- no change
                         ( model, Cmd.none )
 
                     _ ->
+                        -- no prediction can be loaded/created, so navigate to attribution
                         navigateTo Route.Attribution model
 
             Just (Route.Home) ->
@@ -287,6 +312,16 @@ setRoute maybeRoute model =
                 )
 
 
+{-| change the route AND the url explicitly
+
+Most of the time this is not what you want. In some cases though,
+we can only meaningfully load a page when some data is present, and
+we need to redirect when that data is not present.
+
+For instance, when the /attribution/prediction page is reloaded, there is no
+prediction data, so we redirect to /attribution and let the user input their data.
+-}
+navigateTo : Route.Route -> Model -> ( Model, Cmd Msg )
 navigateTo route model =
     let
         ( newModel, cmd ) =
