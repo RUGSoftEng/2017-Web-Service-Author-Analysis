@@ -10,7 +10,7 @@ in `main`. The messages then find their way to the update function where the dat
 also see the accompanying js in index.html
 -}
 
-import Types exposing (File)
+import Data.File exposing (File)
 
 
 {-| port for sending out (is this needed)?

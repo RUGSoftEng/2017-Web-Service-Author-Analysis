@@ -12,7 +12,7 @@ export interface FromClientAttribution {
   knownAuthorTexts: string[];
   unknownAuthorText: string;
   language: string;
-  genre: number;
+  genre: string;
   featureSet: number;
 }
 
@@ -24,7 +24,7 @@ export function FromClientAttribution_isValid( request: any ): boolean {
   return ( request.knownAuthorTexts instanceof Array &&
            typeof request.unknownAuthorText === 'string' &&
            typeof request.language === 'string' &&
-           typeof request.genre === 'number' &&
+           typeof request.genre === 'string' &&
            typeof request.featureSet === 'number' );
 }
 

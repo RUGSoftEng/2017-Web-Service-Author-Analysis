@@ -49,3 +49,14 @@ The web application can be accessed by going to [http://localhost:8080/](http://
 Other directories can be generated through the provided script. Do **NOT** upload these into the repository.
 
 * `node_modules` - Contain installed modules for Node.js
+
+## Testing
+For testing, the `mocha` framework is used. Install `mocha` globally using:
+```bash
+npm install -g mocha
+```
+Then run tests in the terminal, while inside the `backend` directory, using:
+```
+npm test
+```
+Note that this explicitely transpiles all TypeScript files into JavaScript files (`*.js`), because mocha does not natively/internally support TypeScript. These JavaScript files are not deleted by the script itself after completion, to avoid erronous deletion. However, these JavaScript files serve no purpose, and can safely be deleted.
