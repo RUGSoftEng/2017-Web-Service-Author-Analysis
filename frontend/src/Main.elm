@@ -279,13 +279,20 @@ setRoute maybeRoute model =
                         ( model, Cmd.none )
 
                     _ ->
-                        -- is really an error condition
-                        ( model, Cmd.none )
+                        navigateTo Route.Attribution model
 
             Just (Route.Home) ->
                 ( { model | pageState = Loaded Home }
                 , Cmd.none
                 )
+
+
+navigateTo route model =
+    let
+        ( newModel, cmd ) =
+            update (SetRoute <| Just Route.Attribution) model
+    in
+        ( newModel, Cmd.batch [ cmd, Route.modifyUrl route ] )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
