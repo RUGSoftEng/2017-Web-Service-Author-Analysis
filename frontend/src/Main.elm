@@ -104,7 +104,7 @@ type RequestStatus
     | Cancelled
 
 
-cancelRequest : Status -> Status
+cancelRequest : RequestStatus -> RequestStatus
 cancelRequest status =
     case status of
         Idle ->

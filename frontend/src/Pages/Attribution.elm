@@ -7,6 +7,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
+import Bootstrap.Popover as Popover
 
 
 --
@@ -68,6 +69,7 @@ init =
     , genre = Config.defaultGenre Config.defaultLanguage
     , featureCombo = Combo4
     , featureCombos = [ Combo1, Combo4 ]
+    , popovers = { deep = Popover.initialState, shallow = Popover.initialState }
     }
 
 
@@ -92,6 +94,7 @@ type Msg
     | SetGenre Genre
     | InputFieldMsg Author InputField.Msg
     | LoadExample Example
+    | PopoverMsg FeatureCombo Popover.State
 
 
 {-| Update the Attribution page
@@ -130,6 +133,16 @@ update config msg attribution =
                 ( { attribution | unknownAuthor = newInput }
                 , Cmd.map (InputFieldMsg UnknownAuthor) inputCommands
                 )
+
+        PopoverMsg Combo1 subModel ->
+            ( { attribution | popovers = { deep = attribution.popovers.deep, shallow = subModel } }
+            , Cmd.none
+            )
+
+        PopoverMsg Combo4 subModel ->
+            ( { attribution | popovers = { deep = subModel, shallow = attribution.popovers.shallow } }
+            , Cmd.none
+            )
 
         SetLanguage newLanguage ->
             ( { attribution | language = newLanguage }
@@ -311,17 +324,40 @@ settings t attribution =
                     ]
                 ]
 
+        getPopoverState featureSet =
+            case featureSet of
+                Combo1 ->
+                    attribution.popovers.shallow
+
+                Combo4 ->
+                    attribution.popovers.deep
+
         featureSetRadio set =
             li []
-                [ label []
-                    [ input
-                        [ type_ "radio"
-                        , checked (set == attribution.featureCombo)
-                        , onClick (SetFeatureCombo set)
+                [ Popover.config
+                    (label (Popover.onHover (getPopoverState set) (PopoverMsg set))
+                        [ input
+                            [ type_ "radio"
+                            , checked (set == attribution.featureCombo)
+                            , onClick (SetFeatureCombo set)
+                            ]
+                            []
+                        , text (toString set)
                         ]
-                        []
-                    , text (toString set)
-                    ]
+                    )
+                    |> Popover.right
+                    |> Popover.content []
+                        (List.singleton
+                            << text
+                         <|
+                            case set of
+                                Combo1 ->
+                                    "only take the most important features into account"
+
+                                Combo4 ->
+                                    "take all features into account"
+                        )
+                    |> Popover.view (getPopoverState set)
                 ]
 
         genreRadio genre =

@@ -86,6 +86,7 @@ viewResult { plotState, confidence, statistics } =
             , hr [] []
             ]
         ]
+    , Grid.row [] [ Grid.col [] [ h3 [] [ text "Document Analysis" ] ] ]
     , Grid.row []
         [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
             [ PlotSlideShow.view plotConfig plotState statistics ]
