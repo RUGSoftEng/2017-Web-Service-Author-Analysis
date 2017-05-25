@@ -68,26 +68,38 @@ setting.
 
 Example JSON:
 { "text": "lorem ipsum"
-, "language": "EN"
-, "genre": 0
-, "featureSet": 0 }
+, "language": "english" }
 
 -}
 type alias ToServerProfiling =
     { text : String
-    , language : String
-    , genre : number
-    , featureSet : number }
+    , language : String }
 
 
 {-| Response from server
 
 Example JSON:
-{ "age": "20-30"
-, "gender": "M" }
+{ "Age groups": { "18-24": 0.2
+                , "25-34": 0.2
+                , "35-49": 0.2
+                , "50-64": 0.2
+                , "65-xx": 0.2
+                }
+, "Genders": { "Male": 0.4
+             , "Female": 0.6
+             }
+}
 
 -}
 type alias FromServerProfiling =
-    { age: String, gender: String }
+    { "Age groups": { "18-24": number
+                    , "25-34": number
+                    , "35-49": number
+                    , "50-64": number
+                    , "65-xx": number
+                    }
+    , "Genders": { "Male": number
+                 , "Female": number
+                 }
+    }
 ```
-
