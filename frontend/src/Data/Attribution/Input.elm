@@ -5,6 +5,7 @@ import InputField
 import Data.TextInput as TextInput exposing (TextInput)
 import Data.Language as Language exposing (Language)
 import Data.Attribution.Genre as Genre exposing (Genre)
+import Bootstrap.Popover as Popover
 
 
 type alias Input =
@@ -15,6 +16,7 @@ type alias Input =
     , featureCombo : FeatureCombo
     , featureCombos : List FeatureCombo
     , genre : Genre
+    , popovers : { deep : Popover.State, shallow : Popover.State }
     }
 
 
