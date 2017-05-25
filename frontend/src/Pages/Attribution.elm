@@ -253,8 +253,8 @@ view translation attribution =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
-                        , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                        [ Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
+                        , Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
                         ]
                     ]
                 , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t attribution)
