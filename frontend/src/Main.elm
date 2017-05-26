@@ -192,8 +192,8 @@ viewPage headerState footerState translations isLoading page =
                     |> frame ProfilingMsg Nothing
 
             Home ->
-                Home.view
-                    |> frame (always NoOp) Nothing
+                Home.view translations.home
+                    |> Page.homeFrame headerState footerState (NavbarMsg HeaderBar) (NavbarMsg FooterBar) (always NoOp) Nothing
 
 
 {-| Signals from the outside world that our app may want to respond to

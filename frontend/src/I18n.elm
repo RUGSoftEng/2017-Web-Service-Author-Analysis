@@ -10,7 +10,7 @@ import Dict exposing (Dict)
 
 
 type alias Translations =
-    { attribution : Translation, profiling : Translation }
+    { attribution : Translation, profiling : Translation, home : Translation }
 
 
 type alias Translation =
@@ -47,4 +47,5 @@ english =
             , "profiling-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
             , "profiling-settings-language" => "Select the language in which the text is written"
             ]
+    , home = Dict.empty
     }
