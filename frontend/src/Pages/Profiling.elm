@@ -11,6 +11,7 @@ import Bootstrap.Grid.Col as Col
 
 --
 
+import Config.Profiling as Config
 import Data.Profiling.Input
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
@@ -29,8 +30,8 @@ type alias Model =
 init : Model
 init =
     { text = InputField.init
-    , language = EN
-    , languages = [ EN, NL ]
+    , language = Config.defaultLanguage
+    , languages = Config.availableLanguages
     }
 
 
