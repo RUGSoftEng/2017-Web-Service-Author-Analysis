@@ -308,5 +308,10 @@ updatePage page msg model =
             , Cmd.none
             )
 
+        ( ProfilingPredictionLoaded (Ok profilingPrediction), _ ) ->
+            ( { model | pageState = Loaded (ProfilingPrediction profilingPrediction) }
+            , Cmd.none
+            )
+
         _ ->
             ( model, Cmd.none )
