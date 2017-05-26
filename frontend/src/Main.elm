@@ -82,6 +82,7 @@ type alias Model =
     , footerState : Navbar.State
     , translations : Translations
     , attributionRequest : RequestStatus
+    , profilingRequest : RequestStatus
     }
 
 
@@ -134,6 +135,7 @@ init location =
             , footerState = footerState
             , translations = I18n.english
             , attributionRequest = Idle
+            , profilingRequest = Idle
             }
                 |> setRoute (Route.fromLocation location)
     in
@@ -190,8 +192,16 @@ viewPage headerState footerState translations isLoading page =
                     |> frame AttributionPredictionMsg Nothing
 
             Profiling subModel ->
-                Profiling.view translations.profiling subModel
-                    |> frame ProfilingMsg Nothing
+                let
+                    customFrame =
+                        Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+                in
+                    if isLoading then
+                        Profiling.loading translations.profiling subModel
+                            |> customFrame ProfilingMsg Nothing
+                    else
+                        Profiling.view translations.profiling subModel
+                            |> customFrame ProfilingMsg Nothing
 
             ProfilingPrediction subModel ->
                 ProfilingPrediction.view subModel
@@ -294,6 +304,16 @@ setRoute maybeRoute model =
                         , Cmd.none
                         )
 
+                    Profiling subModel ->
+                        -- navigating to the same page should cancel any ongoing request, and
+                        -- keep the current page loaded.
+                        ( { model
+                            | profilingRequest = cancelRequest model.profilingRequest
+                            , pageState = Loaded (getPage model.pageState)
+                          }
+                        , Cmd.none
+                        )
+
                     _ ->
                         ( { model | pageState = Loaded (Profiling Profiling.init) }
                         , Cmd.none
@@ -302,14 +322,19 @@ setRoute maybeRoute model =
             Just (Route.ProfilingPrediction) ->
                 case getPage model.pageState of
                     Profiling profiling ->
-                        transition ProfilingPredictionLoaded (ProfilingPrediction.init profiling)
+                        ( { model
+                            | pageState = TransitioningFrom (getPage model.pageState)
+                            , profilingRequest = InProgress
+                          }
+                        , Task.attempt ProfilingPredictionLoaded (ProfilingPrediction.init profiling)
+                        )
 
                     ProfilingPrediction page ->
                         ( model, Cmd.none )
 
                     _ ->
-                        -- is really an error condition
-                        ( model, Cmd.none )
+                        -- no prediction can be loaded/created, so navigate to profiling
+                        navigateTo Route.Profiling model
 
             Just (Route.AttributionPrediction) ->
                 case getPage model.pageState of
@@ -403,14 +428,25 @@ updatePage page msg model =
                 , Cmd.none
                 )
             else
-                ( { model | pageState = Loaded (AttributionPrediction attributionPrediction) }
+                ( { model
+                    | pageState = Loaded (AttributionPrediction attributionPrediction)
+                    , attributionRequest = Idle
+                  }
                 , Cmd.none
                 )
 
         ( ProfilingPredictionLoaded (Ok profilingPrediction), _ ) ->
-            ( { model | pageState = Loaded (ProfilingPrediction profilingPrediction) }
-            , Cmd.none
-            )
+            if model.profilingRequest == Cancelled then
+                ( { model | profilingRequest = Idle }
+                , Cmd.none
+                )
+            else
+                ( { model
+                    | pageState = Loaded (ProfilingPrediction profilingPrediction)
+                    , profilingRequest = Idle
+                  }
+                , Cmd.none
+                )
 
         _ ->
             ( model, Cmd.none )
