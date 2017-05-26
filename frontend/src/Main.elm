@@ -30,6 +30,7 @@ import Pages.Home as Home
 import Pages.Attribution as Attribution
 import Pages.AttributionPrediction as AttributionPrediction
 import Pages.Profiling as Profiling
+import Pages.ProfilingPrediction as ProfilingPrediction
 import Views.Page as Page
 import Data.File exposing (File)
 import Route exposing (Route)
@@ -55,6 +56,7 @@ type Page
     | Attribution Attribution.Model
     | AttributionPrediction AttributionPrediction.Model
     | Profiling Profiling.Model
+    | ProfilingPrediction ProfilingPrediction.Model
     | Blank
     | NotFound
 
@@ -191,6 +193,10 @@ viewPage headerState footerState translations isLoading page =
                 Profiling.view translations.profiling subModel
                     |> frame ProfilingMsg Nothing
 
+            ProfilingPrediction subModel ->
+                ProfilingPrediction.view subModel
+                    |> frame ProfilingPredictionMsg Nothing
+
             Home ->
                 Home.view translations.home
                     |> Page.homeFrame headerState footerState (NavbarMsg HeaderBar) (NavbarMsg FooterBar) (always NoOp) Nothing
@@ -232,9 +238,11 @@ pageSubscriptions page =
 type Msg
     = SetRoute (Maybe Route)
     | AttributionPredictionLoaded (Result PageLoadError AttributionPrediction.Model)
+    | ProfilingPredictionLoaded (Result PageLoadError ProfilingPrediction.Model)
     | AttributionMsg Attribution.Msg
     | AttributionPredictionMsg AttributionPrediction.Msg
     | ProfilingMsg Profiling.Msg
+    | ProfilingPredictionMsg ProfilingPrediction.Msg
     | NavbarMsg NavigationBar Navbar.State
     | AddFile ( String, File )
     | NoOp
@@ -280,12 +288,28 @@ setRoute maybeRoute model =
                         )
 
             Just (Route.Profiling) ->
-                ( { model | pageState = Loaded (Profiling Profiling.init) }
-                , Cmd.none
-                )
+                case getPage model.pageState of
+                    ProfilingPrediction { source } ->
+                        ( { model | pageState = Loaded (Profiling source) }
+                        , Cmd.none
+                        )
+
+                    _ ->
+                        ( { model | pageState = Loaded (Profiling Profiling.init) }
+                        , Cmd.none
+                        )
 
             Just (Route.ProfilingPrediction) ->
-                ( model, Cmd.none )
+                case getPage model.pageState of
+                    Profiling profiling ->
+                        transition ProfilingPredictionLoaded (ProfilingPrediction.init profiling)
+
+                    ProfilingPrediction page ->
+                        ( model, Cmd.none )
+
+                    _ ->
+                        -- is really an error condition
+                        ( model, Cmd.none )
 
             Just (Route.AttributionPrediction) ->
                 case getPage model.pageState of
@@ -382,6 +406,11 @@ updatePage page msg model =
                 ( { model | pageState = Loaded (AttributionPrediction attributionPrediction) }
                 , Cmd.none
                 )
+
+        ( ProfilingPredictionLoaded (Ok profilingPrediction), _ ) ->
+            ( { model | pageState = Loaded (ProfilingPrediction profilingPrediction) }
+            , Cmd.none
+            )
 
         _ ->
             ( model, Cmd.none )

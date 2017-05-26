@@ -11,19 +11,15 @@
 export interface FromClientProfiling {
   text: string;
   language: string;
-  genre: number;
-  featureSet: number;
 }
 
 /**
- * True if the request is a valid 'FromClientAttribution' interface
+ * True if the request is a valid 'FromClientProfiling' interface
  */
 export function FromClientProfiling_isValid( request: any ): boolean {
   // TODO: More in-depth validity testing
   return ( typeof request.text === 'string' &&
-           typeof request.language === 'string' &&
-           typeof request.genre === 'number' &&
-           typeof request.featureSet === 'number' );
+           typeof request.language === 'string' );
 }
 
 /**
@@ -32,6 +28,19 @@ export function FromClientProfiling_isValid( request: any ): boolean {
  * Also known as: FromClientProfiling
  */
 export interface ToClientProfiling {
-  gender: string;
-  age: number;
+  "Age groups": ToClientProfiling_AgeGroups;
+  "Genders": ToClientProfiling_Genders;
+}
+
+export interface ToClientProfiling_AgeGroups {
+  "18-24": number;
+  "25-34": number;
+  "35-49": number;
+  "50-64": number;
+  "65-xx": number;
+}
+
+export interface ToClientProfiling_Genders {
+  Male: number;
+  Female: number;
 }
