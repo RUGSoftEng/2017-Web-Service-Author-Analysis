@@ -68,7 +68,7 @@ setting.
 
 Example JSON:
 { "text": "lorem ipsum"
-, "language": "english" }
+, "language": "EN" }
 
 -}
 type alias ToServerProfiling =
