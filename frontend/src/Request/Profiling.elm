@@ -1,4 +1,4 @@
-module Request.Attribution exposing (get)
+module Request.Profiling exposing (get)
 
 import Http
 import Request.Helpers exposing (apiUrl)

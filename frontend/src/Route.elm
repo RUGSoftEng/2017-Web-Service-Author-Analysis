@@ -21,6 +21,7 @@ route =
         , Url.map Attribution (s "attribution")
         , Url.map AttributionPrediction (s "attribution" </> s "prediction")
         , Url.map Profiling (s "profiling")
+        , Url.map ProfilingPrediction (s "profiling" </> s "prediction")
         ]
 
 
