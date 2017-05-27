@@ -10,7 +10,7 @@ import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
 import Regex exposing (Regex, regex)
-import Data.Profiling.Prediction exposing (..)
+import Data.Profiling.Prediction exposing (AgePrediction, GenderPrediction)
 
 
 profilingPlot : Dict String (Plot AgePrediction msg)
@@ -49,7 +49,7 @@ groups toGroups =
         }
 
 
-plotAges : Prediction -> Html.Html msg
+plotAges : AgePrediction -> Html.Html msg
 plotAges { age } =
     let
         data =

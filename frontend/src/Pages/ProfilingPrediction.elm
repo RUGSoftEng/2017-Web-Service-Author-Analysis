@@ -16,6 +16,7 @@ import Bootstrap.Progress as Progress
 
 --
 
+import Config.Attribution.Plots as Plots
 import Data.Profiling.Input as Profiling exposing (..)
 import Data.Profiling.Prediction exposing (AgePrediction, GenderPrediction)
 import Request.Profiling
@@ -75,6 +76,6 @@ viewResult { age, gender } =
         ]
     , Grid.row []
         [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-            []
+            [  ]
         ]
     ]
