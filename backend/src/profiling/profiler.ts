@@ -17,10 +17,33 @@ export class Profiler extends BackendWrapper< FromClientProfiling > {
   constructor( ) {
     super( FromClientProfiling_isValid );
   }
+
+  // Callback that gets called once the Python program has finished
+  // TODO: Wrap this with a task class
+  private programFinishedCallback( callback: ( out: any ) => void, error, stdout, stderr ) {
+    if ( error ) {
+      console.log( error );
+      callback( 'An error occurred' );
+      return;
+    }
+    
+    try {
+      let out: ToClientProfiling = JSON.parse( stdout );
+      callback( out );
+    } catch ( ex ) {
+      callback( 'An error occurred' );
+    }
+  }
   
   // Override
   protected doHandleRequest( request: FromClientProfiling, callback: ( out: any ) => void ): void {
-    let out: ToClientProfiling = { gender: 'M', age: 10 };
-    callback( out );
+    // Command: python3 predict.py <language> <text>
+    // TODO: Make sure language input field is semantically validated
+    const args = [ 'predict.py',
+                   request.language,
+                   request.text ];
+    const options = { cwd: 'resources/glad/simple-age-gender' };
+        
+    execFile( 'python3', args, options, this.programFinishedCallback.bind( this, callback ) );
   }
 }

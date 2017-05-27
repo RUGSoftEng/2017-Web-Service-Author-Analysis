@@ -13,7 +13,9 @@ const execFile = child_process.execFile;
 import { FromClientAttribution, ToClientAttribution, FromClientAttribution_isValid } from './network_interface';
 
 export class Attributor extends BackendWrapper<FromClientAttribution> {
-  constructor( ) {
+  private static readonly PARAGRAPH_SEPARATOR: string = '\n\n';
+
+  public constructor( ) {
     super( FromClientAttribution_isValid );
   }
   
@@ -63,11 +65,9 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
     let modelFilePath = `models/model_${request.language}_${request.genre}_${request.featureSet}`;
     
     fs.stat( path.join( 'resources/glad', modelFilePath ), ( err, stat ) => {
-      if ( !err && stat.isDirectory( ) ) { 
-        // NOTE: Only one known author text is used at the moment
-        // Add multiple once GLAD input supports this
+      if ( !err && stat.isDirectory( ) ) {
         const args = [ 'glad-copy.py',
-                       '--inputknown', this.cleanInput( request.knownAuthorTexts[0] ),
+                       '--inputknown', this.cleanInput( request.knownAuthorTexts.join( Attributor.PARAGRAPH_SEPARATOR ) ),
                        '--inputunknown', this.cleanInput( request.unknownAuthorText ),
                        '--combo', request.featureSet.toString(),
                        '-m', modelFilePath ];

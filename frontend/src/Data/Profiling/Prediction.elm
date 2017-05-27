@@ -1,39 +1,46 @@
 module Data.Profiling.Prediction exposing (..)
 
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, float)
 import Json.Decode.Pipeline exposing (required)
 import String
-import Data.Profiling.AgeDistribution as AgeDistribution exposing (AgeDistribution)
 
 
 type alias Prediction =
-    { ageDistribution : AgeDistribution, gender : Gender }
+    { age : AgePrediction, gender : GenderPrediction }
 
 
-type Gender
-    = M
-    | F
+type alias AgePrediction =
+    { range18_24 : Float
+    , range25_34 : Float
+    , range35_49 : Float
+    , range50_64 : Float
+    , range65_xx : Float
+    }
 
 
-decodeGender : Decoder Gender
-decodeGender =
-    Decode.string
-        |> Decode.andThen
-            (\gender ->
-                case String.toLower gender of
-                    "female" ->
-                        Decode.succeed F
+type alias GenderPrediction =
+    { male : Float, female : Float }
 
-                    "male" ->
-                        Decode.succeed M
 
-                    _ ->
-                        Decode.fail ("could not decode `" ++ gender ++ "` to a gender")
-            )
+decodeAgePrediction : Decoder AgePrediction
+decodeAgePrediction =
+    Decode.succeed AgePrediction
+        |> required "18-24" float
+        |> required "25-34" float
+        |> required "35-49" float
+        |> required "50-64" float
+        |> required "65-xx" float
+
+
+decodeGenderPrediction : Decoder GenderPrediction
+decodeGenderPrediction =
+    Decode.succeed GenderPrediction
+        |> required "Male" float
+        |> required "Female" float
 
 
 decoder : Decoder Prediction
 decoder =
     Decode.succeed Prediction
-        |> required "age_distribution" AgeDistribution.decoder
-        |> required "gender" decodeGender
+        |> required "Age groups" decodeAgePrediction
+        |> required "Genders" decodeGenderPrediction
