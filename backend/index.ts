@@ -28,6 +28,6 @@ app.all( '*', ( req, res ) => {
 
 
 // Start server using 'http'. Useful when later HTTPS is used
-http.createServer( app ).listen( 8080, ( ) => {
+http.createServer( app ).listen( process.env.PORT || 8080, ( ) => {
   console.log( 'Running' );
 } );

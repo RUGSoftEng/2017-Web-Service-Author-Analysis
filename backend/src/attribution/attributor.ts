@@ -23,7 +23,7 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
   // TODO: Wrap this with a task class
   private programFinishedCallback( callback: ( out: any ) => void, error, stdout, stderr ) {
     if ( error ) {
-      // console.log( error );
+      console.log( error );
       callback( 'An error occurred' );
       return;
     }
@@ -54,6 +54,10 @@ export class Attributor extends BackendWrapper<FromClientAttribution> {
     return s.replace( '"', '\\"' )
             .replace( '\n', '\\n' )
             .replace( '\r', '\\r' )
+
+    /* return s.replace( /"/g, '\\"' )
+            .replace( /\n/g, '\\n' )
+            .replace( /\r/g, '\\r' ); */
   }
   
   // Override

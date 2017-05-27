@@ -61,7 +61,8 @@ viewHomeHeader navbarState =
             [ Navbar.config identity
                 |> Navbar.brand [ Route.href Route.Home ] [ text "Author Analysis " ]
                 |> Navbar.customItems
-                    [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
+                    [ Navbar.customItem <| viewIf isLoading spinner
+                    , Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
                     , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
                     ]
                 |> Navbar.lightCustomClass ""
