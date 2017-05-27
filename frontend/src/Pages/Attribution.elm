@@ -7,6 +7,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
+import Bootstrap.Popover as Popover
 
 
 --
@@ -20,6 +21,7 @@ import InputField
 import Route
 import I18n exposing (Translation)
 import Examples exposing (sameAuthor, differentAuthor)
+import Views.Spinner exposing (spinner)
 
 
 type alias Model =
@@ -67,6 +69,7 @@ init =
     , genre = Config.defaultGenre Config.defaultLanguage
     , featureCombo = Combo4
     , featureCombos = [ Combo1, Combo4 ]
+    , popovers = { deep = Popover.initialState, shallow = Popover.initialState }
     }
 
 
@@ -91,6 +94,7 @@ type Msg
     | SetGenre Genre
     | InputFieldMsg Author InputField.Msg
     | LoadExample Example
+    | PopoverMsg FeatureCombo Popover.State
 
 
 {-| Update the Attribution page
@@ -129,6 +133,16 @@ update config msg attribution =
                 ( { attribution | unknownAuthor = newInput }
                 , Cmd.map (InputFieldMsg UnknownAuthor) inputCommands
                 )
+
+        PopoverMsg Combo1 subModel ->
+            ( { attribution | popovers = { deep = attribution.popovers.deep, shallow = subModel } }
+            , Cmd.none
+            )
+
+        PopoverMsg Combo4 subModel ->
+            ( { attribution | popovers = { deep = subModel, shallow = attribution.popovers.shallow } }
+            , Cmd.none
+            )
 
         SetLanguage newLanguage ->
             ( { attribution | language = newLanguage }
@@ -189,6 +203,29 @@ subscriptions model =
 
 
 -- View
+
+
+textCenter =
+    Col.attrs [ class "text-center" ]
+
+
+loading : Translation -> Model -> Html Msg
+loading translation attribution =
+    let
+        t key =
+            I18n.get translation key
+    in
+        div [ class "content" ]
+            [ Grid.container []
+                [ Grid.row [ Row.topXs ]
+                    [ Grid.col []
+                        [ h1 [] [ text "Attribution" ] ]
+                    ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ Button.linkButton [ Button.attrs [ Route.href Route.Attribution ], Button.primary ] [ text "Cancel" ] ] ]
+                ]
+            ]
 
 
 view : Translation -> Model -> Html Msg
@@ -287,17 +324,40 @@ settings t attribution =
                     ]
                 ]
 
+        getPopoverState featureSet =
+            case featureSet of
+                Combo1 ->
+                    attribution.popovers.shallow
+
+                Combo4 ->
+                    attribution.popovers.deep
+
         featureSetRadio set =
             li []
-                [ label []
-                    [ input
-                        [ type_ "radio"
-                        , checked (set == attribution.featureCombo)
-                        , onClick (SetFeatureCombo set)
+                [ Popover.config
+                    (label (Popover.onHover (getPopoverState set) (PopoverMsg set))
+                        [ input
+                            [ type_ "radio"
+                            , checked (set == attribution.featureCombo)
+                            , onClick (SetFeatureCombo set)
+                            ]
+                            []
+                        , text (toString set)
                         ]
-                        []
-                    , text (toString set)
-                    ]
+                    )
+                    |> Popover.right
+                    |> Popover.content []
+                        (List.singleton
+                            << text
+                         <|
+                            case set of
+                                Combo1 ->
+                                    "only take the most important features into account"
+
+                                Combo4 ->
+                                    "take all features into account"
+                        )
+                    |> Popover.view (getPopoverState set)
                 ]
 
         genreRadio genre =
