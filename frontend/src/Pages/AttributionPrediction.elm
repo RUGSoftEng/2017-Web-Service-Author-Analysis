@@ -42,7 +42,7 @@ update plotMessage model =
 
 {-| Displays the confidence (as a progress bar) and the PlotSlideShow if there is data to be displayed
 -}
-init : Attribution.Input -> Task Http.Error Model
+init : Input -> Task Http.Error Model
 init input =
     let
         plotState =
@@ -63,10 +63,12 @@ init input =
 
 view : Model -> Html Msg
 view model =
-    Grid.container [] (viewResult model)
+    div [ class "content" ]
+        [ Grid.container [] (viewResult model)
+        ]
 
 
-viewResult : Model -> List (Html (PlotSlideShow.Msg))
+viewResult : Model -> List (Html PlotSlideShow.Msg)
 viewResult { plotState, confidence, statistics } =
     [ Grid.row []
         [ Grid.col [ Col.attrs [ class "text-center" ] ]
@@ -84,6 +86,7 @@ viewResult { plotState, confidence, statistics } =
             , hr [] []
             ]
         ]
+    , Grid.row [] [ Grid.col [] [ h3 [] [ text "Document Analysis" ] ] ]
     , Grid.row []
         [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
             [ PlotSlideShow.view plotConfig plotState statistics ]
