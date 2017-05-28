@@ -8,40 +8,18 @@ import Bootstrap.Grid.Col as Col
 import Bootstrap.Navbar as Navbar
 import I18n exposing (Translation)
 import Route
+import Views.Page exposing (mainNav)
 
 
 textCenter =
     Col.attrs [ class "text-center" ]
 
 
-navbar =
-    Navbar.config (\_ -> ())
-        |> Navbar.attrs [ id "main-nav", class "fixed" ]
-        |> Navbar.brand [ href "#" ]
-            [ img
-                [ alt ""
-                , class "custom-logo"
-                , attribute "height" "32"
-                , itemprop "logo"
-                , src "https://demot-vertigostudio.netdna-ssl.com/zerif-lite/wp-content/uploads/sites/51/2017/04/logo.png"
-                , attribute "width" "109"
-                ]
-                []
-            ]
-        |> Navbar.customItems
-            [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
-            , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
-            ]
-        |> Navbar.view (Tuple.first (Navbar.initialState (\_ -> ())))
-
-
 view : Translation -> Html ()
 view _ =
     div [ class "home maincontainer" ]
         [ header [ class "header", id "home", attribute "style" "min-height: 76px;" ]
-            [ div [ class "navbar navbar-inverse bs-docs-nav fixed", id "main-nav", attribute "role" "banner", attribute "style" "min-height: 76px;" ]
-                [ div [ class "container" ] [ navbar ]
-                ]
+            [ mainNav (\_ -> ()) (Tuple.first <| Navbar.initialState (\_ -> ()))
             , div [ class " home-header-wrap" ]
                 [ div [ class "header-content-wrap" ]
                     [ div [ class "container" ]

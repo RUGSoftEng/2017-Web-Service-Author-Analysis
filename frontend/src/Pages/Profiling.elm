@@ -141,7 +141,7 @@ view translation profiling =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Go Profiling" ]
+                        [ h1 [] [ text "Profiling" ]
                         , span [ class "explanation" ]
                             [ text (I18n.get translation "profiling-explanation")
                             ]
