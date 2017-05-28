@@ -122,7 +122,7 @@ loading translation attribution =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Attribution" ] ]
+                        [ h1 [] [ text "Profiling" ] ]
                     ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
