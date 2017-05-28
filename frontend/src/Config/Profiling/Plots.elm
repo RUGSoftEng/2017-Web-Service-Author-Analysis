@@ -1,4 +1,4 @@
-module Config.Attribution.AgePlot exposing (profilingPlot)
+module Config.Profiling.Plots exposing (profilingPlot)
 
 {-| Similar to Config.Attribution.Plots
 -}
@@ -50,14 +50,14 @@ groups toGroups =
 
 
 plotAges : AgePrediction -> Html.Html msg
-plotAges { age } =
+plotAges age =
     let
         data =
             [ ( "18 to 24", [ age.range18_24 ] )
             , ( "25 to 34", [ age.range25_34 ] )
             , ( "35 to 49", [ age.range35_49 ] )
             , ( "50 to 64", [ age.range50_64 ] )
-            , ( "more than 64", [ age.range65_xx ] )
+            , ( "over 64", [ age.range65_xx ] )
             ]
     in
         viewBarsCustom customizations (groups (List.map (\( label, value ) -> group label value))) data

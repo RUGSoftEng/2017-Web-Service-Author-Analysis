@@ -16,7 +16,7 @@ import Bootstrap.Progress as Progress
 
 --
 
-import Config.Attribution.Plots as Plots
+import Config.Profiling.Plots as Plots
 import Data.Profiling.Input as Profiling exposing (..)
 import Data.Profiling.Prediction exposing (AgePrediction, GenderPrediction)
 import Request.Profiling
@@ -24,19 +24,20 @@ import PlotSlideShow
 
 
 type alias Msg =
-    ()
+    PlotSlideShow.Msg
 
 
 type alias Model =
     { age : AgePrediction
     , gender : GenderPrediction
+    , plotState : PlotSlideShow.State
     , source : Profiling.Input
     }
 
 
 update : Msg -> Model -> Model
-update () model =
-    model
+update message model =
+    { model | plotState = PlotSlideShow.update message model.plotState }
 
 
 {-| Displays the confidence (as a progress bar) and the PlotSlideShow if there is data to be displayed
@@ -44,11 +45,20 @@ update () model =
 init : Profiling.Input -> Task Http.Error Model
 init input =
     let
+        plotState =
+            case Dict.keys Plots.profilingPlot of
+                [] ->
+                    -- TODO make this safe
+                    Debug.crash "No plots to be displayed"
+
+                x :: xs ->
+                    PlotSlideShow.initialState x xs
+
         loadPrediction =
             Request.Profiling.get input
                 |> Http.toTask
     in
-        Task.map (\{ age, gender } -> Model age gender input) loadPrediction
+        Task.map (\{ age, gender } -> Model age gender plotState input) loadPrediction
 
 
 view : Model -> Html Msg
@@ -57,7 +67,7 @@ view model =
 
 
 viewResult : Model -> List (Html Msg)
-viewResult { age, gender } =
+viewResult { age, gender, plotState } =
     [ Grid.row []
         [ Grid.col [ Col.attrs [ class "text-center" ] ]
             [ h2 []
@@ -76,6 +86,18 @@ viewResult { age, gender } =
         ]
     , Grid.row []
         [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-            [  ]
+            [ PlotSlideShow.view plotConfig plotState age ]
         ]
     ]
+
+
+{-| Config for plots
+* plots: what plots to display
+* toMsg: how to wrap messages emitted by the PlotSlideShow
+-}
+plotConfig : PlotSlideShow.Config AgePrediction PlotSlideShow.Msg
+plotConfig =
+    PlotSlideShow.config
+        { plots = Plots.profilingPlot
+        , toMsg = identity
+        }
