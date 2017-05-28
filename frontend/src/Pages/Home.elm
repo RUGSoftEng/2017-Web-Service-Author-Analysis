@@ -33,57 +33,36 @@ view _ =
             ]
         , Grid.container [ style [ ( "width", "60%" ) ] ]
             [ Grid.row [ Row.topXs ]
-                [ Grid.col [ textCenter ]
+                [ Grid.col [ textCenter, Col.attrs [ id "attribution-square" ] ]
                     [ span [] [ text "Attribution" ]
+                    , text """ given one or more texts that we know are written by the same person, the system
+                    will predict whether a new, unknown text is also written by the same person.
+                    """
                     ]
-                , Grid.col [ textCenter ]
+                , Grid.col [ textCenter, Col.attrs [ id "profiling-square" ] ]
                     [ span [] [ text "Profiling" ]
+                    , text """ given a text the system will predict the gender and age of the author."""
+                    ]
+                ]
+            , Grid.row []
+                [ Grid.col []
+                    [ text """
+Author analysis is relevant in literature studies, modern
+and old, in law, when working with social media
+contexts, politics, and any other field where
+identifying who wrote something provides valuable
+information. It also relates to the currently very hot
+topic of alternative news.
+"""
                     ]
                 ]
             ]
         , footer [ id "footer" ]
             [ div [ class "container" ]
                 [ div [ class "col-md-3 company-details" ]
-                    [ div [ class "icon-top red-text" ]
-                        [ img [ alt "", src "https://demot-vertigostudio.netdna-ssl.com/zerif-lite/wp-content/uploads/sites/51/2017/04/map25-redish.png" ]
-                            []
-                        ]
-                    , div [ class "zerif-footer-address" ]
-                        [ text "San Francisco - Adress - 18 California Street 1100." ]
+                    [ div [ class "zerif-footer-address" ]
+                        [ text "" ]
                     ]
                 ]
             ]
         ]
-
-
-view_ : Translation -> Html msg
-view_ translation =
-    let
-        t key =
-            I18n.get translation key
-    in
-        div [ id "home", class "content" ]
-            [ Grid.container []
-                [ Grid.row [ Row.topXs ]
-                    [ Grid.col []
-                        [ h1 [] [ text "Features" ]
-                        , text "subtitle"
-                        ]
-                    ]
-                , Grid.row []
-                    [ Grid.col [ textCenter, Col.lg3, Col.sm3 ]
-                        [ text "system A"
-                        , i
-                            [ style
-                                [ ( "background", "url(https://demot-vertigostudio.netdna-ssl.com/zerif-lite/wp-content/uploads/sites/51/2015/05/ti-logo.png) no-repeat center" )
-                                , ( "width", "100%" )
-                                , ( "height", "100%" )
-                                , ( "display", "block" )
-                                ]
-                            ]
-                            []
-                        ]
-                    , Grid.col [ textCenter, Col.lg3, Col.sm3 ] [ text "system B" ]
-                    ]
-                ]
-            ]
