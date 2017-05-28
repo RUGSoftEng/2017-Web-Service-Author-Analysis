@@ -394,8 +394,12 @@ div[id^="file-upload-"] {
     top: 0;
 }
 
-.navbar { 
+#main-nav  { 
+
     background: #FFF;
+}
+
+.navbar { 
     border: 0;
     border-radius: 0 !important;
     text-align: left;
