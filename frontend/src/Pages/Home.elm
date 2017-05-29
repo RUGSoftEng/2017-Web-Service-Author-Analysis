@@ -32,14 +32,22 @@ view _ =
         , Grid.container [ style [ ( "width", "60%" ) ] ]
             [ Grid.row [ Row.topXs ]
                 [ Grid.col [ textCenter, Col.attrs [ id "attribution-square" ] ]
-                    [ span [] [ text "Attribution" ]
-                    , text """ given one or more texts that we know are written by the same person, the system
-                    will predict whether a new, unknown text is also written by the same person.
-                    """
+                    [ a [ class "link-area", href "#/attribution" ]
+                        [ div [ class "icon" ] []
+                        , span [ class "title" ] [ text "Attribution" ]
+                        , span [ class "description" ] [ text """Given one or more texts of which it is known that they are written by the same person,
+                        the system will predict whether a new, unknown text is also written by the same person.
+                        """ ]
+                        , a [ class "go", attribute "role" "button", href "#/attribution" ] [ text "Go" ]
+                        ]
                     ]
                 , Grid.col [ textCenter, Col.attrs [ id "profiling-square" ] ]
-                    [ span [] [ text "Profiling" ]
-                    , text """ given a text the system will predict the gender and age of the author."""
+                    [ a [ class "link-area", href "#/profiling" ]
+                        [ div [ class "icon" ] []
+                        , span [ class "title" ] [ text "Profiling" ]
+                        , span [ class "description" ] [ text """Given a text, the system will predict the gender and age of the author.""" ]
+                        , a [ class "go", attribute "role" "button", href "#/profiling" ] [ text "Go" ]
+                        ]
                     ]
                 ]
             , Grid.row []
