@@ -205,7 +205,7 @@ settings translation profiling =
                         , onClick (SetLanguage language)
                         ]
                         []
-                    , text (toString language)
+                    , text (Language.fullName language)
                     ]
                 ]
     in

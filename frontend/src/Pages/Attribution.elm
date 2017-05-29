@@ -320,7 +320,7 @@ settings t attribution =
                         , onClick (SetLanguage language)
                         ]
                         []
-                    , text (toString language)
+                    , text (Language.fullName language)
                     ]
                 ]
 
@@ -333,32 +333,32 @@ settings t attribution =
                     attribution.popovers.deep
 
         featureSetRadio set =
-            li []
-                [ Popover.config
-                    (label (Popover.onHover (getPopoverState set) (PopoverMsg set))
+            let
+                ( name, description ) =
+                    case set of
+                        Combo1 ->
+                            ( t "combo1", t "combo1-description" )
+
+                        Combo4 ->
+                            ( t "combo4", t "combo4-description" )
+
+                config =
+                    label (Popover.onHover (getPopoverState set) (PopoverMsg set))
                         [ input
                             [ type_ "radio"
                             , checked (set == attribution.featureCombo)
                             , onClick (SetFeatureCombo set)
                             ]
                             []
-                        , text (toString set)
+                        , text name
                         ]
-                    )
-                    |> Popover.right
-                    |> Popover.content []
-                        (List.singleton
-                            << text
-                         <|
-                            case set of
-                                Combo1 ->
-                                    "only take the most important features into account"
-
-                                Combo4 ->
-                                    "take all features into account"
-                        )
-                    |> Popover.view (getPopoverState set)
-                ]
+            in
+                li []
+                    [ Popover.config config
+                        |> Popover.right
+                        |> Popover.content [] [ text description ]
+                        |> Popover.view (getPopoverState set)
+                    ]
 
         genreRadio genre =
             li []
