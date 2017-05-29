@@ -122,7 +122,7 @@ loading translation attribution =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Attribution" ] ]
+                        [ h1 [] [ text "Profiling" ] ]
                     ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
@@ -141,7 +141,7 @@ view translation profiling =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Go Profiling" ]
+                        [ h1 [] [ text "Profiling" ]
                         , span [ class "explanation" ]
                             [ text (I18n.get translation "profiling-explanation")
                             ]

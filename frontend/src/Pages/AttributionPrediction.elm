@@ -71,12 +71,8 @@ view model =
 viewResult : Model -> List (Html PlotSlideShow.Msg)
 viewResult { plotState, confidence, statistics } =
     [ Grid.row []
-        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h2 []
-                [ hr [] []
-                , text "Results"
-                , hr [] []
-                ]
+        [ Grid.col []
+            [ h1 [] [ text "Results" ]
             ]
         ]
     , Grid.row []
