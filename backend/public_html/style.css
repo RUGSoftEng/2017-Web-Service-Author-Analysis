@@ -536,4 +536,5 @@ div[id^="file-upload-"] {
 
 .link-area:hover {
   text-decoration: none;
+  color: black;
 }
