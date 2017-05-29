@@ -15,7 +15,6 @@ body {
 }
 
 header {
-  height: 75px;
   background-color: white;
   box-shadow: 0px 5px 11px 0px rgba(50, 50, 50, 0.08);
   position: fixed;
@@ -23,6 +22,8 @@ header {
   left:0;
   right: 0;
   z-index: 10;
+  height: auto;
+  padding: 0;
 }
 
 .content {
@@ -45,36 +46,15 @@ footer {
 
 .container {
   width: 1000px;
-  background-color: white;
+  /* background-color: white; */
   margin-left: auto;
   margin-right: auto;
 }
 
-header > .container {
-  width: 960px;
-  padding: 20px; 
-  padding-top: 16px;
-  height: 33px;
-}
 
-header > .container > nav {
+#main-nav {  
   padding: initial; 
-}
-
-header > .container a {
-  font-family: "Helvetica Neue", Helvetica;
-  font-size: 16px;
-  line-height: 35px;
-  text-decoration: none;
-  color: black;
-}
-
-header > .container .pull-right {  
-  margin-right: 30px;
-}
-
-header > .container a:hover {
-  color: #DC002D;
+  height: 60px;
 }
 
 .content > .container {
@@ -132,21 +112,30 @@ button, a[role="button"] {
   border: none;
 }
 
-.buttons button:hover {
-  background-color: #C80029;
+a[role="button"].go {
+  display: block;
+  width: 80pt;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.buttons button {
+.buttons button:hover, a[role="button"].go:hover {
+  background-color: #C80029;
+  text-decoration: none;
+}
+
+.buttons button, a[role="button"].go {
   background-color: #A90023;
   color: #EEE;
 }
 
-.buttons button.left {
+.buttons button.left, a[role="button"].go {
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 }
 
-.buttons button.right {
+.buttons button.right, a[role="button"].go {
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
@@ -358,3 +347,191 @@ div[id^="file-upload-"] {
     width: 100%;
 }*/
 
+
+.home-header-wrap {
+	overflow: hidden;
+	position: relative;
+}
+
+.header-content-wrap {
+  z-index: 0;
+	/* background-color: rgba(0, 0, 0, 0.5); */
+  background-image: url( 'images/front_image.png' );
+  background-position: center bottom;
+  background-size:     cover;
+	position: relative;
+	padding: 235px 0 150px;
+}
+.clear:before,
+.clear:after {
+	content: '';
+	display: table;
+}
+.clear:after {
+	clear: both;
+}
+
+.intro-text, .intro-text a{
+	text-align: center;
+	color: #FFF;
+	line-height: 65px;
+	z-index: 0;
+	text-transform: uppercase;
+	font-size: 55px;
+	float:none;
+    background: rgba(0,0,0,0);
+}
+
+.intro-text::after {
+  /*background: none; */
+  text-align: center;
+  right: 0;
+  height: 3px;
+  width: 40%;
+}
+
+#main-nav { 
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    min-height: 75px;
+    margin-bottom: 0;
+}
+
+.bg-faded  { 
+
+    background: rgba(0,0,0,0);
+     } 
+
+#main-nav.fixed { 
+    position: fixed;
+    top: 0;
+}
+
+#main-nav  { 
+
+    background: #FFF;
+}
+
+.navbar { 
+    border: 0;
+    border-radius: 0 !important;
+    text-align: left;
+}
+
+
+
+.container { 
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+#main-nav nav.navbar { 
+    width: inherit !important;
+}
+
+
+#main-nav .navbar-brand { 
+    color: #313131 !important;
+}
+
+#main-nav .pull-right:hover { 
+  color: #DC002D !important;
+}
+
+#main-nav .pull-right { 
+      margin-right: 30px;
+      font-family: "Helvetica Neue", Helvetica;
+      font-size: 16px;
+      line-height: 35px;
+      text-decoration: none;
+      color: black;
+}
+
+.home > .container .row:last-child {
+  padding-bottom: 100pt;
+}
+
+.home .row {
+  margin-top: 50pt;
+  max-width: 500pt;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: Helvetica;
+  font-size: 18px;
+  text-align: justify !important;
+}   
+
+.home .row.align-items-start > div {
+  text-align: justify !important;
+}
+
+.home .row.align-items-start #attribution-square {
+  margin-right: 5%;
+  width: 200pt;
+  position: relative;
+}
+
+.home .row.align-items-start #profiling-square {
+  margin-left: 5%;
+  width: 200pt;
+  position: relative;
+}
+
+.home #button-row {
+  margin-top: 20pt;
+}
+
+#attribution-square div.icon, #profiling-square div.icon {
+  background-size: 100%;
+  width: 100pt;
+  height: 100pt;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20pt;
+}
+
+#attribution-square div.icon {
+  background-image: url( 'images/attribution_icon.png' );
+}
+
+#profiling-square div.icon {
+  background-image: url( 'images/profiling_icon.png' );
+}
+
+#attribution-square span.title, #profiling-square span.title {
+  font-family: "Helvetica Neue", Helvetica;
+  font-weight: bold;
+  display: block;
+  font-size: 16pt;
+  text-align: center;
+  margin-bottom: 20pt;
+  position: relative;
+}
+
+#attribution-square span.title:after, #profiling-square span.title:after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 0;
+  content: "";
+  width: 20%;
+  height: 2px;
+  background: #DC002D;
+  bottom: -10px;
+}
+
+.link-area {
+  text-decoration: none;
+  color: black;
+}
+
+.link-area:hover {
+  text-decoration: none;
+  color: black;
+}
