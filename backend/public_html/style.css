@@ -23,7 +23,6 @@ header {
   right: 0;
   z-index: 10;
   height: auto;
-  position: relative;
   padding: 0;
 }
 
@@ -346,11 +345,10 @@ div[id^="file-upload-"] {
 }
 
 .header-content-wrap {
+  z-index: 0;
 	background: rgba(0, 0, 0, 0.5);
 	position: relative;
-	-webkit-box-shadow: 0px 5px 11px 0px rgba(50, 50, 50, 0.08);
-	box-shadow: 0px 5px 11px 0px rgba(50, 50, 50, 0.08);
-    padding: 235px 0 150px;
+	padding: 235px 0 150px;
 }
 .clear:before,
 .clear:after {
