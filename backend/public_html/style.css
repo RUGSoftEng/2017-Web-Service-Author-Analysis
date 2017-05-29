@@ -113,11 +113,16 @@ button, a[role="button"] {
 }
 
 a[role="button"].go {
+  position: absolute;
   display: block;
   width: 80pt;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
+  left: 0;
+  right: 0;
+  margin-top: 100pt;
+  bottom: 0;
 }
 
 .buttons button:hover, a[role="button"].go:hover {
@@ -473,16 +478,14 @@ div[id^="file-upload-"] {
   margin-right: 5%;
   width: 200pt;
   position: relative;
+  height: 340pt;
 }
 
 .home .row.align-items-start #profiling-square {
   margin-left: 5%;
   width: 200pt;
   position: relative;
-}
-
-.home #button-row {
-  margin-top: 20pt;
+  height: 340pt;
 }
 
 #attribution-square div.icon, #profiling-square div.icon {
