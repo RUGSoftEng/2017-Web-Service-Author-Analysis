@@ -1,4 +1,17 @@
-module InputField exposing (Model, Msg, init, fromString, update, view, subscriptions, addFile, UpdateConfig, ViewConfig)
+module InputField
+    exposing
+        ( Model
+        , Msg
+        , init
+        , fromString
+        , toStrings
+        , update
+        , view
+        , subscriptions
+        , addFile
+        , UpdateConfig
+        , ViewConfig
+        )
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -21,7 +34,6 @@ import Bootstrap.Card as Card
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Json.Decode as Decode
-import Json.Encode as Encode
 import Data.File exposing (File)
 import Data.TextInput as TextInput exposing (TextInput)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
@@ -52,6 +64,11 @@ init =
 fromString : String -> Model
 fromString string =
     { input = TextInput.fromString string, accordionModel = Accordion.initialState }
+
+
+toStrings : Model -> List String
+toStrings model =
+    TextInput.toStrings model.input
 
 
 addFile : File -> Model -> Model

@@ -1,6 +1,8 @@
 module Data.Attribution.Input exposing (..)
 
+import Char
 import Json.Encode as Encode
+import Result.Extra as Result
 import Utils exposing ((=>))
 import InputField
 import Data.TextInput as TextInput exposing (TextInput)
@@ -19,6 +21,93 @@ type alias Input =
     , genre : Genre
     , popovers : { deep : Popover.State, shallow : Popover.State }
     }
+
+
+type Validation
+    = Warning (List String)
+    | Error (List String)
+    | Success
+
+
+validate : String -> Validation
+validate str =
+    -- first see if there are errors, if so report them
+    -- then check for warnings. if there are any, report them
+    -- otherwise, succeed
+    errors str
+        |> Result.mapError Error
+        |> Result.andThen
+            (\_ ->
+                warnings str
+                    |> Result.mapError Warning
+                    |> Result.map (\_ -> Success)
+            )
+        |> Result.merge
+
+
+boolCheck : String -> { validator : String -> Bool, message : String } -> Result String ()
+boolCheck str { validator, message } =
+    if validator str then
+        Err message
+    else
+        Ok ()
+
+
+warnings : String -> Result (List String) ()
+warnings str =
+    let
+        tooShort =
+            { validator = \str -> String.length str > 140
+            , message = "Your input is a little short, try adding some more for better predictions"
+            }
+
+        checks =
+            [ tooShort ]
+    in
+        List.map (boolCheck str) checks
+            |> combineErrors
+
+
+errors str =
+    let
+        isNotEmpty =
+            { validator = not << String.isEmpty
+            , message = "The system needs text to analyze. Please give it some"
+            }
+
+        containsLowercase =
+            { validator = String.any (Char.isLower)
+            , message = "The system needs at least one lowercase character in your texts"
+            }
+
+        checks =
+            [ isNotEmpty
+            , containsLowercase
+            ]
+    in
+        List.map (boolCheck str) checks
+            |> combineErrors
+
+
+combineErrors : List (Result e a) -> Result (List e) a
+combineErrors elems =
+    case elems of
+        [] ->
+            Err []
+
+        [ Ok v ] ->
+            Ok v
+
+        (Err y) :: xs ->
+            case combineErrors xs of
+                Ok _ ->
+                    Err [ y ]
+
+                Err errors ->
+                    Err (y :: errors)
+
+        (Ok _) :: xs ->
+            combineErrors xs
 
 
 type Author
