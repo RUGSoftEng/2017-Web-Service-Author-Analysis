@@ -1,6 +1,7 @@
 module Data.Attribution.Input exposing (..)
 
 import Json.Encode as Encode
+import Utils exposing ((=>))
 import InputField
 import Data.TextInput as TextInput exposing (TextInput)
 import Data.Language as Language exposing (Language)
@@ -42,11 +43,6 @@ entropy: authors have distinct entropy profiles due to the varying lexical and m
 type FeatureCombo
     = Combo1
     | Combo4
-
-
-(=>) : a -> b -> ( a, b )
-(=>) =
-    (,)
 
 
 encoder : Input -> Encode.Value

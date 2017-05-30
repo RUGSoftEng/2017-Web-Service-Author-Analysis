@@ -7,6 +7,7 @@ easily translate it when needed.
 -}
 
 import Dict exposing (Dict)
+import Utils exposing ((=>))
 
 
 type alias Translations =
@@ -24,10 +25,7 @@ get dict key =
         |> Maybe.withDefault key
 
 
-(=>) =
-    (,)
-
-
+english : Translations
 english =
     { attribution =
         Dict.fromList
