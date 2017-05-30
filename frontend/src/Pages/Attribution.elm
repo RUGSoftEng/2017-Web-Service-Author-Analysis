@@ -19,7 +19,7 @@ import Data.Language as Language exposing (Language(..))
 import Config.Attribution as Config
 import InputField
 import Route
-import I18n exposing (Translation)
+import I18n exposing (Translation, Translator)
 import Examples exposing (sameAuthor, differentAuthor)
 import Views.Spinner exposing (spinner)
 
@@ -212,6 +212,7 @@ textCenter =
 loading : Translation -> Model -> Html Msg
 loading translation attribution =
     let
+        t : Translator
         t key =
             I18n.get translation key
     in
@@ -231,6 +232,7 @@ loading translation attribution =
 view : Translation -> Model -> Html Msg
 view translation attribution =
     let
+        t : Translator
         t key =
             I18n.get translation key
     in
@@ -262,7 +264,7 @@ view translation attribution =
             ]
 
 
-knownAuthorInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+knownAuthorInput : Translator -> InputField.Model -> Grid.Column Msg
 knownAuthorInput t knownAuthor =
     let
         {- config for an InputField
@@ -287,7 +289,7 @@ knownAuthorInput t knownAuthor =
             )
 
 
-unknownAuthorInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+unknownAuthorInput : Translator -> InputField.Model -> Grid.Column Msg
 unknownAuthorInput t unknownAuthor =
     let
         config : InputField.ViewConfig
@@ -305,7 +307,7 @@ unknownAuthorInput t unknownAuthor =
             )
 
 
-settings : (String -> String) -> Model -> List (Grid.Column Msg)
+settings : Translator -> Model -> List (Grid.Column Msg)
 settings t attribution =
     let
         genres =

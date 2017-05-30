@@ -18,6 +18,10 @@ type alias Translation =
     Dict String String
 
 
+type alias Translator =
+    String -> String
+
+
 get : Translation -> String -> String
 get dict key =
     dict
@@ -44,10 +48,11 @@ english =
             ]
     , profiling =
         Dict.fromList
-            [ "profiling-explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
-            , "profiling-label" => "Profiling text"
-            , "profiling-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
-            , "profiling-settings-language" => "Select the language in which the text is written"
+            [ "explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
+            , "age-plot-label" => "Profiling text"
+            , "age-plot-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
+            , "settings-language" => "Select the language in which the text is written"
+            , "language" => "Language"
             ]
     , home =
         Dict.fromList
