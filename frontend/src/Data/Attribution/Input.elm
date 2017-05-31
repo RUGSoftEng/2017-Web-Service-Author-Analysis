@@ -28,45 +28,36 @@ validate =
     Data.Validation.validate { errors = errors, warnings = warnings }
 
 
-warnings : String -> Result (List String) ()
-warnings str =
+warnings : List (String -> Maybe String)
+warnings =
     let
-        tooShort =
-            { validator = \str -> String.length str > 140
-            , message = "Your input is a little short, try adding some more for better predictions"
-            }
-
-        checks =
-            [ tooShort ]
+        tooShort s =
+            if String.length s < 140 then
+                Just "Your input is a little short, try adding some more for better predictions"
+            else
+                Nothing
     in
-        List.map (boolCheck str) checks
-            |> combineErrors
+        [ tooShort ]
 
 
-errors : String -> Result (List String) ()
-errors str =
+errors : List (String -> Maybe String)
+errors =
     let
-        _ =
-            Debug.log "input string" str
+        isNotEmpty s =
+            if String.isEmpty s then
+                Just "The system needs text to analyze. Please give it some"
+            else
+                Nothing
 
-        isNotEmpty =
-            { validator = not << String.isEmpty
-            , message = "The system needs text to analyze. Please give it some"
-            }
-
-        containsLowercase =
-            { validator = String.any (Char.isLower)
-            , message = "The system needs at least one lowercase character in your texts"
-            }
-
-        checks =
-            [ isNotEmpty
-            , containsLowercase
-            ]
+        containsLowercase s =
+            if not (String.any (Char.isLower) s) then
+                Just "The system needs at least one lowercase character in your texts"
+            else
+                Nothing
     in
-        List.map (boolCheck str) checks
-            |> Debug.log "verdict"
-            |> combineErrors
+        [ isNotEmpty
+        , containsLowercase
+        ]
 
 
 type Author

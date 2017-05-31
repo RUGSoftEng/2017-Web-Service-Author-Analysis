@@ -28,43 +28,39 @@ validate =
     Data.Validation.validate { errors = errors, warnings = warnings }
 
 
-warnings : String -> Result (List String) ()
-warnings str =
+warnings : List (String -> Maybe String)
+warnings =
     let
-        tooShort =
-            { validator = \str -> String.length str > 40
-            , message = "Your input is a little short, try adding some more for better predictions"
-            }
+        tooShort s =
+            if String.length s < 40 then
+                Just "Your input is a little short, try adding some more for better predictions"
+            else
+                Nothing
 
-        tooLong =
-            { validator = \str -> String.length str < 1000
-            , message = "Your input is very long. The profiling works best on smaller inputs"
-            }
-
-        checks =
-            [ tooShort, tooLong ]
+        tooLong s =
+            if String.length s > 1000 then
+                Just "Your input is very long. The profiling works best on smaller inputs"
+            else
+                Nothing
     in
-        List.map (boolCheck str) checks
-            |> combineErrors
+        [ tooShort, tooLong ]
 
 
-errors : String -> Result (List String) ()
-errors str =
+errors : List (String -> Maybe String)
+errors =
     let
-        isNotEmpty =
-            { validator = not << String.isEmpty
-            , message = "The system needs text to analyze. Please give it some"
-            }
+        isNotEmpty s =
+            if String.isEmpty s then
+                Just "The system needs text to analyze. Please give it some"
+            else
+                Nothing
 
-        oneLetter =
-            { validator = String.any (\c -> Char.isLower c || Char.isUpper c)
-            , message = "The system needs letters to do a prediction. Please give it some"
-            }
-
-        checks =
-            [ isNotEmpty
-            , oneLetter
-            ]
+        oneLetter s =
+            if not <| String.any (\c -> Char.isLower c || Char.isUpper c) s then
+                Just "The system needs letters to do a prediction. Please give it some"
+            else
+                Nothing
     in
-        List.map (boolCheck str) checks
-            |> combineErrors
+        [ isNotEmpty
+        , oneLetter
+        ]

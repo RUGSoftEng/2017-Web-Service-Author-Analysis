@@ -66,6 +66,7 @@ update config msg profiling =
                 updateConfig : InputField.UpdateConfig
                 updateConfig =
                     { readFiles = config.readFiles ( "profiling-file-input", "Profiling" )
+                    , validate = Data.Profiling.Input.validate
                     }
 
                 ( newInput, inputCommands ) =
@@ -159,7 +160,12 @@ view translation profiling =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ] ] [ text "Analyze!" ]
+                        [ Button.linkButton
+                            [ Button.primary
+                            , Button.disabled (not <| InputField.isValid profiling.text)
+                            , Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ]
+                            ]
+                            [ text "Analyze!" ]
                         ]
                     ]
                 , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t profiling)
@@ -184,7 +190,6 @@ textInput t text =
             , fileInputId = "profiling-file-input"
             , info = t "age-plot-description"
             , multiple = False
-            , validate = Data.Profiling.Input.validate
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|

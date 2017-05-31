@@ -9,6 +9,7 @@ module InputField
         , view
         , subscriptions
         , addFile
+        , isValid
         , UpdateConfig
         , ViewConfig
         )
@@ -52,19 +53,23 @@ type Msg
 
 
 type alias Model =
-    { input : TextInput, accordionModel : Accordion.State }
+    { input : TextInput
+    , validation : Validation
+    , accordionModel : Accordion.State
+    }
 
 
 init : Model
 init =
     { input = TextInput.empty
+    , validation = NotLoaded
     , accordionModel = Accordion.initialState
     }
 
 
 fromString : String -> Model
 fromString string =
-    { input = TextInput.fromString string, accordionModel = Accordion.initialState }
+    { input = TextInput.fromString string, accordionModel = Accordion.initialState, validation = NotLoaded }
 
 
 toStrings : Model -> List String
@@ -77,48 +82,75 @@ addFile file model =
     { model | input = TextInput.addFile file model.input }
 
 
+{-| Answers "can this input be sent to the server for prediction"
+-}
+isValid : Model -> Bool
+isValid model =
+    case model.validation of
+        Error _ ->
+            False
+
+        NotLoaded ->
+            False
+
+        Success ->
+            True
+
+        Warning _ ->
+            True
+
+
 type alias UpdateConfig =
-    { readFiles : Cmd Msg }
+    { readFiles : Cmd Msg
+    , validate : String -> Validation
+    }
 
 
 update : UpdateConfig -> Msg -> Model -> ( Model, Cmd Msg )
 update config msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
+    let
+        revalidate model =
+            { model | validation = config.validate (String.concat (TextInput.toStrings model.input)) }
+    in
+        case msg of
+            NoOp ->
+                ( model, Cmd.none )
 
-        AccordionMsg accordionModel ->
-            ( { model | accordionModel = accordionModel }
-            , Cmd.none
-            )
+            AccordionMsg accordionModel ->
+                ( { model | accordionModel = accordionModel }
+                , Cmd.none
+                )
 
-        AddFile file ->
-            ( { model | input = TextInput.addFile file model.input }
-            , Cmd.none
-            )
+            AddFile file ->
+                ( { model | input = TextInput.addFile file model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        RemoveFile index ->
-            ( { model | input = TextInput.removeAtIndex index model.input }
-            , Cmd.none
-            )
+            RemoveFile index ->
+                ( { model | input = TextInput.removeAtIndex index model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        ChangeText newText ->
-            ( { model | input = TextInput.setText newText model.input }
-            , Cmd.none
-            )
+            ChangeText newText ->
+                ( { model | input = TextInput.setText newText model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        SetPaste ->
-            ( { model | input = TextInput.toPaste model.input }
-            , Cmd.none
-            )
+            SetPaste ->
+                ( { model | input = TextInput.toPaste model.input }
+                , Cmd.none
+                )
 
-        SetUpload ->
-            ( { model | input = TextInput.toUpload model.input }
-            , Cmd.none
-            )
+            SetUpload ->
+                ( { model | input = TextInput.toUpload model.input }
+                , Cmd.none
+                )
 
-        SendListenForFiles ->
-            ( model, config.readFiles )
+            SendListenForFiles ->
+                ( model, config.readFiles )
 
 
 type alias ViewConfig =
@@ -127,7 +159,6 @@ type alias ViewConfig =
     , radioButtonName : String
     , info : String
     , multiple : Bool
-    , validate : String -> Validation
     }
 
 
@@ -137,55 +168,48 @@ view config model =
     , span [] [ text config.info ]
     , switchButtons model config.radioButtonName
     , if TextInput.isPaste model.input then
-        let
-            validated =
-                TextInput.toStrings model.input
-                    |> List.head
-                    |> Maybe.withDefault ""
-                    |> config.validate
-        in
-            case validated of
-                NotLoaded ->
-                    div [ class "form-group" ]
-                        [ textarea
-                            [ onInput ChangeText
-                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                            , class "form-control"
-                            ]
-                            [ text (TextInput.text model.input) ]
+        case model.validation of
+            NotLoaded ->
+                div [ class "form-group" ]
+                    [ textarea
+                        [ onInput ChangeText
+                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                        , class "form-control"
                         ]
+                        [ text (TextInput.text model.input) ]
+                    ]
 
-                Success ->
-                    div [ class "form-group has-success" ]
-                        [ textarea
-                            [ onInput ChangeText
-                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                            , class "form-control form-control-success"
-                            ]
-                            [ text (TextInput.text model.input) ]
+            Success ->
+                div [ class "form-group has-success" ]
+                    [ textarea
+                        [ onInput ChangeText
+                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                        , class "form-control form-control-success"
                         ]
+                        [ text (TextInput.text model.input) ]
+                    ]
 
-                Warning ws ->
-                    div [ class "form-group has-warning" ]
-                        [ textarea
-                            [ onInput ChangeText
-                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                            , class "form-control form-control-warning"
-                            ]
-                            [ text (TextInput.text model.input) ]
-                        , div [ class "form-control-feedback" ] [ text (toString ws) ]
+            Warning ws ->
+                div [ class "form-group has-warning" ]
+                    [ textarea
+                        [ onInput ChangeText
+                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                        , class "form-control form-control-warning"
                         ]
+                        [ text (TextInput.text model.input) ]
+                    , div [ class "form-control-feedback" ] [ text ws ]
+                    ]
 
-                Error es ->
-                    div [ class "form-group has-danger" ]
-                        [ textarea
-                            [ onInput ChangeText
-                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                            , class "form-control form-control-error"
-                            ]
-                            [ text (TextInput.text model.input) ]
-                        , div [ class "form-control-feedback" ] [ text (toString es) ]
+            Error es ->
+                div [ class "form-group has-danger" ]
+                    [ textarea
+                        [ onInput ChangeText
+                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                        , class "form-control form-control-error"
                         ]
+                        [ text (TextInput.text model.input) ]
+                    , div [ class "form-control-feedback" ] [ text es ]
+                    ]
       else
         div []
             [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)

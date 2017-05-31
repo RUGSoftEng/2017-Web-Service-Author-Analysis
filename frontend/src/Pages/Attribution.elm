@@ -111,6 +111,7 @@ update config msg attribution =
                 updateConfig : InputField.UpdateConfig
                 updateConfig =
                     { readFiles = config.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+                    , validate = Data.Attribution.Input.validate
                     }
 
                 ( newInput, inputCommands ) =
@@ -125,6 +126,7 @@ update config msg attribution =
                 updateConfig : InputField.UpdateConfig
                 updateConfig =
                     { readFiles = config.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+                    , validate = Data.Attribution.Input.validate
                     }
 
                 ( newInput, inputCommands ) =
@@ -251,13 +253,26 @@ view translation attribution =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Compare!" ]
+                        [ Button.linkButton
+                            [ Button.primary
+                            , Button.disabled (not <| InputField.isValid attribution.knownAuthor && InputField.isValid attribution.unknownAuthor)
+                            , Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ]
+                            ]
+                            [ text "Compare!" ]
                         ]
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
-                        , Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                        [ Button.button
+                            [ Button.secondary
+                            , Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ]
+                            ]
+                            [ text "Load Example - same authors" ]
+                        , Button.button
+                            [ Button.secondary
+                            , Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ]
+                            ]
+                            [ text "Load Example - different authors" ]
                         ]
                     ]
                 , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t attribution)
@@ -282,7 +297,6 @@ knownAuthorInput t knownAuthor =
             , fileInputId = "attribution-known-author-file-input"
             , info = t "known-author-description"
             , multiple = True
-            , validate = Data.Attribution.Input.validate
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
@@ -301,7 +315,6 @@ unknownAuthorInput t unknownAuthor =
             , fileInputId = "attribution-unknown-author-file-input"
             , info = t "unknown-author-description"
             , multiple = False
-            , validate = Data.Attribution.Input.validate
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
