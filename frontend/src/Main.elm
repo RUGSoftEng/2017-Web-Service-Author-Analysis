@@ -6,6 +6,7 @@ This file wires all parts of the app together.
 
 import Html exposing (Html)
 import Http
+import Dict
 import Bootstrap.Navbar as Navbar
 
 
@@ -19,8 +20,6 @@ import Ports
 
 import Navigation exposing (Location)
 import Task exposing (Task)
-import Process
-import Time
 
 
 -- import InputField
@@ -133,7 +132,7 @@ init location =
             { pageState = Loaded initialPage
             , headerState = headerState
             , footerState = footerState
-            , translations = I18n.english
+            , translations = I18n.dutch
             , attributionRequest = Idle
             , profilingRequest = Idle
             }
@@ -179,12 +178,18 @@ viewPage headerState footerState translations isLoading page =
                 let
                     customFrame =
                         Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+
+                    translation =
+                        translations.attribution
+                            |> Dict.union translations.input
+                            |> Dict.union translations.language
+                            |> Dict.union translations.genre
                 in
                     if isLoading then
-                        Attribution.loading translations.attribution subModel
+                        Attribution.loading translation subModel
                             |> customFrame AttributionMsg Nothing
                     else
-                        Attribution.view translations.attribution subModel
+                        Attribution.view translation subModel
                             |> customFrame AttributionMsg Nothing
 
             AttributionPrediction subModel ->
@@ -195,12 +200,17 @@ viewPage headerState footerState translations isLoading page =
                 let
                     customFrame =
                         Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+
+                    translation =
+                        translations.profiling
+                            |> Dict.union translations.input
+                            |> Dict.union translations.language
                 in
                     if isLoading then
-                        Profiling.loading translations.profiling subModel
+                        Profiling.loading translation subModel
                             |> customFrame ProfilingMsg Nothing
                     else
-                        Profiling.view translations.profiling subModel
+                        Profiling.view translation subModel
                             |> customFrame ProfilingMsg Nothing
 
             ProfilingPrediction subModel ->

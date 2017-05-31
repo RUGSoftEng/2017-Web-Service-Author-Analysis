@@ -18,7 +18,7 @@ import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
 import InputField
 import Route
-import I18n exposing (Translation)
+import I18n exposing (Translation, Translator)
 
 
 type alias Model =
@@ -141,7 +141,7 @@ view translation profiling =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Profiling" ]
+                        [ h1 [] [ text (t "title") ]
                         , span [ class "explanation" ]
                             [ text (I18n.get translation "profiling-explanation")
                             ]
@@ -152,7 +152,7 @@ view translation profiling =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ] ] [ text "Analyze!" ]
+                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ] ] [ text (t "analyze") ]
                         ]
                     ]
                   {-
@@ -163,7 +163,7 @@ view translation profiling =
                              ]
                          ]
                   -}
-                , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings translation profiling)
+                , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t profiling)
                 ]
             ]
 
@@ -185,6 +185,7 @@ textInput t text =
             , fileInputId = "profiling-file-input"
             , info = t "profiling-description"
             , multiple = False
+            , translator = t
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
@@ -193,8 +194,8 @@ textInput t text =
             )
 
 
-settings : Translation -> Model -> List (Grid.Column Msg)
-settings translation profiling =
+settings : Translator -> Model -> List (Grid.Column Msg)
+settings t profiling =
     let
         languageRadio language =
             li []
@@ -205,13 +206,13 @@ settings translation profiling =
                         , onClick (SetLanguage language)
                         ]
                         []
-                    , text (Language.fullName language)
+                    , text (t (toString language))
                     ]
                 ]
     in
         [ Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text "Language" ]
-            , span [] [ text (I18n.get translation "profiling-settings-language") ]
+            [ h2 [] [ text (t "profiling-settings-language") ]
+            , span [] [ text (t "profiling-settings-language-description") ]
             , ul [] (List.map languageRadio profiling.languages)
             ]
         ]
