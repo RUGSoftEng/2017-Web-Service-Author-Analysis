@@ -16,6 +16,7 @@ import Data.Attribution.Input exposing (..)
 import Data.Attribution.Genre as Genre exposing (Genre)
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
+import Data.Validation exposing (Validation)
 import Config.Attribution as Config
 import InputField
 import Route
@@ -26,6 +27,11 @@ import Views.Spinner exposing (spinner)
 
 type alias Model =
     Data.Attribution.Input.Input
+
+
+validator : String -> Validation
+validator =
+    Data.Attribution.Input.validate
 
 
 {-| Initial state of the Attribution page
@@ -163,16 +169,16 @@ update config msg attribution =
 
         LoadExample SameAuthor ->
             ( { attribution
-                | knownAuthor = InputField.fromString sameAuthor.knownAuthor
-                , unknownAuthor = InputField.fromString sameAuthor.unknownAuthor
+                | knownAuthor = InputField.fromString validator sameAuthor.knownAuthor
+                , unknownAuthor = InputField.fromString validator sameAuthor.unknownAuthor
               }
             , Cmd.none
             )
 
         LoadExample DifferentAuthor ->
             ( { attribution
-                | knownAuthor = InputField.fromString differentAuthor.knownAuthor
-                , unknownAuthor = InputField.fromString differentAuthor.unknownAuthor
+                | knownAuthor = InputField.fromString validator differentAuthor.knownAuthor
+                , unknownAuthor = InputField.fromString validator differentAuthor.unknownAuthor
               }
             , Cmd.none
             )
@@ -182,10 +188,10 @@ addFile : ( String, File ) -> Model -> Model
 addFile ( identifier, file ) attribution =
     case identifier of
         "KnownAuthor" ->
-            { attribution | knownAuthor = InputField.addFile file attribution.knownAuthor }
+            { attribution | knownAuthor = InputField.addFile validator file attribution.knownAuthor }
 
         "UnknownAuthor" ->
-            { attribution | unknownAuthor = InputField.addFile file attribution.unknownAuthor }
+            { attribution | unknownAuthor = InputField.addFile validator file attribution.unknownAuthor }
 
         _ ->
             Debug.crash <| "File with invalid id `" ++ identifier ++ "` cannot be added"

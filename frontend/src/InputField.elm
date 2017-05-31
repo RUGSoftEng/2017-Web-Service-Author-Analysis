@@ -35,6 +35,7 @@ import Bootstrap.Card as Card
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Json.Decode as Decode
+import Utils exposing ((=>))
 import Data.File exposing (File)
 import Data.TextInput as TextInput exposing (TextInput)
 import Data.Validation as Validation exposing (Validation(..))
@@ -67,9 +68,9 @@ init =
     }
 
 
-fromString : String -> Model
-fromString string =
-    { input = TextInput.fromString string, accordionModel = Accordion.initialState, validation = NotLoaded }
+fromString : (String -> Validation) -> String -> Model
+fromString validator string =
+    { input = TextInput.fromString string, accordionModel = Accordion.initialState, validation = validator string }
 
 
 toStrings : Model -> List String
@@ -77,9 +78,16 @@ toStrings model =
     TextInput.toStrings model.input
 
 
-addFile : File -> Model -> Model
-addFile file model =
-    { model | input = TextInput.addFile file model.input }
+addFile : (String -> Validation) -> File -> Model -> Model
+addFile validator file model =
+    let
+        newInput =
+            TextInput.addFile file model.input
+    in
+        { model
+            | input = newInput
+            , validation = validator (String.concat (TextInput.toStrings newInput))
+        }
 
 
 {-| Answers "can this input be sent to the server for prediction"
@@ -122,8 +130,7 @@ update config msg model =
                 )
 
             AddFile file ->
-                ( { model | input = TextInput.addFile file model.input }
-                    |> revalidate
+                ( addFile config.validate file model
                 , Cmd.none
                 )
 
@@ -141,11 +148,13 @@ update config msg model =
 
             SetPaste ->
                 ( { model | input = TextInput.toPaste model.input }
+                    |> revalidate
                 , Cmd.none
                 )
 
             SetUpload ->
                 ( { model | input = TextInput.toUpload model.input }
+                    |> revalidate
                 , Cmd.none
                 )
 
@@ -167,64 +176,61 @@ view config model =
     [ h2 [] [ text config.label ]
     , span [] [ text config.info ]
     , switchButtons model config.radioButtonName
-    , if TextInput.isPaste model.input then
-        case model.validation of
-            NotLoaded ->
-                div [ class "form-group" ]
-                    [ textarea
-                        [ onInput ChangeText
-                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                        , class "form-control"
-                        ]
-                        [ text (TextInput.text model.input) ]
-                    ]
+    , let
+        feedback =
+            case model.validation of
+                NotLoaded ->
+                    text ""
 
-            Success ->
-                div [ class "form-group has-success" ]
-                    [ textarea
-                        [ onInput ChangeText
-                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                        , class "form-control form-control-success"
-                        ]
-                        [ text (TextInput.text model.input) ]
-                    ]
+                Success ->
+                    text ""
 
-            Warning ws ->
-                div [ class "form-group has-warning" ]
-                    [ textarea
-                        [ onInput ChangeText
-                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                        , class "form-control form-control-warning"
-                        ]
-                        [ text (TextInput.text model.input) ]
-                    , div [ class "form-control-feedback" ] [ text ws ]
-                    ]
+                Error e ->
+                    div [ class "form-control-feedback" ] [ text e ]
 
-            Error es ->
-                div [ class "form-group has-danger" ]
-                    [ textarea
-                        [ onInput ChangeText
-                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                        , class "form-control form-control-error"
-                        ]
-                        [ text (TextInput.text model.input) ]
-                    , div [ class "form-control-feedback" ] [ text es ]
+                Warning w ->
+                    div [ class "form-control-feedback" ] [ text w ]
+
+        classes =
+            case model.validation of
+                NotLoaded ->
+                    [ "form-group" => True, "has-success" => False, "has-warning" => False, "has-danger" => False ]
+
+                Success ->
+                    [ "form-group" => True, "has-success" => True, "has-warning" => False, "has-danger" => False ]
+
+                Warning w ->
+                    [ "form-group" => True, "has-success" => False, "has-warning" => True, "has-danger" => False ]
+
+                Error e ->
+                    [ "form-group" => True, "has-success" => False, "has-warning" => False, "has-danger" => True ]
+      in
+        if TextInput.isPaste model.input then
+            div [ classList classes ]
+                [ textarea
+                    [ onInput ChangeText
+                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                    , class "form-control form-control-warning"
                     ]
-      else
-        div []
-            [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
-            , label [ class "form-group", class "file-upload-button", class "card-header" ]
-                [ span [] [ text "Choose file" ]
-                , input
-                    [ type_ "file"
-                    , on "change" (Decode.succeed SendListenForFiles)
-                    , id config.fileInputId
-                    , multiple config.multiple
-                    , disabled (not config.multiple && not (TextInput.isEmpty model.input))
-                    ]
-                    []
+                    [ text (TextInput.text model.input) ]
+                , feedback
                 ]
-            ]
+        else
+            div [ classList classes ]
+                [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
+                , label [ class "form-group", class "file-upload-button", class "card-header" ]
+                    [ span [] [ text "Choose file" ]
+                    , input
+                        [ type_ "file"
+                        , on "change" (Decode.succeed SendListenForFiles)
+                        , id config.fileInputId
+                        , multiple config.multiple
+                        , disabled (not config.multiple && not (TextInput.isEmpty model.input))
+                        ]
+                        []
+                    ]
+                , feedback
+                ]
     ]
 
 
