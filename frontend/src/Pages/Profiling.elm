@@ -16,6 +16,7 @@ import Config.Profiling as Config
 import Data.Profiling.Input
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
+import Data.Validation exposing (Validation)
 import InputField
 import Route
 import I18n exposing (Translation, Translator)
@@ -23,6 +24,11 @@ import I18n exposing (Translation, Translator)
 
 type alias Model =
     Data.Profiling.Input.Input
+
+
+validator : String -> Validation
+validator =
+    Data.Profiling.Input.validate
 
 
 {-| Initial state of the Attribution page
@@ -89,7 +95,7 @@ addFile : ( String, File ) -> Model -> Model
 addFile ( identifier, file ) profiling =
     case identifier of
         "Profiling" ->
-            { profiling | text = InputField.addFile file profiling.text }
+            { profiling | text = InputField.addFile validator file profiling.text }
 
         _ ->
             Debug.crash <| "File with invalid id `" ++ identifier ++ "` cannot be added"
