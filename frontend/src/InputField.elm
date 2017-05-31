@@ -36,6 +36,7 @@ import Bootstrap.ButtonGroup as ButtonGroup
 import Json.Decode as Decode
 import Data.File exposing (File)
 import Data.TextInput as TextInput exposing (TextInput)
+import Data.Validation as Validation exposing (Validation(..))
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 
 
@@ -126,6 +127,7 @@ type alias ViewConfig =
     , radioButtonName : String
     , info : String
     , multiple : Bool
+    , validate : String -> Validation
     }
 
 
@@ -135,11 +137,55 @@ view config model =
     , span [] [ text config.info ]
     , switchButtons model config.radioButtonName
     , if TextInput.isPaste model.input then
-        textarea
-            [ onInput ChangeText
-            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-            ]
-            [ text (TextInput.text model.input) ]
+        let
+            validated =
+                TextInput.toStrings model.input
+                    |> List.head
+                    |> Maybe.withDefault ""
+                    |> config.validate
+        in
+            case validated of
+                NotLoaded ->
+                    div [ class "form-group" ]
+                        [ textarea
+                            [ onInput ChangeText
+                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                            , class "form-control"
+                            ]
+                            [ text (TextInput.text model.input) ]
+                        ]
+
+                Success ->
+                    div [ class "form-group has-success" ]
+                        [ textarea
+                            [ onInput ChangeText
+                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                            , class "form-control form-control-success"
+                            ]
+                            [ text (TextInput.text model.input) ]
+                        ]
+
+                Warning ws ->
+                    div [ class "form-group has-warning" ]
+                        [ textarea
+                            [ onInput ChangeText
+                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                            , class "form-control form-control-warning"
+                            ]
+                            [ text (TextInput.text model.input) ]
+                        , div [ class "form-control-feedback" ] [ text (toString ws) ]
+                        ]
+
+                Error es ->
+                    div [ class "form-group has-danger" ]
+                        [ textarea
+                            [ onInput ChangeText
+                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                            , class "form-control form-control-error"
+                            ]
+                            [ text (TextInput.text model.input) ]
+                        , div [ class "form-control-feedback" ] [ text (toString es) ]
+                        ]
       else
         div []
             [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)

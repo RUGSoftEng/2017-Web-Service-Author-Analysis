@@ -205,6 +205,7 @@ subscriptions model =
 -- View
 
 
+textCenter : Col.Option msg
 textCenter =
     Col.attrs [ class "text-center" ]
 
@@ -281,6 +282,7 @@ knownAuthorInput t knownAuthor =
             , fileInputId = "attribution-known-author-file-input"
             , info = t "known-author-description"
             , multiple = True
+            , validate = Data.Attribution.Input.validate
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
@@ -299,6 +301,7 @@ unknownAuthorInput t unknownAuthor =
             , fileInputId = "attribution-unknown-author-file-input"
             , info = t "unknown-author-description"
             , multiple = False
+            , validate = Data.Attribution.Input.validate
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|

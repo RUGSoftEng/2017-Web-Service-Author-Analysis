@@ -184,6 +184,7 @@ textInput t text =
             , fileInputId = "profiling-file-input"
             , info = t "age-plot-description"
             , multiple = False
+            , validate = Data.Profiling.Input.validate
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
