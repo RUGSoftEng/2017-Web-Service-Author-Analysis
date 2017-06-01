@@ -145,7 +145,7 @@ update config msg attribution =
             )
 
         SetLanguage newLanguage ->
-            ( { attribution | language = newLanguage }
+            ( { attribution | language = newLanguage, genre = Config.defaultGenre newLanguage }
             , Cmd.none
             )
 

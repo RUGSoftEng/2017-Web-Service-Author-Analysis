@@ -35,7 +35,7 @@ defaultGenre : Language -> Genre
 defaultGenre language =
     case language of
         EN ->
-            Novel
+            Essay
 
         NL ->
             Essay
