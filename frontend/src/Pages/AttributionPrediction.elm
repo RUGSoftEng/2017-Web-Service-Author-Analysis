@@ -17,6 +17,7 @@ import Bootstrap.Progress as Progress
 --
 
 import Config.Attribution.Plots as Plots
+import I18n exposing (Translator)
 import Data.Attribution.Input as Attribution exposing (..)
 import Data.Attribution.Statistics exposing (Statistics)
 import Request.Attribution
@@ -61,33 +62,42 @@ init input =
         Task.map (\{ confidence, statistics } -> Model confidence statistics plotState input) loadPrediction
 
 
-view : Model -> Html Msg
-view model =
+view : Translator -> Model -> Html Msg
+view t model =
     div [ class "content" ]
-        [ Grid.container [] (viewResult model)
+        [ Grid.container [] (viewResult t model)
         ]
 
 
-viewResult : Model -> List (Html PlotSlideShow.Msg)
-viewResult { plotState, confidence, statistics } =
-    [ Grid.row []
-        [ Grid.col []
-            [ h1 [] [ text "Results" ]
+viewResult : Translator -> Model -> List (Html PlotSlideShow.Msg)
+viewResult t { plotState, confidence, statistics } =
+    let
+        plotConfig : PlotSlideShow.Config Statistics PlotSlideShow.Msg
+        plotConfig =
+            PlotSlideShow.config
+                { plots = Plots.plots
+                , toMsg = identity
+                , t = t
+                }
+    in
+        [ Grid.row []
+            [ Grid.col []
+                [ h1 [] [ text (t "title") ]
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                [ Progress.progress [ Progress.value (floor <| confidence * 100) ]
+                , h4 [ style [ ( "margin-top", "20px" ) ] ] [ text <| (t "same-author-confidence") ++ ": " ++ toString (round <| confidence * 100) ++ "%" ]
+                , hr [] []
+                ]
+            ]
+        , Grid.row [] [ Grid.col [] [ h3 [] [ text (t "document-analysis") ] ] ]
+        , Grid.row []
+            [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                [ PlotSlideShow.view plotConfig plotState statistics ]
             ]
         ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-            [ Progress.progress [ Progress.value (floor <| confidence * 100) ]
-            , h4 [ style [ ( "margin-top", "20px" ) ] ] [ text <| "Same author confidence: " ++ toString (round <| confidence * 100) ++ "%" ]
-            , hr [] []
-            ]
-        ]
-    , Grid.row [] [ Grid.col [] [ h3 [] [ text "Document Analysis" ] ] ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-            [ PlotSlideShow.view plotConfig plotState statistics ]
-        ]
-    ]
 
 
 featureComboToLabel : FeatureCombo -> String
@@ -98,15 +108,3 @@ featureComboToLabel combo =
 
         Combo4 ->
             "deep"
-
-
-{-| Config for plots
-* plots: what plots to display
-* toMsg: how to wrap messages emitted by the PlotSlideShow
--}
-plotConfig : PlotSlideShow.Config Statistics PlotSlideShow.Msg
-plotConfig =
-    PlotSlideShow.config
-        { plots = Plots.plots
-        , toMsg = identity
-        }

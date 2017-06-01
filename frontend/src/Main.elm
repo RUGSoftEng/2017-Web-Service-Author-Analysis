@@ -193,8 +193,13 @@ viewPage headerState footerState translations isLoading page =
                             |> customFrame AttributionMsg Nothing
 
             AttributionPrediction subModel ->
-                AttributionPrediction.view subModel
-                    |> frame AttributionPredictionMsg Nothing
+                let
+                    translation =
+                        translations.attributionPrediction
+                            |> Dict.union translations.attributionPlots
+                in
+                    AttributionPrediction.view (I18n.get translation) subModel
+                        |> frame AttributionPredictionMsg Nothing
 
             Profiling subModel ->
                 let
@@ -214,8 +219,13 @@ viewPage headerState footerState translations isLoading page =
                             |> customFrame ProfilingMsg Nothing
 
             ProfilingPrediction subModel ->
-                ProfilingPrediction.view subModel
-                    |> frame ProfilingPredictionMsg Nothing
+                let
+                    translation =
+                        translations.profilingPrediction
+                            |> Dict.union translations.profilingPlots
+                in
+                    ProfilingPrediction.view (I18n.get translation) subModel
+                        |> frame ProfilingPredictionMsg Nothing
 
             Home ->
                 Home.view translations.home

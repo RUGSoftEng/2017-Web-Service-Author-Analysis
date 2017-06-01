@@ -13,7 +13,11 @@ import Data.Attribution.Genre exposing (Genre(..))
 
 type alias Translations =
     { attribution : Translation
+    , attributionPrediction : Translation
+    , attributionPlots : Translation
     , profiling : Translation
+    , profilingPrediction : Translation
+    , profilingPlots : Translation
     , home : Translation
     , input : Translation
     , language : Translation
@@ -47,9 +51,9 @@ dutch =
             [ "title" => "Attributie"
             , "explanation" => "Het attributiesysteem voorspelt hoe waarschijnlijk het is dat twee teksten door dezelfde auteur zijn geschreven."
             , "known-author-label" => "Teksten van de bekende auteur"
-            , "known-author-description" => "Plaats hier teksten waarvan de auteur bekend is. Tekst kan geplakt worden, of een of meer bestanden geuploaded. "
+            , "known-author-description" => "Plaats hier teksten waarvan de auteur bekend is. Tekst kan geplakt worden, of een of meer bestanden geüpload. "
             , "unknown-author-label" => "Tekst van een onbekende auteur"
-            , "unknown-author-description" => "Plaats hier een tekst waarvan de auteur onbekend is. Tekst kan geplakt worden, of een of meer bestanden geuploaded. "
+            , "unknown-author-description" => "Plaats hier een tekst waarvan de auteur onbekend is. Tekst kan geplakt worden, of een of meer bestanden geüpload. "
             , "compare" => "Vergelijk!"
             , "load-example-same-author" => "Laad voorbeeld - zelfde auteur"
             , "load-example-different-authors" => "Laad voorbeeld - verschillende auteurs"
@@ -63,17 +67,89 @@ dutch =
             , "combo4" => "Alle"
             , "combo1-description" => "Voorspel enkel met de meest belangrijke features"
             , "combo4-description" => "Gebruik alle features voor de voorspelling"
+            , "loading-performing-analysis" => "Analyseren"
+            , "loading-cancel" => "Cancel"
             ]
+    , attributionPrediction =
+        Dict.fromList
+            [ "title" => "Resultaten"
+            , "same-author-confidence" => "Vertrouwen zelfde auteur"
+            , "document-analysis" => "Documentanalyse"
+            ]
+    , attributionPlots =
+        let
+            full =
+                [ { name = "punctuation"
+                  , id = "punctuation"
+                  , title = "punctuation per character"
+                  , description = "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)"
+                  }
+                , { id = "line-endings"
+                  , name = "line endings"
+                  , title = "line endings per character"
+                  , description = "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)"
+                  }
+                , { name = "ngram SIM"
+                  , id = "ngram-sim"
+                  , title = "anagram similarity"
+                  , description = "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI"
+                  }
+                , { name = "ngram SPI"
+                  , id = "ngram-spi"
+                  , title = "anagram SPI"
+                  , description = "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
+                  }
+                , { name = "similarities"
+                  , id = "similarities"
+                  , title = "similarities"
+                  , description = "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block"
+                  }
+                ]
+
+            toPair { name, id, title, description } =
+                [ (id ++ "-name") => name
+                , (id ++ "-title") => title
+                , (id ++ "-description") => description
+                ]
+        in
+            List.concatMap toPair full
+                |> Dict.fromList
     , profiling =
         Dict.fromList
             [ "title" => "Profileren"
             , "analyze" => "Analyseer!"
             , "profiling-explanation" => "Het profileersysteem voorspelt op basis van een tekst de leeftijd en het geslacht van de auteur"
             , "profiling-label" => "Profileer"
-            , "profiling-description" => "Plaats hier een tekst. Tekst kan geplakt worden, of een of meer bestanden geuploaded. "
+            , "profiling-description" => "Plaats hier een tekst. Tekst kan geplakt worden, of een of meer bestanden geüpload. "
             , "profiling-settings-language" => "Taal"
             , "profiling-settings-language-description" => "Selecteer de taal waarin de tekst geschreven is"
+            , "loading-performing-analysis" => "Analyseren"
+            , "loading-cancel" => "Cancel"
             ]
+    , profilingPrediction =
+        Dict.fromList
+            [ "results" => "Resultaten"
+            , "gender" => "Geslacht"
+            , "plots" => "Plots"
+            ]
+    , profilingPlots =
+        let
+            full =
+                [ { id = "age-distribution"
+                  , name = "age"
+                  , title = "Age Distribution"
+                  , description = "Probability distribution for age"
+                  }
+                ]
+
+            toPair { name, id, title, description } =
+                [ (id ++ "-name") => name
+                , (id ++ "-title") => title
+                , (id ++ "-description") => description
+                ]
+        in
+            List.concatMap toPair full
+                |> Dict.fromList
     , home =
         Dict.fromList
             [ "attribution" => "Given one or more texts that we know are written by the same person, the system will predict whether a new, unknown text is also written by the same person."
@@ -166,7 +242,53 @@ english =
             , "combo4" => "Deep"
             , "combo1-description" => "Only take the most important features into account"
             , "combo4-description" => "Take all features into account"
+            , "loading-performing-analysis" => "Performing analysis"
+            , "loading-cancel" => "Cancel"
             ]
+    , attributionPrediction =
+        Dict.fromList
+            [ "title" => "Results"
+            , "same-author-confidence" => "Same author confidence"
+            , "document-analysis" => "Document Analysis"
+            ]
+    , attributionPlots =
+        let
+            full =
+                [ { name = "punctuation"
+                  , id = "punctuation"
+                  , title = "punctuation per character"
+                  , description = "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)"
+                  }
+                , { id = "line-endings"
+                  , name = "line endings"
+                  , title = "line endings per character"
+                  , description = "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)"
+                  }
+                , { name = "ngram SIM"
+                  , id = "ngram-sim"
+                  , title = "anagram similarity"
+                  , description = "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI"
+                  }
+                , { name = "ngram SPI"
+                  , id = "ngram-spi"
+                  , title = "anagram SPI"
+                  , description = "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
+                  }
+                , { name = "similarities"
+                  , id = "similarities"
+                  , title = "similarities"
+                  , description = "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block"
+                  }
+                ]
+
+            toPair { name, id, title, description } =
+                [ (id ++ "-name") => name
+                , (id ++ "-title") => title
+                , (id ++ "-description") => description
+                ]
+        in
+            List.concatMap toPair full
+                |> Dict.fromList
     , profiling =
         Dict.fromList
             [ "title" => "Profiling"
@@ -176,7 +298,33 @@ english =
             , "profiling-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
             , "profiling-settings-language" => "Language"
             , "profiling-settings-language-description" => "Select the language in which the text is written"
+            , "loading-performing-analysis" => "Performing analysis"
+            , "loading-cancel" => "Cancel"
             ]
+    , profilingPrediction =
+        Dict.fromList
+            [ "title" => "Results"
+            , "gender" => "Gender"
+            , "plots" => "Plots"
+            ]
+    , profilingPlots =
+        let
+            full =
+                [ { id = "age-distribution"
+                  , name = "age"
+                  , title = "age-distribution"
+                  , description = "Probability distribution for age"
+                  }
+                ]
+
+            toPair { name, id, title, description } =
+                [ (id ++ "-name") => name
+                , (id ++ "-title") => title
+                , (id ++ "-description") => description
+                ]
+        in
+            List.concatMap toPair full
+                |> Dict.fromList
     , home =
         Dict.fromList
             [ "attribution" => "Given one or more texts that we know are written by the same person, the system will predict whether a new, unknown text is also written by the same person."
