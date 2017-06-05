@@ -34,6 +34,7 @@ import Views.Page as Page
 import Data.File exposing (File)
 import Route exposing (Route)
 import I18n exposing (Translations)
+import Config.Translations.English as English
 
 
 type alias PageLoadError =
@@ -132,7 +133,7 @@ init location =
             { pageState = Loaded initialPage
             , headerState = headerState
             , footerState = footerState
-            , translations = I18n.dutch
+            , translations = English.translations
             , attributionRequest = Idle
             , profilingRequest = Idle
             }
@@ -163,22 +164,31 @@ view model =
 viewPage : Navbar.State -> Navbar.State -> Translations -> Bool -> Page -> Html Msg
 viewPage headerState footerState translations isLoading page =
     let
-        frame =
-            Page.frame headerState footerState isLoading (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+        frameConfig contentMsg transition content =
+            { headerState = headerState
+            , footerState = footerState
+            , headerMsg = NavbarMsg HeaderBar
+            , footerMsg = NavbarMsg FooterBar
+            , contentMsg = contentMsg
+            , content = content
+            , transition = transition
+            , t = I18n.get translations.general
+            }
     in
         case page of
             NotFound ->
-                Html.text "page not found" |> frame (always NoOp) Nothing
+                Html.text "page not found"
+                    |> frameConfig (always NoOp) Nothing
+                    |> Page.frame
 
             Blank ->
                 -- displayed on initial page load, when other stuff is maybe still loading
-                Html.text "We're blank" |> frame (always NoOp) Nothing
+                Html.text "We're blank"
+                    |> frameConfig (always NoOp) Nothing
+                    |> Page.frame
 
             Attribution subModel ->
                 let
-                    customFrame =
-                        Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
-
                     translation =
                         translations.attribution
                             |> Dict.union translations.input
@@ -187,10 +197,12 @@ viewPage headerState footerState translations isLoading page =
                 in
                     if isLoading then
                         Attribution.loading translation subModel
-                            |> customFrame AttributionMsg Nothing
+                            |> frameConfig AttributionMsg Nothing
+                            |> Page.frame
                     else
                         Attribution.view translation subModel
-                            |> customFrame AttributionMsg Nothing
+                            |> frameConfig AttributionMsg Nothing
+                            |> Page.frame
 
             AttributionPrediction subModel ->
                 let
@@ -199,13 +211,11 @@ viewPage headerState footerState translations isLoading page =
                             |> Dict.union translations.attributionPlots
                 in
                     AttributionPrediction.view (I18n.get translation) subModel
-                        |> frame AttributionPredictionMsg Nothing
+                        |> frameConfig AttributionPredictionMsg Nothing
+                        |> Page.frame
 
             Profiling subModel ->
                 let
-                    customFrame =
-                        Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
-
                     translation =
                         translations.profiling
                             |> Dict.union translations.input
@@ -213,10 +223,12 @@ viewPage headerState footerState translations isLoading page =
                 in
                     if isLoading then
                         Profiling.loading translation subModel
-                            |> customFrame ProfilingMsg Nothing
+                            |> frameConfig ProfilingMsg Nothing
+                            |> Page.frame
                     else
                         Profiling.view translation subModel
-                            |> customFrame ProfilingMsg Nothing
+                            |> frameConfig ProfilingMsg Nothing
+                            |> Page.frame
 
             ProfilingPrediction subModel ->
                 let
@@ -225,11 +237,19 @@ viewPage headerState footerState translations isLoading page =
                             |> Dict.union translations.profilingPlots
                 in
                     ProfilingPrediction.view (I18n.get translation) subModel
-                        |> frame ProfilingPredictionMsg Nothing
+                        |> frameConfig ProfilingPredictionMsg Nothing
+                        |> Page.frame
 
             Home ->
-                Home.view translations.home
-                    |> Page.homeFrame headerState footerState (NavbarMsg HeaderBar) (NavbarMsg FooterBar) (always NoOp) Nothing
+                let
+                    translation =
+                        translations.home |> Dict.union translations.general
+                in
+                    { content = Home.view translation
+                    , contentMsg = always NoOp
+                    , t = I18n.get translations.general
+                    }
+                        |> Page.homeFrame
 
 
 {-| Signals from the outside world that our app may want to respond to
