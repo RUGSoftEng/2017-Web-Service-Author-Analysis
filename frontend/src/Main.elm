@@ -6,6 +6,7 @@ This file wires all parts of the app together.
 
 import Html exposing (Html)
 import Http
+import Dict
 import Bootstrap.Navbar as Navbar
 
 
@@ -19,8 +20,6 @@ import Ports
 
 import Navigation exposing (Location)
 import Task exposing (Task)
-import Process
-import Time
 
 
 -- import InputField
@@ -35,6 +34,7 @@ import Views.Page as Page
 import Data.File exposing (File)
 import Route exposing (Route)
 import I18n exposing (Translations)
+import Config.Translations.English as English
 
 
 type alias PageLoadError =
@@ -133,7 +133,7 @@ init location =
             { pageState = Loaded initialPage
             , headerState = headerState
             , footerState = footerState
-            , translations = I18n.english
+            , translations = English.translations
             , attributionRequest = Idle
             , profilingRequest = Idle
             }
@@ -164,52 +164,92 @@ view model =
 viewPage : Navbar.State -> Navbar.State -> Translations -> Bool -> Page -> Html Msg
 viewPage headerState footerState translations isLoading page =
     let
-        frame =
-            Page.frame headerState footerState isLoading (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+        frameConfig contentMsg transition content =
+            { headerState = headerState
+            , footerState = footerState
+            , headerMsg = NavbarMsg HeaderBar
+            , footerMsg = NavbarMsg FooterBar
+            , contentMsg = contentMsg
+            , content = content
+            , transition = transition
+            , t = I18n.get translations.general
+            }
     in
         case page of
             NotFound ->
-                Html.text "page not found" |> frame (always NoOp) Nothing
+                Html.text "page not found"
+                    |> frameConfig (always NoOp) Nothing
+                    |> Page.frame
 
             Blank ->
                 -- displayed on initial page load, when other stuff is maybe still loading
-                Html.text "We're blank" |> frame (always NoOp) Nothing
+                Html.text "We're blank"
+                    |> frameConfig (always NoOp) Nothing
+                    |> Page.frame
 
             Attribution subModel ->
                 let
-                    customFrame =
-                        Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+                    translation =
+                        translations.attribution
+                            |> Dict.union translations.input
+                            |> Dict.union translations.language
+                            |> Dict.union translations.genre
                 in
                     if isLoading then
-                        Attribution.loading translations.attribution subModel
-                            |> customFrame AttributionMsg Nothing
+                        Attribution.loading translation subModel
+                            |> frameConfig AttributionMsg Nothing
+                            |> Page.frame
                     else
-                        Attribution.view translations.attribution subModel
-                            |> customFrame AttributionMsg Nothing
+                        Attribution.view translation subModel
+                            |> frameConfig AttributionMsg Nothing
+                            |> Page.frame
 
             AttributionPrediction subModel ->
-                AttributionPrediction.view subModel
-                    |> frame AttributionPredictionMsg Nothing
+                let
+                    translation =
+                        translations.attributionPrediction
+                            |> Dict.union translations.attributionPlots
+                in
+                    AttributionPrediction.view (I18n.get translation) subModel
+                        |> frameConfig AttributionPredictionMsg Nothing
+                        |> Page.frame
 
             Profiling subModel ->
                 let
-                    customFrame =
-                        Page.frame headerState footerState False (NavbarMsg HeaderBar) (NavbarMsg FooterBar)
+                    translation =
+                        translations.profiling
+                            |> Dict.union translations.input
+                            |> Dict.union translations.language
                 in
                     if isLoading then
-                        Profiling.loading translations.profiling subModel
-                            |> customFrame ProfilingMsg Nothing
+                        Profiling.loading translation subModel
+                            |> frameConfig ProfilingMsg Nothing
+                            |> Page.frame
                     else
-                        Profiling.view translations.profiling subModel
-                            |> customFrame ProfilingMsg Nothing
+                        Profiling.view translation subModel
+                            |> frameConfig ProfilingMsg Nothing
+                            |> Page.frame
 
             ProfilingPrediction subModel ->
-                ProfilingPrediction.view subModel
-                    |> frame ProfilingPredictionMsg Nothing
+                let
+                    translation =
+                        translations.profilingPrediction
+                            |> Dict.union translations.profilingPlots
+                in
+                    ProfilingPrediction.view (I18n.get translation) subModel
+                        |> frameConfig ProfilingPredictionMsg Nothing
+                        |> Page.frame
 
             Home ->
-                Home.view translations.home
-                    |> Page.homeFrame headerState footerState (NavbarMsg HeaderBar) (NavbarMsg FooterBar) (always NoOp) Nothing
+                let
+                    translation =
+                        translations.home |> Dict.union translations.general
+                in
+                    { content = Home.view translation
+                    , contentMsg = always NoOp
+                    , t = I18n.get translations.general
+                    }
+                        |> Page.homeFrame
 
 
 {-| Signals from the outside world that our app may want to respond to

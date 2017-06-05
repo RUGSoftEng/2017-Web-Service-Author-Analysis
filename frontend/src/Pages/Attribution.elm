@@ -222,11 +222,14 @@ loading translation attribution =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Attribution" ] ]
+                        [ h1 [] [ text (t "title") ] ]
                     ]
                 , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
-                , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
-                , Grid.row [] [ Grid.col [ textCenter ] [ Button.linkButton [ Button.attrs [ Route.href Route.Attribution ], Button.primary ] [ text "Cancel" ] ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text (t "loading-performing-analysis") ] ] ]
+                , Grid.row []
+                    [ Grid.col [ textCenter ]
+                        [ Button.linkButton [ Button.attrs [ Route.href Route.Attribution ], Button.primary ] [ text (t "loading-cancel") ] ]
+                    ]
                 ]
             ]
 
@@ -241,7 +244,7 @@ view translation attribution =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Attribution" ]
+                        [ h1 [] [ text (t "title") ]
                         , span [ class "explanation" ] [ text (t "explanation") ]
                         ]
                     ]
@@ -251,13 +254,15 @@ view translation attribution =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text "Compare!" ]
+                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text (t "compare") ]
                         ]
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
-                        , Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
+                        [ Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ] ]
+                            [ text (t "load-example-same-author") ]
+                        , Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ] ]
+                            [ text (t "load-example-different-authors") ]
                         ]
                     ]
                 , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t attribution)
@@ -282,6 +287,7 @@ knownAuthorInput t knownAuthor =
             , fileInputId = "attribution-known-author-file-input"
             , info = t "known-author-description"
             , multiple = True
+            , translator = t
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
@@ -300,6 +306,7 @@ unknownAuthorInput t unknownAuthor =
             , fileInputId = "attribution-unknown-author-file-input"
             , info = t "unknown-author-description"
             , multiple = False
+            , translator = t
             }
     in
         Grid.col [ Col.md5, Col.attrs [ class "center-block text-center box" ] ] <|
@@ -323,7 +330,7 @@ settings t attribution =
                         , onClick (SetLanguage language)
                         ]
                         []
-                    , text (Language.fullName language)
+                    , text (t (toString language))
                     ]
                 ]
 
@@ -372,23 +379,23 @@ settings t attribution =
                         , onClick (SetGenre genre)
                         ]
                         []
-                    , text (Genre.genreToString genre)
+                    , text (t (toString genre))
                     ]
                 ]
     in
         [ Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text "Language" ]
-            , span [] [ text (t "settings-language") ]
+            [ h2 [] [ text (t "settings-language") ]
+            , span [] [ text (t "settings-language-description") ]
             , ul [] (List.map languageRadio attribution.languages)
             ]
         , Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text "Genre" ]
-            , span [] [ text (t "settings-genre") ]
+            [ h2 [] [ text (t "settings-genre") ]
+            , span [] [ text (t "settings-genre-description") ]
             , ul [] (List.map genreRadio genres)
             ]
         , Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text "Feature Set" ]
-            , span [] [ text (t "settings-feature-set") ]
+            [ h2 [] [ text (t "settings-feature-set") ]
+            , span [] [ text (t "settings-feature-set-description") ]
             , ul [] (List.map featureSetRadio attribution.featureCombos)
             ]
         ]

@@ -11,6 +11,7 @@ type Genre
     | Email
 
 
+genreToString : Genre -> String
 genreToString genre =
     case genre of
         Essay ->
@@ -29,5 +30,6 @@ genreToString genre =
             "email"
 
 
+encoder : Genre -> Encode.Value
 encoder genre =
     Encode.string (genreToString genre)

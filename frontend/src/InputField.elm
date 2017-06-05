@@ -21,10 +21,10 @@ import Bootstrap.Card as Card
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Json.Decode as Decode
-import Json.Encode as Encode
 import Data.File exposing (File)
 import Data.TextInput as TextInput exposing (TextInput)
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
+import I18n exposing (Translation, Translator)
 
 
 type Msg
@@ -109,49 +109,54 @@ type alias ViewConfig =
     , radioButtonName : String
     , info : String
     , multiple : Bool
+    , translator : Translator
     }
 
 
 view : ViewConfig -> Model -> List (Html Msg)
 view config model =
-    [ h2 [] [ text config.label ]
-    , span [] [ text config.info ]
-    , switchButtons model config.radioButtonName
-    , if TextInput.isPaste model.input then
-        textarea
-            [ onInput ChangeText
-            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-            ]
-            [ text (TextInput.text model.input) ]
-      else
-        div []
-            [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
-            , label [ class "form-group", class "file-upload-button", class "card-header" ]
-                [ span [] [ text "Choose file" ]
-                , input
-                    [ type_ "file"
-                    , on "change" (Decode.succeed SendListenForFiles)
-                    , id config.fileInputId
-                    , multiple config.multiple
-                    , disabled (not config.multiple && not (TextInput.isEmpty model.input))
-                    ]
-                    []
+    let
+        t =
+            config.translator
+    in
+        [ h2 [] [ text config.label ]
+        , span [] [ text config.info ]
+        , switchButtons t model config.radioButtonName
+        , if TextInput.isPaste model.input then
+            textarea
+                [ onInput ChangeText
+                , style [ ( "width", "100%" ), ( "height", "300px" ) ]
                 ]
-            ]
-    ]
+                [ text (TextInput.text model.input) ]
+          else
+            div []
+                [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
+                , label [ class "form-group", class "file-upload-button", class "card-header" ]
+                    [ span [] [ text (t "choose-file") ]
+                    , input
+                        [ type_ "file"
+                        , on "change" (Decode.succeed SendListenForFiles)
+                        , id config.fileInputId
+                        , multiple config.multiple
+                        , disabled (not config.multiple && not (TextInput.isEmpty model.input))
+                        ]
+                        []
+                    ]
+                ]
+        ]
 
 
-switchButtons : Model -> String -> Html Msg
-switchButtons model name =
+switchButtons : Translator -> Model -> String -> Html Msg
+switchButtons t model name =
     ButtonGroup.radioButtonGroup []
         [ ButtonGroup.radioButton
             (TextInput.isPaste model.input)
             [ Button.primary, Button.onClick SetPaste ]
-            [ text "Paste Text" ]
+            [ text (t "paste-text") ]
         , ButtonGroup.radioButton
             (not <| TextInput.isPaste model.input)
             [ Button.primary, Button.onClick SetUpload ]
-            [ text "Upload File" ]
+            [ text (t "upload-file") ]
         ]
 
 
