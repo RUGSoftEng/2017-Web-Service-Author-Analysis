@@ -7,10 +7,12 @@ import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
+import Views.Spinner exposing (spinner)
 
 
 --
 
+import Config.Profiling as Config
 import Data.Profiling.Input
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
@@ -29,8 +31,8 @@ type alias Model =
 init : Model
 init =
     { text = InputField.init
-    , language = EN
-    , languages = [ EN, NL ]
+    , language = Config.defaultLanguage
+    , languages = Config.availableLanguages
     }
 
 
@@ -106,6 +108,29 @@ subscriptions model =
 -- View
 
 
+textCenter =
+    Col.attrs [ class "text-center" ]
+
+
+loading : Translation -> Model -> Html Msg
+loading translation attribution =
+    let
+        t key =
+            I18n.get translation key
+    in
+        div [ class "content" ]
+            [ Grid.container []
+                [ Grid.row [ Row.topXs ]
+                    [ Grid.col []
+                        [ h1 [] [ text "Profiling" ] ]
+                    ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ spinner ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ h3 [] [ text "Performing Analysis" ] ] ]
+                , Grid.row [] [ Grid.col [ textCenter ] [ Button.linkButton [ Button.attrs [ Route.href Route.Profiling ], Button.primary ] [ text "Cancel" ] ] ]
+                ]
+            ]
+
+
 view : Translation -> Model -> Html Msg
 view translation profiling =
     let
@@ -116,7 +141,7 @@ view translation profiling =
             [ Grid.container []
                 [ Grid.row [ Row.topXs ]
                     [ Grid.col []
-                        [ h1 [] [ text "Go Profiling" ]
+                        [ h1 [] [ text "Profiling" ]
                         , span [ class "explanation" ]
                             [ text (I18n.get translation "profiling-explanation")
                             ]
@@ -180,7 +205,7 @@ settings translation profiling =
                         , onClick (SetLanguage language)
                         ]
                         []
-                    , text (toString language)
+                    , text (Language.fullName language)
                     ]
                 ]
     in

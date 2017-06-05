@@ -13,5 +13,22 @@ type Language
     | GR
 
 
+fullName : Language -> String
+fullName language =
+    case language of
+        EN ->
+            "English"
+
+        NL ->
+            "Dutch"
+
+        SP ->
+            "Spanish"
+
+        GR ->
+            "Greek"
+
+
+encoder : Language -> Encode.Value
 encoder language =
     Encode.string (toString language)
