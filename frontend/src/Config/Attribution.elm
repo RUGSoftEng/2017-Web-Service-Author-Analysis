@@ -46,28 +46,17 @@ defaultGenre language =
         SP ->
             Article
 
+{-| Update Genre when switch languages
+* When switching languages, some genres are not available. For example, genre "email" only existed in English.
+- This function will keep set genre of new language same to previous language.
+- If genre is not existed in new language, this function will set it to default genre.
+-}
 changeGenre : Language -> Genre -> Genre
 changeGenre language genre =
     case language of
         EN ->
             case genre of
-              Essay ->
-                    Essay
-              Review ->
-                    Email
-              Article ->
-                    Email
-              Email ->
-                    Email
-              Novel ->
-                    Email
+              Essay -> Essay
+              _ -> defaultGenre language
 
-
-        NL ->
-            Essay
-
-        GR ->
-            Article
-
-        SP ->
-            Article
+        _ -> defaultGenre language
