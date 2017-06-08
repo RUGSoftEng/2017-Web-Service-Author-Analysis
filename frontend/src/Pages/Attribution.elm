@@ -145,9 +145,12 @@ update config msg attribution =
             )
 
         SetLanguage newLanguage ->
-            ( { attribution | language = newLanguage }
-            , Cmd.none
-            )
+          let
+              newGenre = Config.changeGenre newLanguage attribution.genre
+          in
+              ( { attribution | language = newLanguage, genre = newGenre }
+              , Cmd.none
+              )
 
         SetFeatureCombo newFeatureCombo ->
             ( { attribution | featureCombo = newFeatureCombo }

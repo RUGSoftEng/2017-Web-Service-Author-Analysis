@@ -35,7 +35,7 @@ defaultGenre : Language -> Genre
 defaultGenre language =
     case language of
         EN ->
-            Novel
+            Email
 
         NL ->
             Essay
@@ -45,3 +45,18 @@ defaultGenre language =
 
         SP ->
             Article
+
+changeGenre : Language -> Genre -> Genre
+changeGenre language genre =
+    case (language, genre) of
+      (EN, Essay) ->
+        {- When switching language to English with genre "Essay"
+        * The genre "Essay" is not default language of English.
+          This function will set genre of English to Essay.
+        -}
+        Essay
+
+      _ ->
+        {- Otherwise, this function will set genre to default genre.
+        -}
+        defaultGenre language
