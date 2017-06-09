@@ -44,12 +44,12 @@ plots =
               , description = div [ class "text-left box" ] [ text "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)" ]
               }
             , { label = "ngram SIM"
-              , title = "anagram similarity"
+              , title = "Ngram similarity"
               , render = plotNgramsSim
               , description = div [ class "text-left box" ] [ text "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI" ]
               }
             , { label = "ngram SPI"
-              , title = "anagram SPI"
+              , title = "Ngram SPI"
               , render = plotNgramsSpi
               , description = div [ class "text-left box" ] [ text "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document" ]
               }
