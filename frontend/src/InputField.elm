@@ -1,4 +1,18 @@
-module InputField exposing (Model, Msg, init, fromString, update, view, subscriptions, addFile, UpdateConfig, ViewConfig)
+module InputField
+    exposing
+        ( Model
+        , Msg
+        , init
+        , fromString
+        , toStrings
+        , update
+        , view
+        , subscriptions
+        , addFile
+        , isValid
+        , UpdateConfig
+        , ViewConfig
+        )
 
 {-| Module for the input fields, providing a textarea to paste text, or a file picker for uploading files
 
@@ -21,9 +35,10 @@ import Bootstrap.Card as Card
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Json.Decode as Decode
-import Json.Encode as Encode
+import Utils exposing ((=>))
 import Data.File exposing (File)
 import Data.TextInput as TextInput exposing (TextInput)
+import Data.Validation as Validation exposing (Validation(..))
 import Octicons exposing (searchIcon, searchOptions, xIcon, xOptions)
 
 
@@ -39,68 +54,112 @@ type Msg
 
 
 type alias Model =
-    { input : TextInput, accordionModel : Accordion.State }
+    { input : TextInput
+    , validation : Validation
+    , accordionModel : Accordion.State
+    }
 
 
 init : Model
 init =
     { input = TextInput.empty
+    , validation = NotLoaded
     , accordionModel = Accordion.initialState
     }
 
 
-fromString : String -> Model
-fromString string =
-    { input = TextInput.fromString string, accordionModel = Accordion.initialState }
+fromString : (String -> Validation) -> String -> Model
+fromString validator string =
+    { input = TextInput.fromString string, accordionModel = Accordion.initialState, validation = validator string }
 
 
-addFile : File -> Model -> Model
-addFile file model =
-    { model | input = TextInput.addFile file model.input }
+toStrings : Model -> List String
+toStrings model =
+    TextInput.toStrings model.input
+
+
+addFile : (String -> Validation) -> File -> Model -> Model
+addFile validator file model =
+    let
+        newInput =
+            TextInput.addFile file model.input
+    in
+        { model
+            | input = newInput
+            , validation = validator (String.concat (TextInput.toStrings newInput))
+        }
+
+
+{-| Answers "can this input be sent to the server for prediction"
+-}
+isValid : Model -> Bool
+isValid model =
+    case model.validation of
+        Error _ ->
+            False
+
+        NotLoaded ->
+            False
+
+        Success ->
+            True
+
+        Warning _ ->
+            True
 
 
 type alias UpdateConfig =
-    { readFiles : Cmd Msg }
+    { readFiles : Cmd Msg
+    , validate : String -> Validation
+    }
 
 
 update : UpdateConfig -> Msg -> Model -> ( Model, Cmd Msg )
 update config msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
+    let
+        revalidate model =
+            { model | validation = config.validate (String.concat (TextInput.toStrings model.input)) }
+    in
+        case msg of
+            NoOp ->
+                ( model, Cmd.none )
 
-        AccordionMsg accordionModel ->
-            ( { model | accordionModel = accordionModel }
-            , Cmd.none
-            )
+            AccordionMsg accordionModel ->
+                ( { model | accordionModel = accordionModel }
+                , Cmd.none
+                )
 
-        AddFile file ->
-            ( { model | input = TextInput.addFile file model.input }
-            , Cmd.none
-            )
+            AddFile file ->
+                ( addFile config.validate file model
+                , Cmd.none
+                )
 
-        RemoveFile index ->
-            ( { model | input = TextInput.removeAtIndex index model.input }
-            , Cmd.none
-            )
+            RemoveFile index ->
+                ( { model | input = TextInput.removeAtIndex index model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        ChangeText newText ->
-            ( { model | input = TextInput.setText newText model.input }
-            , Cmd.none
-            )
+            ChangeText newText ->
+                ( { model | input = TextInput.setText newText model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        SetPaste ->
-            ( { model | input = TextInput.toPaste model.input }
-            , Cmd.none
-            )
+            SetPaste ->
+                ( { model | input = TextInput.toPaste model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        SetUpload ->
-            ( { model | input = TextInput.toUpload model.input }
-            , Cmd.none
-            )
+            SetUpload ->
+                ( { model | input = TextInput.toUpload model.input }
+                    |> revalidate
+                , Cmd.none
+                )
 
-        SendListenForFiles ->
-            ( model, config.readFiles )
+            SendListenForFiles ->
+                ( model, config.readFiles )
 
 
 type alias ViewConfig =
@@ -117,27 +176,61 @@ view config model =
     [ h2 [] [ text config.label ]
     , span [] [ text config.info ]
     , switchButtons model config.radioButtonName
-    , if TextInput.isPaste model.input then
-        textarea
-            [ onInput ChangeText
-            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-            ]
-            [ text (TextInput.text model.input) ]
-      else
-        div []
-            [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
-            , label [ class "form-group", class "file-upload-button", class "card-header" ]
-                [ span [] [ text "Choose file" ]
-                , input
-                    [ type_ "file"
-                    , on "change" (Decode.succeed SendListenForFiles)
-                    , id config.fileInputId
-                    , multiple config.multiple
-                    , disabled (not config.multiple && not (TextInput.isEmpty model.input))
+    , let
+        feedback =
+            case model.validation of
+                NotLoaded ->
+                    text ""
+
+                Success ->
+                    text ""
+
+                Error e ->
+                    div [ class "form-control-feedback" ] [ text e ]
+
+                Warning w ->
+                    div [ class "form-control-feedback" ] [ text w ]
+
+        classes =
+            case model.validation of
+                NotLoaded ->
+                    [ "form-group" => True, "has-success" => False, "has-warning" => False, "has-danger" => False ]
+
+                Success ->
+                    [ "form-group" => True, "has-success" => True, "has-warning" => False, "has-danger" => False ]
+
+                Warning w ->
+                    [ "form-group" => True, "has-success" => False, "has-warning" => True, "has-danger" => False ]
+
+                Error e ->
+                    [ "form-group" => True, "has-success" => False, "has-warning" => False, "has-danger" => True ]
+      in
+        if TextInput.isPaste model.input then
+            div [ classList classes ]
+                [ textarea
+                    [ onInput ChangeText
+                    , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                    , class "form-control form-control-warning"
                     ]
-                    []
+                    [ text (TextInput.text model.input) ]
+                , feedback
                 ]
-            ]
+        else
+            div [ classList classes ]
+                [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
+                , label [ class "form-group", class "file-upload-button", class "card-header" ]
+                    [ span [] [ text "Choose file" ]
+                    , input
+                        [ type_ "file"
+                        , on "change" (Decode.succeed SendListenForFiles)
+                        , id config.fileInputId
+                        , multiple config.multiple
+                        , disabled (not config.multiple && not (TextInput.isEmpty model.input))
+                        ]
+                        []
+                    ]
+                , feedback
+                ]
     ]
 
 

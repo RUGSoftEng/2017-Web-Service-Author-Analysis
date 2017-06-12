@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "tsc && mocha",
-    "build-frontend:windows": "cd ../frontend && elm-make --yes src/Main.elm --output=index.js && move index.js ../backend/public_html/",
-    "build-frontend:linux": "cd ../frontend && elm-make --yes src/Main.elm --output=index.js && mv index.js ../backend/public_html/",
+    "build-frontend:windows": "cd ../frontend && elm-package install -y && elm-make --yes src/Main.elm --output=index.js && move index.js ../backend/public_html/",
+    "build-frontend:linux": "cd ../frontend && elm-package install -y && elm-make --yes src/Main.elm --output=index.js && mv index.js ../backend/public_html/",
     "build-frontend-debug:linux": "cd ../frontend && elm-make --debug src/Main.elm --output=index.js && mv index.js ../backend/public_html/",
     "build:windows": "npm run build-frontend:windows && nodemon --exec \"node_modules\\.bin\\ts-node\" -- \"index.ts\"",
     "build:linux": "npm run build-frontend:linux && nodemon --exec \"node_modules/.bin/ts-node\" -- \"index.ts\"",

@@ -16,13 +16,19 @@ import Config.Profiling as Config
 import Data.Profiling.Input
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
+import Data.Validation exposing (Validation)
 import InputField
 import Route
-import I18n exposing (Translation)
+import I18n exposing (Translation, Translator)
 
 
 type alias Model =
     Data.Profiling.Input.Input
+
+
+validator : String -> Validation
+validator =
+    Data.Profiling.Input.validate
 
 
 {-| Initial state of the Attribution page
@@ -66,6 +72,7 @@ update config msg profiling =
                 updateConfig : InputField.UpdateConfig
                 updateConfig =
                     { readFiles = config.readFiles ( "profiling-file-input", "Profiling" )
+                    , validate = Data.Profiling.Input.validate
                     }
 
                 ( newInput, inputCommands ) =
@@ -88,7 +95,7 @@ addFile : ( String, File ) -> Model -> Model
 addFile ( identifier, file ) profiling =
     case identifier of
         "Profiling" ->
-            { profiling | text = InputField.addFile file profiling.text }
+            { profiling | text = InputField.addFile validator file profiling.text }
 
         _ ->
             Debug.crash <| "File with invalid id `" ++ identifier ++ "` cannot be added"
@@ -108,13 +115,17 @@ subscriptions model =
 -- View
 
 
+textCenter : Col.Option msg
 textCenter =
     Col.attrs [ class "text-center" ]
 
 
+{-| Loading screen for the transition between Profiling and ProfilingPrediction
+-}
 loading : Translation -> Model -> Html Msg
 loading translation attribution =
     let
+        t : Translator
         t key =
             I18n.get translation key
     in
@@ -131,9 +142,12 @@ loading translation attribution =
             ]
 
 
+{-| Main view for Profiling
+-}
 view : Translation -> Model -> Html Msg
 view translation profiling =
     let
+        t : Translator
         t key =
             I18n.get translation key
     in
@@ -143,7 +157,7 @@ view translation profiling =
                     [ Grid.col []
                         [ h1 [] [ text "Profiling" ]
                         , span [ class "explanation" ]
-                            [ text (I18n.get translation "profiling-explanation")
+                            [ text (I18n.get translation "explanation")
                             ]
                         ]
                     ]
@@ -152,23 +166,20 @@ view translation profiling =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ] ] [ text "Analyze!" ]
+                        [ Button.linkButton
+                            [ Button.primary
+                            , Button.disabled (not <| InputField.isValid profiling.text)
+                            , Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ]
+                            ]
+                            [ text "Analyze!" ]
                         ]
                     ]
-                  {-
-                     , Grid.row []
-                         [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                             [ Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample SameAuthor) ] ] [ text "Load Example - same authors" ]
-                             , Button.button [ Button.secondary, Button.attrs [ id "compare-button", onClick (LoadExample DifferentAuthor) ] ] [ text "Load Example - different authors" ]
-                             ]
-                         ]
-                  -}
-                , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings translation profiling)
+                , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t profiling)
                 ]
             ]
 
 
-textInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+textInput : Translator -> InputField.Model -> Grid.Column Msg
 textInput t text =
     let
         {- config for an InputField
@@ -180,10 +191,10 @@ textInput t text =
         -}
         config : InputField.ViewConfig
         config =
-            { label = t "profiling-label"
+            { label = t "age-plot-label"
             , radioButtonName = "profiling-buttons"
             , fileInputId = "profiling-file-input"
-            , info = t "profiling-description"
+            , info = t "age-plot-description"
             , multiple = False
             }
     in
@@ -193,8 +204,8 @@ textInput t text =
             )
 
 
-settings : Translation -> Model -> List (Grid.Column Msg)
-settings translation profiling =
+settings : Translator -> Model -> List (Grid.Column Msg)
+settings t profiling =
     let
         languageRadio language =
             li []
@@ -210,8 +221,8 @@ settings translation profiling =
                 ]
     in
         [ Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text "Language" ]
-            , span [] [ text (I18n.get translation "profiling-settings-language") ]
+            [ h2 [] [ text (t "language") ]
+            , span [] [ text (t "settings-language") ]
             , ul [] (List.map languageRadio profiling.languages)
             ]
         ]

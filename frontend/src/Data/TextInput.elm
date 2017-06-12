@@ -4,6 +4,7 @@ module Data.TextInput
         , empty
         , isEmpty
         , fromString
+        , toStrings
         , encoder
         , firstFileEncoder
         , toUpload
@@ -117,6 +118,16 @@ isEmpty input =
 fromString : String -> TextInput
 fromString str =
     Paste { text = str, files = [] }
+
+
+toStrings : TextInput -> List String
+toStrings input =
+    case input of
+        Paste { text } ->
+            [ text ]
+
+        Upload { files } ->
+            List.map (.content << Tuple.second) files
 
 
 setText : String -> TextInput -> TextInput

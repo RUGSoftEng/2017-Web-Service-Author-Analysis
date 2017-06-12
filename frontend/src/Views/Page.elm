@@ -1,14 +1,10 @@
 module Views.Page exposing (..)
 
 import Bootstrap.Navbar as Navbar
+import Utils exposing ((=>))
 import Html exposing (Html, div, a, text, img, header, footer, h1)
 import Html.Attributes exposing (class, style, src, href, id, attribute)
 import Route
-import Views.Spinner exposing (spinner)
-
-
-(=>) =
-    (,)
 
 
 frame : Navbar.State -> Navbar.State -> Bool -> (Navbar.State -> msg) -> (Navbar.State -> msg) -> (submsg -> msg) -> Maybe (Html submsg) -> Html submsg -> Html msg
@@ -23,16 +19,6 @@ frame headerState footerState isLoading headerMsg footerMsg wrapper transition c
 homeFrame : Navbar.State -> Navbar.State -> (Navbar.State -> msg) -> (Navbar.State -> msg) -> (submsg -> msg) -> Maybe (Html submsg) -> Html submsg -> Html msg
 homeFrame headerState footerState headerMsg footerMsg wrapper transition content =
     content |> Html.map wrapper
-
-
-
-{-
-   div [ class "maincontainer" ]
-       [ viewHomeHeader headerState |> Html.map headerMsg
-       , content |> Html.map wrapper
-       , viewFooter footerState |> Html.map footerMsg
-       ]
--}
 
 
 mainNav : (Navbar.State -> msg) -> Navbar.State -> Html msg
