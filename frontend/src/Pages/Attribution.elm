@@ -16,16 +16,22 @@ import Data.Attribution.Input exposing (..)
 import Data.Attribution.Genre as Genre exposing (Genre)
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
+import Data.Validation exposing (Validation)
 import Config.Attribution as Config
 import InputField
 import Route
-import I18n exposing (Translation)
+import I18n exposing (Translation, Translator)
 import Examples exposing (sameAuthor, differentAuthor)
 import Views.Spinner exposing (spinner)
 
 
 type alias Model =
     Data.Attribution.Input.Input
+
+
+validator : String -> Validation
+validator =
+    Data.Attribution.Input.validate
 
 
 {-| Initial state of the Attribution page
@@ -111,6 +117,7 @@ update config msg attribution =
                 updateConfig : InputField.UpdateConfig
                 updateConfig =
                     { readFiles = config.readFiles ( "attribution-known-author-file-input", "KnownAuthor" )
+                    , validate = Data.Attribution.Input.validate
                     }
 
                 ( newInput, inputCommands ) =
@@ -125,6 +132,7 @@ update config msg attribution =
                 updateConfig : InputField.UpdateConfig
                 updateConfig =
                     { readFiles = config.readFiles ( "attribution-unknown-author-file-input", "UnknownAuthor" )
+                    , validate = Data.Attribution.Input.validate
                     }
 
                 ( newInput, inputCommands ) =
@@ -145,12 +153,13 @@ update config msg attribution =
             )
 
         SetLanguage newLanguage ->
-          let
-              newGenre = Config.changeGenre newLanguage attribution.genre
-          in
-              ( { attribution | language = newLanguage, genre = newGenre }
-              , Cmd.none
-              )
+            let
+                newGenre =
+                    Config.changeGenre newLanguage attribution.genre
+            in
+                ( { attribution | language = newLanguage, genre = newGenre }
+                , Cmd.none
+                )
 
         SetFeatureCombo newFeatureCombo ->
             ( { attribution | featureCombo = newFeatureCombo }
@@ -164,16 +173,16 @@ update config msg attribution =
 
         LoadExample SameAuthor ->
             ( { attribution
-                | knownAuthor = InputField.fromString sameAuthor.knownAuthor
-                , unknownAuthor = InputField.fromString sameAuthor.unknownAuthor
+                | knownAuthor = InputField.fromString validator sameAuthor.knownAuthor
+                , unknownAuthor = InputField.fromString validator sameAuthor.unknownAuthor
               }
             , Cmd.none
             )
 
         LoadExample DifferentAuthor ->
             ( { attribution
-                | knownAuthor = InputField.fromString differentAuthor.knownAuthor
-                , unknownAuthor = InputField.fromString differentAuthor.unknownAuthor
+                | knownAuthor = InputField.fromString validator differentAuthor.knownAuthor
+                , unknownAuthor = InputField.fromString validator differentAuthor.unknownAuthor
               }
             , Cmd.none
             )
@@ -183,10 +192,10 @@ addFile : ( String, File ) -> Model -> Model
 addFile ( identifier, file ) attribution =
     case identifier of
         "KnownAuthor" ->
-            { attribution | knownAuthor = InputField.addFile file attribution.knownAuthor }
+            { attribution | knownAuthor = InputField.addFile validator file attribution.knownAuthor }
 
         "UnknownAuthor" ->
-            { attribution | unknownAuthor = InputField.addFile file attribution.unknownAuthor }
+            { attribution | unknownAuthor = InputField.addFile validator file attribution.unknownAuthor }
 
         _ ->
             Debug.crash <| "File with invalid id `" ++ identifier ++ "` cannot be added"
@@ -208,6 +217,7 @@ subscriptions model =
 -- View
 
 
+textCenter : Col.Option msg
 textCenter =
     Col.attrs [ class "text-center" ]
 
@@ -215,6 +225,7 @@ textCenter =
 loading : Translation -> Model -> Html Msg
 loading translation attribution =
     let
+        t : Translator
         t key =
             I18n.get translation key
     in
@@ -237,6 +248,7 @@ loading translation attribution =
 view : Translation -> Model -> Html Msg
 view translation attribution =
     let
+        t : Translator
         t key =
             I18n.get translation key
     in
@@ -254,14 +266,25 @@ view translation attribution =
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center box submission" ] ]
-                        [ Button.linkButton [ Button.primary, Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ] ] [ text (t "compare") ]
+                        [ Button.linkButton
+                            [ Button.primary
+                            , Button.disabled (not <| InputField.isValid attribution.knownAuthor && InputField.isValid attribution.unknownAuthor)
+                            , Button.attrs [ Route.href Route.AttributionPrediction, id "compare-button" ]
+                            ]
+                            [ text (t "compare") ]
                         ]
                     ]
                 , Grid.row []
                     [ Grid.col [ Col.attrs [ class "text-center" ] ]
-                        [ Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ] ]
+                        [ Button.button
+                            [ Button.secondary
+                            , Button.attrs [ class "example-button", onClick (LoadExample SameAuthor) ]
+                            ]
                             [ text (t "load-example-same-author") ]
-                        , Button.button [ Button.secondary, Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ] ]
+                        , Button.button
+                            [ Button.secondary
+                            , Button.attrs [ class "example-button", onClick (LoadExample DifferentAuthor) ]
+                            ]
                             [ text (t "load-example-different-authors") ]
                         ]
                     ]
@@ -270,7 +293,7 @@ view translation attribution =
             ]
 
 
-knownAuthorInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+knownAuthorInput : Translator -> InputField.Model -> Grid.Column Msg
 knownAuthorInput t knownAuthor =
     let
         {- config for an InputField
@@ -296,7 +319,7 @@ knownAuthorInput t knownAuthor =
             )
 
 
-unknownAuthorInput : (String -> String) -> InputField.Model -> Grid.Column Msg
+unknownAuthorInput : Translator -> InputField.Model -> Grid.Column Msg
 unknownAuthorInput t unknownAuthor =
     let
         config : InputField.ViewConfig
@@ -315,7 +338,7 @@ unknownAuthorInput t unknownAuthor =
             )
 
 
-settings : (String -> String) -> Model -> List (Grid.Column Msg)
+settings : Translator -> Model -> List (Grid.Column Msg)
 settings t attribution =
     let
         genres =

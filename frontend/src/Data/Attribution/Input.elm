@@ -1,10 +1,13 @@
 module Data.Attribution.Input exposing (..)
 
+import Char
 import Json.Encode as Encode
+import Utils exposing ((=>))
 import InputField
 import Data.TextInput as TextInput exposing (TextInput)
 import Data.Language as Language exposing (Language)
 import Data.Attribution.Genre as Genre exposing (Genre)
+import Data.Validation exposing (Validation, boolCheck, combineErrors)
 import Bootstrap.Popover as Popover
 
 
@@ -18,6 +21,43 @@ type alias Input =
     , genre : Genre
     , popovers : { deep : Popover.State, shallow : Popover.State }
     }
+
+
+validate : String -> Validation
+validate =
+    Data.Validation.validate { errors = errors, warnings = warnings }
+
+
+warnings : List (String -> Maybe String)
+warnings =
+    let
+        tooShort s =
+            if String.length s < 140 then
+                Just "Your input is a little short, try adding some more for better predictions"
+            else
+                Nothing
+    in
+        [ tooShort ]
+
+
+errors : List (String -> Maybe String)
+errors =
+    let
+        isNotEmpty s =
+            if String.isEmpty s then
+                Just "The system needs text to analyze. Please give it some"
+            else
+                Nothing
+
+        containsLowercase s =
+            if not (String.any (Char.isLower) s) then
+                Just "The system needs at least one lowercase character in your texts"
+            else
+                Nothing
+    in
+        [ isNotEmpty
+        , containsLowercase
+        ]
 
 
 type Author
@@ -42,11 +82,6 @@ entropy: authors have distinct entropy profiles due to the varying lexical and m
 type FeatureCombo
     = Combo1
     | Combo4
-
-
-(=>) : a -> b -> ( a, b )
-(=>) =
-    (,)
 
 
 encoder : Input -> Encode.Value

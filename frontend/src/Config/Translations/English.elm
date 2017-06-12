@@ -1,7 +1,8 @@
 module Config.Translations.English exposing (..)
 
 import Dict
-import I18n exposing (Translations, (=>))
+import I18n exposing (Translations)
+import Utils exposing ((=>))
 import Data.Language exposing (Language(..))
 import Data.Attribution.Genre exposing (Genre(..))
 

@@ -7,8 +7,6 @@ easily translate it when needed.
 -}
 
 import Dict exposing (Dict)
-import Data.Language exposing (Language(..))
-import Data.Attribution.Genre exposing (Genre(..))
 
 
 type alias Translations =
@@ -39,7 +37,3 @@ get dict key =
     dict
         |> Dict.get key
         |> Maybe.withDefault key
-
-
-(=>) =
-    (,)

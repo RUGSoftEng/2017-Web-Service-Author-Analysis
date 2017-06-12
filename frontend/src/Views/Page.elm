@@ -1,15 +1,11 @@
 module Views.Page exposing (..)
 
 import Bootstrap.Navbar as Navbar
+import Utils exposing ((=>))
 import Html exposing (Html, div, a, text, img, header, footer, h1)
 import Html.Attributes exposing (class, style, src, href, id, attribute)
 import Route
-import Views.Spinner exposing (spinner)
 import I18n exposing (Translator)
-
-
-(=>) =
-    (,)
 
 
 type alias FrameConfig submsg msg =
@@ -112,6 +108,7 @@ viewFooter footerbarState =
         ]
 
 
+viewIf : Bool -> Html msg -> Html msg
 viewIf predicate html =
     if predicate then
         html
