@@ -36,14 +36,8 @@ warnings =
                 Just "Your input is a little short, try adding some more for better predictions"
             else
                 Nothing
-
-        tooLong s =
-            if String.length s > 1000 then
-                Just "Your input is very long. The profiling works best on smaller inputs"
-            else
-                Nothing
     in
-        [ tooShort, tooLong ]
+        [ tooShort ]
 
 
 errors : List (String -> Maybe String)
