@@ -28,8 +28,8 @@ See also the `AddFile` case of update and the `ListenForFiles` case in `updatePr
 -}
 
 import Html exposing (..)
-import Html.Attributes exposing (style, class, defaultValue, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
-import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions)
+import Html.Attributes exposing (style, class, defaultValue, value, classList, attribute, name, type_, href, src, id, multiple, disabled, placeholder)
+import Html.Events exposing (onClick, onInput, on, onWithOptions, defaultOptions, targetValue)
 import Bootstrap.Accordion as Accordion
 import Bootstrap.Card as Card
 import Bootstrap.Button as Button
@@ -212,15 +212,21 @@ view config model =
                         [ "form-group" => True, "has-success" => False, "has-warning" => False, "has-danger" => True ]
           in
             if TextInput.isPaste model.input then
-                div [ classList classes ]
-                    [ textarea
-                        [ onInput ChangeText
-                        , style [ ( "width", "100%" ), ( "height", "300px" ) ]
-                        , class "form-control form-control-warning"
+                let
+                    string =
+                        TextInput.text model.input
+                in
+                    div [ classList classes ]
+                        [ textarea
+                            [ on "input" (Decode.map ChangeText targetValue)
+                            , on "blur" (Decode.map ChangeText targetValue)
+                            , style [ ( "width", "100%" ), ( "height", "300px" ) ]
+                            , class "form-control form-control-warning"
+                            , value string
+                            ]
+                            []
+                        , feedback
                         ]
-                        [ text (TextInput.text model.input) ]
-                    , feedback
-                    ]
             else
                 div [ classList classes ]
                     [ uploadListView model.accordionModel RemoveFile (TextInput.files model.input)
