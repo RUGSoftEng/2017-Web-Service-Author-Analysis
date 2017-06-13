@@ -17,6 +17,7 @@ translations =
     , profilingPrediction = profilingPrediction
     , attributionPlots = attributionPlots
     , profilingPlots = profilingPlots
+    , aboutPage = aboutPage
     , input = input
     , genre = genre
     , language = language
@@ -161,6 +162,11 @@ topic of alternative news.
         """
         ]
 
+aboutPage =
+    Dict.fromList
+        [ "title" => "Information"
+        , "aboutPage-description" => "Learn more about GLAD"
+        ]
 
 input =
     Dict.fromList

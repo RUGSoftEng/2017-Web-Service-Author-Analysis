@@ -12,6 +12,7 @@ type Route
     | Profiling
     | ProfilingPrediction
     | AttributionPrediction
+    | AboutPage
 
 
 route : Parser (Route -> a) a
@@ -22,6 +23,7 @@ route =
         , Url.map AttributionPrediction (s "attribution" </> s "prediction")
         , Url.map Profiling (s "profiling")
         , Url.map ProfilingPrediction (s "profiling" </> s "prediction")
+        , Url.map AboutPage (s "about")
         ]
 
 
@@ -48,6 +50,9 @@ routeToString page =
 
                 ProfilingPrediction ->
                     [ "profiling", "prediction" ]
+
+                AboutPage ->
+                    [ "about" ]
     in
         "#/" ++ String.join "/" pieces
 

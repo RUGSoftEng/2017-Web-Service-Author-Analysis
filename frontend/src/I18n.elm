@@ -18,6 +18,7 @@ type alias Translations =
     , profilingPrediction : Translation
     , profilingPlots : Translation
     , home : Translation
+    , aboutPage : Translation
     , input : Translation
     , language : Translation
     , genre : Translation

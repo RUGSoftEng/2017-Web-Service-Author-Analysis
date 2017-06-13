@@ -26,6 +26,7 @@ import Pages.Attribution as Attribution
 import Pages.AttributionPrediction as AttributionPrediction
 import Pages.Profiling as Profiling
 import Pages.ProfilingPrediction as ProfilingPrediction
+import Pages.AboutPage as AboutPage
 import Views.Page as Page
 import Data.File exposing (File)
 import Config.Translations.English as English
@@ -51,6 +52,7 @@ type Page
     | AttributionPrediction AttributionPrediction.Model
     | Profiling Profiling.Model
     | ProfilingPrediction ProfilingPrediction.Model
+    | AboutPage
     | Blank
     | NotFound
 
@@ -245,6 +247,16 @@ viewPage headerState footerState translations isLoading page =
                     }
                         |> Page.homeFrame
 
+            AboutPage ->
+                let
+                    translation =
+                        translations.aboutPage |> Dict.union translations.general
+                in
+                    { content = AboutPage.view translation
+                    , contentMsg = always NoOp
+                    , t = I18n.get translations.general
+                    }
+                        |> Page.aboutPageFrame
 
 {-| Signals from the outside world that our app may want to respond to
 
@@ -391,6 +403,11 @@ setRoute maybeRoute model =
 
             Just (Route.Home) ->
                 ( { model | pageState = Loaded Home }
+                , Cmd.none
+                )
+
+            Just (Route.AboutPage) ->
+                ( { model | pageState = Loaded AboutPage }
                 , Cmd.none
                 )
 

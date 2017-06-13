@@ -33,6 +33,9 @@ homeFrame : { a | content : Html submsg, contentMsg : submsg -> msg, t : Transla
 homeFrame { content, contentMsg } =
     content |> Html.map contentMsg
 
+aboutPageFrame : { a | content : Html submsg, contentMsg : submsg -> msg, t : Translator } -> Html msg
+aboutPageFrame { content, contentMsg } =
+    content |> Html.map contentMsg
 
 mainNav : Translator -> (Navbar.State -> msg) -> Navbar.State -> Html msg
 mainNav t toMsg navbarState =
@@ -44,6 +47,7 @@ mainNav t toMsg navbarState =
                 |> Navbar.customItems
                     [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text (t "attribution") ]
                     , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text (t "profiling") ]
+                    , Navbar.customItem <| a [ class "pull-right", Route.href Route.AboutPage ] [ text (t "About") ]
                     ]
                 |> Navbar.view navbarState
             ]
@@ -56,7 +60,8 @@ viewHeader : Translator -> Navbar.State -> Html Navbar.State
 viewHeader translator navbarState =
     header [ class "header", id "home", attribute "style" "min-height: 76px;" ] [ mainNav translator identity navbarState ]
 
-
+{-| This is useless?
+-}
 viewHomeHeader : Translator -> Navbar.State -> Html Navbar.State
 viewHomeHeader t navbarState =
     header [ id "home", class "header" ]
