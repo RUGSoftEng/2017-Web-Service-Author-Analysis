@@ -157,7 +157,7 @@ view translation profiling =
                     [ Grid.col []
                         [ h1 [] [ text (t "title") ]
                         , span [ class "explanation" ]
-                            [ text (I18n.get translation "explanation")
+                            [ text (I18n.get translation "profiling-explanation")
                             ]
                         ]
                     ]
@@ -191,10 +191,10 @@ textInput t text =
         -}
         config : InputField.ViewConfig
         config =
-            { label = t "age-plot-label"
+            { label = t "profiling-label"
             , radioButtonName = "profiling-buttons"
             , fileInputId = "profiling-file-input"
-            , info = t "age-plot-description"
+            , info = t "profiling-description"
             , multiple = False
             , translator = t
             }
