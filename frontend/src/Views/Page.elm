@@ -1,50 +1,49 @@
 module Views.Page exposing (..)
 
 import Bootstrap.Navbar as Navbar
+import Utils exposing ((=>))
 import Html exposing (Html, div, a, text, img, header, footer, h1)
 import Html.Attributes exposing (class, style, src, href, id, attribute)
 import Route
-import Views.Spinner exposing (spinner)
+import I18n exposing (Translator)
 
 
-(=>) =
-    (,)
+type alias FrameConfig submsg msg =
+    { headerState : Navbar.State
+    , footerState : Navbar.State
+    , headerMsg : Navbar.State -> msg
+    , footerMsg : Navbar.State -> msg
+    , contentMsg : submsg -> msg
+    , transition : Maybe (Html submsg)
+    , content : Html submsg
+    , t : Translator
+    }
 
 
-frame : Navbar.State -> Navbar.State -> Bool -> (Navbar.State -> msg) -> (Navbar.State -> msg) -> (submsg -> msg) -> Maybe (Html submsg) -> Html submsg -> Html msg
-frame headerState footerState isLoading headerMsg footerMsg wrapper transition content =
+frame : FrameConfig submsg msg -> Html msg
+frame { headerState, footerState, headerMsg, footerMsg, contentMsg, transition, content, t } =
     div [ class "maincontainer" ]
-        [ viewHeader headerState isLoading |> Html.map headerMsg
-        , content |> Html.map wrapper
+        [ viewHeader t headerState |> Html.map headerMsg
+        , content |> Html.map contentMsg
         , viewFooter footerState |> Html.map footerMsg
         ]
 
 
-homeFrame : Navbar.State -> Navbar.State -> (Navbar.State -> msg) -> (Navbar.State -> msg) -> (submsg -> msg) -> Maybe (Html submsg) -> Html submsg -> Html msg
-homeFrame headerState footerState headerMsg footerMsg wrapper transition content =
-    content |> Html.map wrapper
+homeFrame : { a | content : Html submsg, contentMsg : submsg -> msg, t : Translator } -> Html msg
+homeFrame { content, contentMsg } =
+    content |> Html.map contentMsg
 
 
-
-{-
-   div [ class "maincontainer" ]
-       [ viewHomeHeader headerState |> Html.map headerMsg
-       , content |> Html.map wrapper
-       , viewFooter footerState |> Html.map footerMsg
-       ]
--}
-
-
-mainNav : (Navbar.State -> msg) -> Navbar.State -> Html msg
-mainNav toMsg navbarState =
+mainNav : Translator -> (Navbar.State -> msg) -> Navbar.State -> Html msg
+mainNav t toMsg navbarState =
     div [ class "navbar fixed", id "main-nav", attribute "role" "banner", attribute "style" "min-height: 76px;" ]
         [ div [ class "container" ]
             [ Navbar.config toMsg
                 |> Navbar.attrs [ id "main-nav", class "fixed" ]
-                |> Navbar.brand [ href "#" ] [ text "Author Analysis" ]
+                |> Navbar.brand [ href "#" ] [ text (t "author-analysis") ]
                 |> Navbar.customItems
-                    [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
-                    , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
+                    [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text (t "attribution") ]
+                    , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text (t "profiling") ]
                     ]
                 |> Navbar.view navbarState
             ]
@@ -53,17 +52,17 @@ mainNav toMsg navbarState =
 
 {-| The navigation bar at the top
 -}
-viewHeader : Navbar.State -> Bool -> Html Navbar.State
-viewHeader navbarState isLoading =
-    header [ class "header", id "home", attribute "style" "min-height: 76px;" ] [ mainNav identity navbarState ]
+viewHeader : Translator -> Navbar.State -> Html Navbar.State
+viewHeader translator navbarState =
+    header [ class "header", id "home", attribute "style" "min-height: 76px;" ] [ mainNav translator identity navbarState ]
 
 
-viewHomeHeader : Navbar.State -> Html Navbar.State
-viewHomeHeader navbarState =
+viewHomeHeader : Translator -> Navbar.State -> Html Navbar.State
+viewHomeHeader t navbarState =
     header [ id "home", class "header" ]
         [ div [ class "container" ]
             [ Navbar.config identity
-                |> Navbar.brand [ Route.href Route.Home ] [ text "Author Analysis " ]
+                |> Navbar.brand [ Route.href Route.Home ] [ text (t "author-analysis") ]
                 |> Navbar.customItems
                     [ Navbar.customItem <| a [ class "pull-right", Route.href Route.Attribution ] [ text "Attribution" ]
                     , Navbar.customItem <| a [ class "pull-right", Route.href Route.Profiling ] [ text "Profiling" ]
@@ -109,6 +108,7 @@ viewFooter footerbarState =
         ]
 
 
+viewIf : Bool -> Html msg -> Html msg
 viewIf predicate html =
     if predicate then
         html

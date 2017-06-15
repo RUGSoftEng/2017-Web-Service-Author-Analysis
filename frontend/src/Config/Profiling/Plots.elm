@@ -17,14 +17,12 @@ profilingPlot : Dict String (Plot AgePrediction msg)
 profilingPlot =
     let
         data =
-            [ { label = "age"
-              , title = "age distribution"
+            [ { id = "age-distribution"
               , render = plotAges
-              , description = div [ class "text-left box" ] [ text "Probability for age" ]
               }
             ]
     in
-        List.map (\datum -> ( datum.label, PlotSlideShow.plot datum )) data
+        List.map (\datum -> ( datum.id, PlotSlideShow.plot datum )) data
             |> Dict.fromList
 
 
