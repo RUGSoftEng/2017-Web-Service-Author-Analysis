@@ -68,12 +68,18 @@ groups toGroups =
         pinkFill =
             "rgba(253, 185, 231, 0.5)"
 
-        blueFill =
+        lightBlueFill =
             "#e4eeff"
+
+        blueFill =
+            "#5285ff"
+
+        redFill =
+            "#f45e5a"
     in
         { axis = normalAxis
         , toGroups = toGroups
-        , styles = [ [ fill pinkFill ], [ fill blueFill ] ]
+        , styles = [ [ fill redFill ], [ fill blueFill ] ]
         , maxWidth = Percentage 75
         }
 

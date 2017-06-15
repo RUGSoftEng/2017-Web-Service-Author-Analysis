@@ -86,12 +86,12 @@ attributionPlots =
               }
             , { name = "ngram SIM"
               , id = "ngram-sim"
-              , title = "anagram similarity"
+              , title = "ngram similarity"
               , description = "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI"
               }
             , { name = "ngram SPI"
               , id = "ngram-spi"
-              , title = "anagram SPI"
+              , title = "ngram SPI"
               , description = "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
               }
             , { name = "similarities"
@@ -109,13 +109,14 @@ profiling =
     Dict.fromList
         [ "title" => "Profiling"
         , "analyze" => "Analyze!"
-        , "profiling-explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
-        , "profiling-label" => "Profiling text"
-        , "profiling-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
-        , "profiling-settings-language" => "Language"
-        , "profiling-settings-language-description" => "Select the language in which the text is written"
+        , "explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
+        , "label" => "Profiling text"
+        , "description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
+        , "settings-language" => "Language"
+        , "settings-language-description" => "Select the language in which the text is written"
         , "loading-performing-analysis" => "Performing analysis"
         , "loading-cancel" => "Cancel"
+        , "load-example" => "Load Example - Trump's tweets"
         ]
 
 
@@ -132,7 +133,7 @@ profilingPlots =
         full =
             [ { id = "age-distribution"
               , name = "age"
-              , title = "age-distribution"
+              , title = "Age Distribution"
               , description = "Probability distribution for age"
               }
             ]

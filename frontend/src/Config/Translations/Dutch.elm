@@ -86,12 +86,12 @@ attributionPlots =
               }
             , { name = "ngram SIM"
               , id = "ngram-sim"
-              , title = "anagram similarity"
+              , title = "ngram similarity"
               , description = "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI"
               }
             , { name = "ngram SPI"
               , id = "ngram-spi"
-              , title = "anagram SPI"
+              , title = "ngram SPI"
               , description = "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document"
               }
             , { name = "similarities"

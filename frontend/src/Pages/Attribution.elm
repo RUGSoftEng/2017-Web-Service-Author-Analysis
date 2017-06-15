@@ -21,7 +21,7 @@ import Config.Attribution as Config
 import InputField
 import Route
 import I18n exposing (Translation, Translator)
-import Examples exposing (sameAuthor, differentAuthor)
+import Config.Attribution.Examples exposing (sameAuthor, differentAuthor)
 import Views.Spinner exposing (spinner)
 
 

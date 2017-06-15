@@ -13,6 +13,7 @@ import Views.Spinner exposing (spinner)
 --
 
 import Config.Profiling as Config
+import Config.Profiling.Examples exposing (trumpTweets)
 import Data.Profiling.Input
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
@@ -88,7 +89,11 @@ update config msg profiling =
             )
 
         LoadExample ->
-            ( profiling, Cmd.none )
+            ( { profiling
+                | text = InputField.fromString validator trumpTweets
+              }
+            , Cmd.none
+            )
 
 
 addFile : ( String, File ) -> Model -> Model
@@ -157,7 +162,7 @@ view translation profiling =
                     [ Grid.col []
                         [ h1 [] [ text (t "title") ]
                         , span [ class "explanation" ]
-                            [ text (I18n.get translation "profiling-explanation")
+                            [ text (I18n.get translation "explanation")
                             ]
                         ]
                     ]
@@ -172,6 +177,15 @@ view translation profiling =
                             , Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ]
                             ]
                             [ text (t "analyze") ]
+                        ]
+                    ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ Button.button
+                            [ Button.secondary
+                            , Button.attrs [ class "example-button", onClick LoadExample ]
+                            ]
+                            [ text (t "load-example") ]
                         ]
                     ]
                 , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t profiling)
@@ -191,10 +205,10 @@ textInput t text =
         -}
         config : InputField.ViewConfig
         config =
-            { label = t "profiling-label"
+            { label = t "label"
             , radioButtonName = "profiling-buttons"
             , fileInputId = "profiling-file-input"
-            , info = t "profiling-description"
+            , info = t "description"
             , multiple = False
             , translator = t
             }
@@ -222,8 +236,8 @@ settings t profiling =
                 ]
     in
         [ Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text (t "language") ]
-            , span [] [ text (t "settings-language") ]
+            [ h2 [] [ text (t "settings-language") ]
+            , span [] [ text (t "settings-language-description") ]
             , ul [] (List.map languageRadio profiling.languages)
             ]
         ]
