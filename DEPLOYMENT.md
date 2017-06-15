@@ -27,6 +27,7 @@ It follows the following general steps:
 The `Dockerfile` as it is currently provided expects the following directory structure:
 ```
 Dockerfile
+environment.yml
 app/ # Clone the `2017-Web-Service-Author-Analysis` repo (deployment branch) here
 |- backend/
 |  |- resources/
@@ -115,4 +116,30 @@ RUN npm run build-frontend:linux
 
 EXPOSE 8080  # This is ignored by Heroku, but is great for local execution
 CMD ["/bin/bash", "-c", "source activate glad && npm run deploy:linux"]
+```
+
+## environment.yml
+The current `Dockerfile` expects a `environment.yml` file that described the required Conda environment. This file should be in the same directory as the `Dockerfile` and `app/` directory.
+```yml
+name: glad
+channels:
+- defaults
+dependencies:
+- libgfortran=3.0.0=1
+- mkl=2017.0.1=0
+- nltk=3.2.2=py35_0
+- numpy=1.12.0=py35_0
+- openssl=1.0.2k=1
+- pip=9.0.1=py35_1
+- python=3.5.3=0
+- readline=6.2=2
+- scikit-learn=0.18.1=np112py35_1
+- scipy=0.18.1=np112py35_1
+- setuptools=27.2.0=py35_0
+- six=1.10.0=py35_0
+- sqlite=3.13.0=0
+- tk=8.5.18=0
+- wheel=0.29.0=py35_0
+- xz=5.2.2=1
+- zlib=1.2.8=3
 ```
