@@ -116,9 +116,15 @@ view (Config ({ t } as config)) (State model) data =
                 [ text (t (plotID ++ "-name")) ]
 
         menuItems =
-            model
-                |> Pivot.getA
-                |> List.indexedMap menuItem
+            let
+                plotIDs =
+                    Pivot.getA model
+            in
+                -- only display buttons when there are 2+ plots
+                if List.length plotIDs >= 2 then
+                    List.indexedMap menuItem plotIDs
+                else
+                    []
 
         menu =
             Grid.col [ Col.attrs [ class "center-block text-center" ] ]
