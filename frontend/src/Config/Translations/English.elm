@@ -109,11 +109,11 @@ profiling =
     Dict.fromList
         [ "title" => "Profiling"
         , "analyze" => "Analyze!"
-        , "profiling-explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
-        , "profiling-label" => "Profiling text"
-        , "profiling-description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
-        , "profiling-settings-language" => "Language"
-        , "profiling-settings-language-description" => "Select the language in which the text is written"
+        , "explanation" => "The Author Profiling System will, given a text, try to predict its author's age and gender."
+        , "label" => "Profiling text"
+        , "description" => "Place here the text of which the author is unknown. The text can either be pasted directly, or one file can be uploaded."
+        , "settings-language" => "Language"
+        , "settings-language-description" => "Select the language in which the text is written"
         , "loading-performing-analysis" => "Performing analysis"
         , "loading-cancel" => "Cancel"
         ]
@@ -132,7 +132,7 @@ profilingPlots =
         full =
             [ { id = "age-distribution"
               , name = "age"
-              , title = "age-distribution"
+              , title = "Age Distribution"
               , description = "Probability distribution for age"
               }
             ]

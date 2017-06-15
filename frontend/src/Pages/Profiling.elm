@@ -157,7 +157,7 @@ view translation profiling =
                     [ Grid.col []
                         [ h1 [] [ text (t "title") ]
                         , span [ class "explanation" ]
-                            [ text (I18n.get translation "profiling-explanation")
+                            [ text (I18n.get translation "explanation")
                             ]
                         ]
                     ]
@@ -191,10 +191,10 @@ textInput t text =
         -}
         config : InputField.ViewConfig
         config =
-            { label = t "profiling-label"
+            { label = t "label"
             , radioButtonName = "profiling-buttons"
             , fileInputId = "profiling-file-input"
-            , info = t "profiling-description"
+            , info = t "description"
             , multiple = False
             , translator = t
             }
@@ -222,8 +222,8 @@ settings t profiling =
                 ]
     in
         [ Grid.col [ Col.attrs [ class "text-left box" ] ]
-            [ h2 [] [ text (t "language") ]
-            , span [] [ text (t "settings-language") ]
+            [ h2 [] [ text (t "settings-language") ]
+            , span [] [ text (t "settings-language-description") ]
             , ul [] (List.map languageRadio profiling.languages)
             ]
         ]
