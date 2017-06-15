@@ -116,6 +116,7 @@ profiling =
         , "settings-language-description" => "Select the language in which the text is written"
         , "loading-performing-analysis" => "Performing analysis"
         , "loading-cancel" => "Cancel"
+        , "load-example" => "Load Example - Trump's tweets"
         ]
 
 

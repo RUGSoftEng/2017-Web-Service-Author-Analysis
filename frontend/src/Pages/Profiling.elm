@@ -13,6 +13,7 @@ import Views.Spinner exposing (spinner)
 --
 
 import Config.Profiling as Config
+import Config.Profiling.Examples exposing (trumpTweets)
 import Data.Profiling.Input
 import Data.File exposing (File)
 import Data.Language as Language exposing (Language(..))
@@ -88,7 +89,11 @@ update config msg profiling =
             )
 
         LoadExample ->
-            ( profiling, Cmd.none )
+            ( { profiling
+                | text = InputField.fromString validator trumpTweets
+              }
+            , Cmd.none
+            )
 
 
 addFile : ( String, File ) -> Model -> Model
@@ -172,6 +177,15 @@ view translation profiling =
                             , Button.attrs [ Route.href Route.ProfilingPrediction, id "compare-button" ]
                             ]
                             [ text (t "analyze") ]
+                        ]
+                    ]
+                , Grid.row []
+                    [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                        [ Button.button
+                            [ Button.secondary
+                            , Button.attrs [ class "example-button", onClick LoadExample ]
+                            ]
+                            [ text (t "load-example") ]
                         ]
                     ]
                 , Grid.row [ Row.attrs [ class "boxes settings" ] ] (settings t profiling)
