@@ -4,12 +4,10 @@ module Config.Profiling.Plots exposing (profilingPlot)
 -}
 
 import Html exposing (text, div)
-import Html.Attributes exposing (class)
 import Plot exposing (group, viewBarsCustom, defaultBarsPlotCustomizations, BarGroup, MaxBarWidth(Percentage), Bars, normalAxis)
 import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
 import PlotSlideShow exposing (Plot)
-import Regex exposing (Regex, regex)
 import Data.Profiling.Prediction exposing (AgePrediction, GenderPrediction)
 
 
@@ -17,14 +15,12 @@ profilingPlot : Dict String (Plot AgePrediction msg)
 profilingPlot =
     let
         data =
-            [ { label = "age"
-              , title = "age distribution"
+            [ { id = "age-distribution"
               , render = plotAges
-              , description = div [ class "text-left box" ] [ text "Probability for age" ]
               }
             ]
     in
-        List.map (\datum -> ( datum.label, PlotSlideShow.plot datum )) data
+        List.map (\datum -> ( datum.id, PlotSlideShow.plot datum )) data
             |> Dict.fromList
 
 
@@ -39,12 +35,18 @@ groups toGroups =
         pinkFill =
             "rgba(253, 185, 231, 0.5)"
 
-        blueFill =
+        lightBlueFill =
             "#e4eeff"
+
+        blueFill =
+            "#5285ff"
+
+        redFill =
+            "#f45e5a"
     in
         { axis = normalAxis
         , toGroups = toGroups
-        , styles = [ [ fill pinkFill ], [ fill blueFill ] ]
+        , styles = [ [ fill redFill ], [ fill blueFill ] ]
         , maxWidth = Percentage 75
         }
 

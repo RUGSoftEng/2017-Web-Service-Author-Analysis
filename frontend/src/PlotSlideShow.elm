@@ -8,16 +8,15 @@ We hide constructors (exposing `State` instead of `State(..)` to provide encapsu
 Heavily based on elm-sortable-table (https://github.com/evancz/elm-sortable-table/blob/master/src/Table.elm)
 -}
 
-import Html exposing (Html, text, h3)
+import Html exposing (Html, text, h3, div)
 import Html.Attributes exposing (class)
-import Json.Decode as Decode
-import Plot exposing (..)
 import Dict exposing (Dict)
 import Pivot exposing (Pivot)
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
+import I18n exposing (Translator)
 
 
 {-| Tracks the current plot
@@ -41,16 +40,14 @@ initialState x xs =
 {-| Describes a single plot
 -}
 type Plot data msg
-    = Plot { label : String, title : String, render : data -> Html msg, description : Html msg }
+    = Plot { id : String, render : data -> Html msg }
 
 
 {-| Create the description of a plot, and how to render it
 -}
 plot :
-    { label : String
-    , title : String
+    { id : String
     , render : data -> Html msg
-    , description : Html msg
     }
     -> Plot data msg
 plot =
@@ -63,6 +60,7 @@ type Config data msg
     = Config
         { plots : Dict String (Plot data msg)
         , toMsg : Msg -> msg
+        , t : Translator
         }
 
 
@@ -72,6 +70,7 @@ to convert plot messages to your app's message type
 config :
     { plots : Dict String (Plot data msg)
     , toMsg : Msg -> msg
+    , t : Translator
     }
     -> Config data msg
 config =
@@ -106,20 +105,26 @@ update msg (State model) =
 {-| Convert your data to plots given a state and a config.
 -}
 view : Config data msg -> State -> data -> Html msg
-view (Config config) (State model) data =
+view (Config ({ t } as config)) (State model) data =
     let
         active =
             Pivot.getC model
 
-        menuItem index plotLabel =
-            ButtonGroup.radioButton (plotLabel == active)
+        menuItem index plotID =
+            ButtonGroup.radioButton (plotID == active)
                 [ Button.secondary, Button.onClick (MoveTo index) ]
-                [ text plotLabel ]
+                [ text (t (plotID ++ "-name")) ]
 
         menuItems =
-            model
-                |> Pivot.getA
-                |> List.indexedMap menuItem
+            let
+                plotIDs =
+                    Pivot.getA model
+            in
+                -- only display buttons when there are 2+ plots
+                if List.length plotIDs >= 2 then
+                    List.indexedMap menuItem plotIDs
+                else
+                    []
 
         menu =
             Grid.col [ Col.attrs [ class "center-block text-center" ] ]
@@ -132,10 +137,10 @@ view (Config config) (State model) data =
                 Nothing ->
                     Grid.col [] []
 
-                Just (Plot { label, title, render, description }) ->
+                Just (Plot { id, render }) ->
                     Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-                        [ h3 [] [ text title ]
-                        , description
+                        [ h3 [] [ text (t (id ++ "-title")) ]
+                        , div [ class "text-left box" ] [ text (t (id ++ "-description")) ]
                         , render data
                         ]
     in

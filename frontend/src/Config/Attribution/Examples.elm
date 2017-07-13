@@ -1,4 +1,4 @@
-module Examples exposing (sameAuthor, differentAuthor)
+module Config.Attribution.Examples exposing (sameAuthor, differentAuthor)
 
 {-| The first chapter of some novels in the public domain, used as examples in the app
 -}

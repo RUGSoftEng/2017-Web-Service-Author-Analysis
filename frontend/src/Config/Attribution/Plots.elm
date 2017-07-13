@@ -8,7 +8,6 @@ are laid out around the plot.
 -}
 
 import Html exposing (text, div)
-import Html.Attributes exposing (class)
 import Plot exposing (group, viewBarsCustom, defaultBarsPlotCustomizations, BarGroup, MaxBarWidth(Percentage), Bars, normalAxis)
 import Svg.Attributes exposing (fill)
 import Dict exposing (Dict)
@@ -28,39 +27,33 @@ n-gram: a contiguous sequence of n items from a given sequence of text.
 
 cosine similarity: a measure of similarity between two non-zero vectors of an inner product space that measures the
                    cosine of the angle between them.
+
+
+
+              , description = div [ class "text-left box" ] [ text "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)" ]
 -}
 plots : Dict String (Plot Statistics msg)
 plots =
     let
         data =
-            [ { label = "punctuation"
-              , title = "punctuation per character"
+            [ { id = "punctuation"
               , render = plotPunctuation
-              , description = div [ class "text-left box" ] [ text "The usage of punctuation is indicative of the author based on the differences in use of typographical signs (exclamation marks, question marks, semi-colons, colons, commas, full stops, hyphens and quotation marks)" ]
               }
-            , { label = "line endings"
-              , title = "line endings per character"
+            , { id = "line-endings"
               , render = plotLineEndings
-              , description = div [ class "text-left box" ] [ text "The usage of line endings is indicative of the author based on the preferred ways of closing lines (full stops, commas, question marks, exclamation marks, spaces, hyphens, and semi-colons)" ]
               }
-            , { label = "ngram SIM"
-              , title = "anagram similarity"
+            , { id = "ngram-sim"
               , render = plotNgramsSim
-              , description = div [ class "text-left box" ] [ text "The ngram similarity with n ranging from 1 to 5 is measured by n-gram norm and SPI" ]
               }
-            , { label = "ngram SPI"
-              , title = "anagram SPI"
+            , { id = "ngram-spi"
               , render = plotNgramsSpi
-              , description = div [ class "text-left box" ] [ text "The ngram spi is a simple n-gram (n ranging from 1 to 5) overlap measure which based on the number of common n-grams in the most frequent n-grams for each document" ]
               }
-            , { label = "similarities"
-              , title = "similarities"
+            , { id = "similarities"
               , render = plotSimilarities
-              , description = div [ class "text-left box" ] [ text "A cosine similarity for the property vectors punctuation, line endings and line length, and simple subtraction for letter case and text block" ]
               }
             ]
     in
-        List.map (\datum -> ( datum.label, PlotSlideShow.plot datum )) data
+        List.map (\datum -> ( datum.id, PlotSlideShow.plot datum )) data
             |> Dict.fromList
 
 
@@ -75,12 +68,18 @@ groups toGroups =
         pinkFill =
             "rgba(253, 185, 231, 0.5)"
 
-        blueFill =
+        lightBlueFill =
             "#e4eeff"
+
+        blueFill =
+            "#5285ff"
+
+        redFill =
+            "#f45e5a"
     in
         { axis = normalAxis
         , toGroups = toGroups
-        , styles = [ [ fill pinkFill ], [ fill blueFill ] ]
+        , styles = [ [ fill redFill ], [ fill blueFill ] ]
         , maxWidth = Percentage 75
         }
 
@@ -180,3 +179,10 @@ plotSimilarities { similarity } =
             |> Dict.toList
             |> List.map construct
             |> viewBarsCustom customizations (groups (List.map (uncurry group)))
+
+
+type alias PlotDescription =
+    { name : String
+    , title : String
+    , description : String
+    }

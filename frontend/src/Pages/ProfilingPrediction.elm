@@ -17,6 +17,7 @@ import Bootstrap.Progress as Progress
 --
 
 import Config.Profiling.Plots as Plots
+import I18n exposing (Translator)
 import Data.Profiling.Input as Profiling exposing (..)
 import Data.Profiling.Prediction exposing (AgePrediction, GenderPrediction)
 import Request.Profiling
@@ -61,60 +62,54 @@ init input =
         Task.map (\{ age, gender } -> Model age gender plotState input) loadPrediction
 
 
-view : Model -> Html Msg
-view model =
-    Grid.container [] (viewResult model)
-
-
-viewResult : Model -> List (Html Msg)
-viewResult { age, gender, plotState } =
-    [ Grid.row []
-        [ Grid.col [ Col.attrs [] ]
-            [ h1 []
-                [ text "Results" ]
-            ]
+view : Translator -> Model -> Html Msg
+view t model =
+    div [ class "content" ]
+        [ Grid.container [] (viewResult t model)
         ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h2 []
-                [ hr [] []
-                , text "Gender"
+
+
+viewResult : Translator -> Model -> List (Html Msg)
+viewResult t { age, gender, plotState } =
+    let
+        plotConfig : PlotSlideShow.Config AgePrediction PlotSlideShow.Msg
+        plotConfig =
+            PlotSlideShow.config
+                { plots = Plots.profilingPlot
+                , toMsg = identity
+                , t = t
+                }
+    in
+        [ Grid.row []
+            [ Grid.col [ Col.attrs [] ]
+                [ h1 []
+                    [ text (t "title") ]
                 ]
             ]
-        ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-            [ Progress.progress [ Progress.value (floor <| gender.male * 100) ]
-            , h4 [ style [ ( "margin-top", "20px" ) ] ] [ text <| "Male probabllity: " ++ toString (round <| gender.male * 100) ++ "%" ++ " vs Female probabllity: " ++ toString (round <| gender.female * 100) ++ "%" ]
-            , hr [] []
+        , Grid.row []
+            [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                [ h2 []
+                    [ hr [] []
+                    , text (t "gender")
+                    ]
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                [ Progress.progress [ Progress.value (floor <| gender.male * 100) ]
+                , h4 [ style [ ( "margin-top", "20px" ) ] ]
+                    [ text <| "Male probability: " ++ toString (round <| gender.male * 100) ++ "%" ++ " vs Female probability: " ++ toString (round <| gender.female * 100) ++ "%" ]
+                , hr [] []
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.attrs [ class "text-center" ] ]
+                [ h2 []
+                    [ text (t "plots") ]
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
+                [ PlotSlideShow.view plotConfig plotState age ]
             ]
         ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h2 []
-                [ text "Plots" ]
-            ]
-        ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "center-block text-center" ] ]
-            [ PlotSlideShow.view plotConfig plotState age ]
-        ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "text-center" ] ]
-            [ h1 []
-                [ text " " ]
-            ]
-        ]
-    ]
-
-
-{-| Config for plots
-* plots: what plots to display
-* toMsg: how to wrap messages emitted by the PlotSlideShow
--}
-plotConfig : PlotSlideShow.Config AgePrediction PlotSlideShow.Msg
-plotConfig =
-    PlotSlideShow.config
-        { plots = Plots.profilingPlot
-        , toMsg = identity
-        }
